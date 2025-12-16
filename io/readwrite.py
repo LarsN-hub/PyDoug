@@ -133,6 +133,19 @@ def detect_valid_ext(file_path: str) -> bool:
     
     return any(x == ext for x in valid_exts)
 
+def detect_valid_dir(dir_path: str) -> bool:
+    
+    global valid_exts
+    dir_contents: list[str] = os.listdir(dir_path)
+    
+    for file in dir_contents:
+        
+        if any(x == get_ext(file) for x in valid_exts):
+            
+            return True
+        
+            break
+
 def detect_h5(file_path: str) -> bool:
     
     global h5_exts
@@ -341,21 +354,39 @@ def read_stack_fast(stack_path: str) -> np.array:
     
 def read_stack(stack_path: str) -> np.array:
     
-    try:
+    ext = get_ext(stack_path)
+    
+    if ext == "directory":
         
-        start = timer()
-        im_array: np.array = read_stack_fast(stack_path)
-        end = timer()
+        valid = detect_valid_dir(stack_path)
+        
+    else:
+        
+        valid = detect_valid_ext(stack_path)
+        
+    if valid:
+    
+        try:
             
-    except OSError:
+            start = timer()
+            im_array: np.array = read_stack_fast(stack_path)
+            end = timer()
+                
+        except OSError:
+            
+            start = timer()
+            im_array: np.array = read_stack_slow(stack_path)
+            end = timer()
+            
+        print(end - start)
+            
+        return im_array
+    
+    else:
         
-        start = timer()
-        im_array: np.array = read_stack_slow(stack_path)
-        end = timer()
+        print("\nInvalid image file extension!")
         
-    print(end - start)
-        
-    return im_array
+        return None
 
 # Main
 
