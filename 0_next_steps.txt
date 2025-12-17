@@ -1,7 +1,6 @@
 io/readwrite.py
-- Reshape arrays imported with scikit-image
-- Add individual image and stack export functions
 - Add parameter import and export functions
+- Add plot export function
 
 ui
 -Create folder
@@ -91,3 +90,10 @@ analysis/plots.py
 - Add contact area plot function
 - Add thickness / position heat map plot function
 - Add continuity trajectory plot function
+
+batch
+- Create folder
+
+batch/batchproc.py
+- Create file
+- Create batch processing function

@@ -1,11 +1,12 @@
 """
-Module for import/export of image files
+Module for import/export of image, parameter, and plot files
 """
 
 # Imports
 
 import tkfilebrowser as tkfb
 import numpy as np
+import platform
 import skimage
 import h5py
 import os
@@ -16,6 +17,7 @@ from PIL import Image
 
 # Globals
 
+write_exts: list[str] = ["png", "tif", "tiff"]
 h5_exts: list[str] = ["h5", "hdf", "hdf5", "he5"]
 valid_exts: list[str] = h5_exts + ["apng",
                                   "avif",
@@ -88,6 +90,22 @@ valid_exts: list[str] = h5_exts + ["apng",
 
 # Functions
 
+def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
+    
+    if platform.system() == "Windows":
+        
+        if isinstance(file_paths, str):
+        
+            file_paths = file_paths.replace("\\", "/")
+            
+        elif isinstance(file_paths, list):
+            
+            for index, path in enumerate(file_paths):
+                
+                file_paths[index] = path.replace("\\", "/")
+                
+    return file_paths
+
 def get_path(directory = False) -> str:
     
     if directory:
@@ -98,7 +116,7 @@ def get_path(directory = False) -> str:
         
         path: str = tkfb.askopenfilename(title = "Select file")
     
-    return path
+    return universalize_paths(path)
 
 def get_paths(directory = False) -> list[str]:
     
@@ -110,7 +128,7 @@ def get_paths(directory = False) -> list[str]:
         
         paths: list[str] = tkfb.askopenfilenames(title = "Select file(s)")   
          
-    return paths
+    return universalize_paths(list(paths))
 
 def get_ext(file_path: str) -> str:
     
@@ -223,7 +241,13 @@ def read_im(file_path: str) -> np.array:
         
         else:
             
-            im_array: np.array = np.array(Image.open(file_path))
+            try:
+            
+                im_array: np.array = skimage.io.imread(file_path)
+                
+            except OSError:
+                
+                im_array: np.array = np.array(Image.open(file_path))
         
         return im_array
             
@@ -267,7 +291,7 @@ def get_dir_stack_info(dir_path: str) -> dict:
         
     else:
         
-        first_im_array: np.array = read_im(dir_path + "\\" + dir_contents[index_list[0]])
+        first_im_array: np.array = read_im(dir_path + "/" + dir_contents[index_list[0]])
         no_slices: int = len(dir_contents) + index_list[1] + 1 - index_list[0]
         im_array_shape = (first_im_array.shape[0], first_im_array.shape[1], no_slices)
     
@@ -298,7 +322,7 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
         
             for index, file in enumerate(dir_contents):
                 
-                im_array[:, :, index] = read_im(stack_path + "\\" + file)
+                im_array[:, :, index] = read_im(stack_path + "/" + file)
         
         else:
             
@@ -306,11 +330,11 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
                 
                 if index == 0:
                     
-                    im_array: np.array = read_h5(stack_path + "\\" + file)
+                    im_array: np.array = read_h5(stack_path + "/" + file)
                     
                 else:
                     
-                    int_array: np.array = read_h5(stack_path + "\\" + file)
+                    int_array: np.array = read_h5(stack_path + "/" + file)
                     im_array = np.concat([im_array, int_array], axis = h5_concat_axis)
     
     else:
@@ -325,7 +349,7 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
             no_rows, no_cols = np.shape(im)
             im_array = np.empty((no_rows, no_cols, im.n_frames))
             
-            for i in range(im.n_frames):
+            for i in range(0, (im.n_frames + 1)):
                 
                im.seek(i)
                im_array[:, :, i] = np.array(im)   
@@ -340,7 +364,7 @@ def read_stack_fast(stack_path: str) -> np.array:
         
         for index, file in enumerate(dir_contents):
             
-            dir_contents[index] = stack_path + "\\" + file
+            dir_contents[index] = stack_path + "/" + file
             
         im_collection: skimage.io.ImageCollection = skimage.io.imread_collection(dir_contents)
         im_array: np.array = skimage.io.concatenate_images(im_collection)
@@ -350,7 +374,7 @@ def read_stack_fast(stack_path: str) -> np.array:
         im_collection: skimage.io.MultiImage = skimage.io.MultiImage(stack_path)
         im_array: np.array = skimage.io.concatenate_images(im_collection)
     
-    return im_array
+    return np.moveaxis(np.squeeze(im_array), 0, 2)
     
 def read_stack(stack_path: str) -> np.array:
     
@@ -366,19 +390,17 @@ def read_stack(stack_path: str) -> np.array:
         
     if valid:
     
+        start = timer()
         try:
             
-            start = timer()
             im_array: np.array = read_stack_fast(stack_path)
-            end = timer()
                 
         except OSError:
             
-            start = timer()
             im_array: np.array = read_stack_slow(stack_path)
-            end = timer()
             
-        print(end - start)
+        end = timer()
+        print(f"\nFinished import in {(end - start):.2} s!")
             
         return im_array
     
@@ -387,6 +409,71 @@ def read_stack(stack_path: str) -> np.array:
         print("\nInvalid image file extension!")
         
         return None
+    
+def write_h5(im_array: np.array, save_path: str) -> None:
+    
+    h5_file: h5py.File = h5py.File(save_path, "w")
+    h5_file.create_dataset("im_array", data = im_array)
+    h5_file.close()
+    
+def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff") -> None:
+    
+    global write_exts
+    global h5_exts
+    save_path: str = save_dir + "/" + file_name + "." + ext
+    
+    if any(ext == x for x in write_exts):
+        
+        skimage.io.imsave(save_path, im_array, check_contrast = False)
+    
+    elif any(ext == x for x in h5_exts):
+        
+        write_h5(im_array, save_path)
+        
+    else:
+        
+        print("\nInvalid image file extneion!")
+        
+def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff", multi_page: bool = False) -> None:
+    
+    global write_exts
+    global h5_exts
+    save_path: str = save_dir + "/" + file_name + "." + ext
+    
+    if any(ext == x for x in write_exts):
+        
+        start = timer()
+        
+        if multi_page:
+            
+            save_path: str = save_dir + "/" + file_name + "." + ext
+            skimage.io.imsave(save_path, np.moveaxis(im_array, 2, 0), check_contrast = False)
+            
+        else:
+            
+            os.makedirs(save_dir + "/" + file_name)
+            no_slices: int = im_array.shape[2]
+            
+            for n in range(0, no_slices):
+                
+                save_path: str = save_dir + "/" + file_name + "/" + f"slice_{n:04}." + ext
+                skimage.io.imsave(save_path, im_array[:, :, n], check_contrast = False)
+                
+        end = timer()
+        print(f"\nFinished export in {(end - start):.2} s!")
+    
+    elif any(ext == x for x in h5_exts):
+        
+        start = timer()
+        save_path: str = save_dir + "/" + file_name + "." + ext
+        write_h5(im_array, save_path)
+        end = timer()
+        print(f"\nFinished export in {(end - start): .2} s!")
+        
+    else:
+        
+        print("\nInvalid image file extension!")
+
 
 # Main
 
