@@ -1,0 +1,93 @@
+io/readwrite.py
+- Reshape arrays imported with scikit-image
+- Add individual image and stack export functions
+- Add parameter import and export functions
+
+ui
+-Create folder
+
+ui/sliceviewer.py
+- Create file
+- Add launch Napari on startup function
+- Add load image/stack into Napari upon reading function
+- Add retrieve image/stack from Napari for export function
+
+ui/cli.py
+- Create file
+- Add main function
+
+processing
+- Create folder
+
+processing/transformations.py
+- Create file
+- Add re-slice / axis swap function
+- Add rotation function
+- Add flip function
+- Add translation function
+- Add registration function
+
+processing/cropclip.py
+- Create file
+- Add crop function
+- Add mask function
+- Add pad function
+
+processing/pixelvalues.py
+- Create file
+- Add type conversion function
+- Add binning function
+- Add statistics function
+- Add histogram function
+- Add saturation function
+
+processing/filters.py
+- Create file
+- Add blur filter function (Gaussian blur)
+- Add edge detection / sharp filter functions (bilateral filter and nonlocal means filter)
+- Add Fourier / inverse Fourier transform functions (FFT and inverse FFT)
+
+processing/segmentation.py
+- Create file
+- Add manual thresholding function
+- Add Otsu thresholding function
+- Add watershed segmentation function
+- Add clustering segmentation function
+
+processing/binary.py
+- Create file
+- Add binary flip function
+- Add opening function
+- Add closing function
+- Add particle identification function
+- Add particle size filter
+
+processing/dic.py
+- Create file
+- Add digital image / volume correlation function
+
+analysis
+- Create folder
+
+analysis/quantification.py
+- Create file
+- Add particle count function
+- Add particle size distribution function
+- Add volume calculation function
+- Add volume distribution function
+- Add surface area calculation function
+- Add contact area calculation function
+- Add continuity trajectory calculation function
+- Add directional thickness calculation function
+- Add directional position calculation function
+
+analysis/plots.py
+- Create file
+- Add total particle count plot function
+- Add particle size distribution plot function
+- Add total volume plot function
+- Add volume distribution plot function
+- Add surface area plot function
+- Add contact area plot function
+- Add thickness / position heat map plot function
+- Add continuity trajectory plot function
