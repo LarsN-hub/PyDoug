@@ -2,23 +2,15 @@ io/readwrite.py
 - Add parameter import and export functions
 - Add plot export function
 
-ui
--Create folder
-
-ui/sliceviewer.py
-- Create file
-- Add launch Napari on startup function
-- Add load image/stack into Napari upon reading function
+ui/sliceview.py
+- Correct default viewing axis in display function
 - Add retrieve image/stack from Napari for export function
 
 ui/cli.py
 - Create file
 - Add main function
 
-processing
-- Create folder
-
-processing/transformations.py
+proc/transformations.py
 - Create file
 - Add re-slice / axis swap function
 - Add rotation function
@@ -26,13 +18,13 @@ processing/transformations.py
 - Add translation function
 - Add registration function
 
-processing/cropclip.py
+proc/cropclip.py
 - Create file
 - Add crop function
 - Add mask function
 - Add pad function
 
-processing/pixelvalues.py
+proc/pixelvalues.py
 - Create file
 - Add type conversion function
 - Add binning function
@@ -40,20 +32,20 @@ processing/pixelvalues.py
 - Add histogram function
 - Add saturation function
 
-processing/filters.py
+proc/filters.py
 - Create file
 - Add blur filter function (Gaussian blur)
 - Add edge detection / sharp filter functions (bilateral filter and nonlocal means filter)
 - Add Fourier / inverse Fourier transform functions (FFT and inverse FFT)
 
-processing/segmentation.py
+proc/segmentation.py
 - Create file
 - Add manual thresholding function
 - Add Otsu thresholding function
 - Add watershed segmentation function
 - Add clustering segmentation function
 
-processing/binary.py
+proc/binary.py
 - Create file
 - Add binary flip function
 - Add opening function
@@ -61,12 +53,9 @@ processing/binary.py
 - Add particle identification function
 - Add particle size filter
 
-processing/dic.py
+proc/dic.py
 - Create file
 - Add digital image / volume correlation function
-
-analysis
-- Create folder
 
 analysis/quantification.py
 - Create file
@@ -90,9 +79,6 @@ analysis/plots.py
 - Add contact area plot function
 - Add thickness / position heat map plot function
 - Add continuity trajectory plot function
-
-batch
-- Create folder
 
 batch/batchproc.py
 - Create file

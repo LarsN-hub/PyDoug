@@ -1,2 +1,6 @@
 # .gitignore
 io/__pycache__
+ui/__pycache__
+proc/__pycache__
+analyze/__pychache__
+batch/__pycache__
