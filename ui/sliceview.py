@@ -20,9 +20,9 @@ def close_napari(viewer: napari.viewer) -> None:
     
     viewer.close()
     
-def view_im(im_array: np.array, viewer: napari.viewer) -> napari.layers:
+def view_im(im_array: np.array, viewer: napari.viewer) -> napari.layers.image:
     
-    im_layer: napari.layers = viewer.add_image(im_array)
+    im_layer: napari.layers.image = viewer.add_image(im_array)
     
     return im_layer
 
