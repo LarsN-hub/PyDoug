@@ -3,8 +3,7 @@ io/readwrite.py
 - Add plot export function
 
 ui/sliceview.py
-- Correct default viewing axis in display function
-- Add retrieve image/stack from Napari for export function
+- Add listener function
 
 ui/cli.py
 - Create file
