@@ -10,23 +10,21 @@ ui/cli.py
 - Add main function
 
 proc/trans.py
-- Add rotation function
 - Add translation function
 - Add registration function
+
+proc/pixels.py
+- Add float -> bounding bounds to type conversion function with skimage.util.map_array
+- Add binning function
+- Add statistics function
+- Add histogram function
+- Add saturation function
 
 proc/cropclip.py
 - Create file
 - Add crop function
 - Add mask function
 - Add pad function
-
-proc/pixelvalues.py
-- Create file
-- Add type conversion function
-- Add binning function
-- Add statistics function
-- Add histogram function
-- Add saturation function
 
 proc/filters.py
 - Create file

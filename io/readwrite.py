@@ -7,11 +7,11 @@ Module for import/export of image, parameter, and plot files
 import tkfilebrowser as tkfb
 import numpy as np
 import platform
-import skimage
 import h5py
 import os
 
 from timeit import default_timer as timer
+from skimage import io
 from PIL import Image
 
 
@@ -243,7 +243,7 @@ def read_im(file_path: str) -> np.array:
             
             try:
             
-                im_array: np.array = skimage.io.imread(file_path)
+                im_array: np.array = io.imread(file_path)
                 
             except OSError:
                 
@@ -366,13 +366,13 @@ def read_stack_fast(stack_path: str) -> np.array:
             
             dir_contents[index] = stack_path + "/" + file
             
-        im_collection: skimage.io.ImageCollection = skimage.io.imread_collection(dir_contents)
-        im_array: np.array = skimage.io.concatenate_images(im_collection)
+        im_collection: io.ImageCollection = io.imread_collection(dir_contents)
+        im_array: np.array = io.concatenate_images(im_collection)
         
     else:
         
-        im_collection: skimage.io.MultiImage = skimage.io.MultiImage(stack_path)
-        im_array: np.array = skimage.io.concatenate_images(im_collection)
+        im_collection: io.MultiImage = io.MultiImage(stack_path)
+        im_array: np.array = io.concatenate_images(im_collection)
     
     return np.moveaxis(np.squeeze(im_array), 0, 2)
     
@@ -424,7 +424,7 @@ def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff
     
     if any(ext == x for x in write_exts):
         
-        skimage.io.imsave(save_path, im_array, check_contrast = False)
+        io.imsave(save_path, im_array, check_contrast = False)
     
     elif any(ext == x for x in h5_exts):
         
@@ -447,7 +447,7 @@ def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "t
         if multi_page:
             
             save_path: str = save_dir + "/" + file_name + "." + ext
-            skimage.io.imsave(save_path, np.moveaxis(im_array, 2, 0), check_contrast = False)
+            io.imsave(save_path, np.moveaxis(im_array, 2, 0), check_contrast = False)
             
         else:
             
@@ -457,7 +457,7 @@ def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "t
             for n in range(0, no_slices):
                 
                 save_path: str = save_dir + "/" + file_name + "/" + f"slice_{n:04}." + ext
-                skimage.io.imsave(save_path, im_array[:, :, n], check_contrast = False)
+                io.imsave(save_path, im_array[:, :, n], check_contrast = False)
                 
         end = timer()
         print(f"\nFinished export in {(end - start):.2} s!")

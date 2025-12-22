@@ -5,9 +5,34 @@ Module for transforming images
 # Imports
 
 import numpy as np
+import pixels
+
+from skimage import transform
 
 
 # Functions
+
+def rotate(im_array: np.array, angle: float, direction: str = "CCW", resize: bool = False) -> np.array:
+    
+    valid_directions: tuple[str] = ("CW", "CCW")
+    
+    if any(x == direction for x in valid_directions):
+        
+        input_type: np.dtype = im_array.dtype
+        
+        if direction == "CCW":
+            
+            rot_array: np.array = pixels.data_type(transform.rotate(im_array, angle, resize = resize), input_type)
+        
+        elif direction == "CW":
+            
+            rot_array: np.array = pixels.data_type(transform.rotate(im_array, -angle, resize = resize), input_type)
+        
+        return rot_array
+    
+    else:
+        
+        print("\nInvalid rotation direction!")
 
 def mirror(im_array: np.array, direction: str) -> np.array:
     
@@ -64,10 +89,6 @@ def reslice(im_array: np.array, orientation: str) -> np.array:
     else:
         
         print("\nInvalid reslice orientation!")
-
-def rotate(im_array: np.array, ccw_angle: float, expand_dim: bool = False) -> np.array:
-    
-    pass
 
 def translate(im_array: np.array, trans_vector: tuple[int], expand_dim: bool = False) -> np.array:
     
