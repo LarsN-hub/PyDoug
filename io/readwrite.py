@@ -17,9 +17,9 @@ from PIL import Image
 
 # Globals
 
-write_exts: list[str] = ["png", "tif", "tiff"]
-h5_exts: list[str] = ["h5", "hdf", "hdf5", "he5"]
-valid_exts: list[str] = h5_exts + ["apng",
+write_exts: tuple[str] = ("png", "tif", "tiff")
+h5_exts: tuple[str] = ("h5", "hdf", "hdf5", "he5")
+valid_exts: tuple[str] = h5_exts +("apng",
                                   "avif",
                                   "blp",
                                   "bmp",
@@ -85,7 +85,7 @@ valid_exts: list[str] = h5_exts + ["apng",
                                   "wmf",
                                   "xbm",
                                   "xpm"
-                                  "xv"]
+                                  "xv")
 
 
 # Functions
@@ -122,11 +122,11 @@ def get_paths(directory = False) -> list[str]:
     
     if directory:
         
-        paths: list[str] = tkfb.askopendirnames(title = "Select folder(s)")
+        paths: tuple[str] = tkfb.askopendirnames(title = "Select folder(s)")
     
     else:
         
-        paths: list[str] = tkfb.askopenfilenames(title = "Select file(s)")   
+        paths: tuple[str] = tkfb.askopenfilenames(title = "Select file(s)")   
          
     return universalize_paths(list(paths))
 

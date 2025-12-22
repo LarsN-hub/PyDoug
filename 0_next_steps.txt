@@ -9,11 +9,8 @@ ui/cli.py
 - Create file
 - Add main function
 
-proc/transformations.py
-- Create file
-- Add re-slice / axis swap function
+proc/trans.py
 - Add rotation function
-- Add flip function
 - Add translation function
 - Add registration function
 
