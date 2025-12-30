@@ -1,5 +1,5 @@
 """
-Module for transforming images
+Module for image transformation operations
 """
 
 # Imports
@@ -18,15 +18,13 @@ def rotate(im_array: np.array, angle: float, direction: str = "CCW", resize: boo
     
     if any(x == direction for x in valid_directions):
         
-        input_type: np.dtype = im_array.dtype
-        
         if direction == "CCW":
             
-            rot_array: np.array = pixels.data_type(transform.rotate(im_array, angle, resize = resize), input_type)
+            rot_array: np.array = pixels.convert_im_type(transform.rotate(im_array, angle, resize = resize), im_array.dtype)
         
         elif direction == "CW":
             
-            rot_array: np.array = pixels.data_type(transform.rotate(im_array, -angle, resize = resize), input_type)
+            rot_array: np.array = pixels.convert_im_type(transform.rotate(im_array, -angle, resize = resize), im_array.dtype)
         
         return rot_array
     

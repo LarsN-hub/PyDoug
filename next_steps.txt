@@ -1,6 +1,6 @@
 io/readwrite.py
 - Add parameter import and export functions
-- Add plot export function
+- fix persistent tkinter window
 
 ui/sliceview.py
 - Add listener function
@@ -14,11 +14,6 @@ proc/trans.py
 - Add registration function
 
 proc/pixels.py
-- Add float -> bounding bounds to type conversion function with skimage.util.map_array
-- Add binning function
-- Add statistics function
-- Add histogram function
-- Add saturation function
 
 proc/cropclip.py
 - Create file

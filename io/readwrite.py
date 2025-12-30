@@ -1,5 +1,5 @@
 """
-Module for import/export of image, parameter, and plot files
+Module for import/export of images, parameters, and plots
 """
 
 # Imports
@@ -11,6 +11,7 @@ import h5py
 import os
 
 from timeit import default_timer as timer
+from matplotlib import pyplot as plt
 from skimage import io
 from PIL import Image
 
@@ -473,6 +474,11 @@ def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "t
     else:
         
         print("\nInvalid image file extension!")
+        
+def write_plot(fig: plt.figure, file_name: str, save_dir: str) -> None:
+    
+    save_path: str = save_dir + "/" + file_name + ".png"
+    fig.savefig(save_path)
 
 
 # Main

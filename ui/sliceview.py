@@ -29,7 +29,7 @@ def close_layer(viewer: napari.viewer, layer_name: str) -> None:
     
     viewer.layers.remove(layer_name)
 
-def launch_and_view(im_array: np.array, layer_name: str = "im_array") -> napari.layers.image:
+def launch_and_view(im_array: np.array, layer_name: str = "im_array") -> (napari.viewer, napari.layers.image):
     
     viewer: napari.viewer = create_viewer()
     
