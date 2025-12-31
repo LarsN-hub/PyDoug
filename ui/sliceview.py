@@ -85,14 +85,14 @@ def create_shape_layer(viewer: napari.viewer, shape_type: str = "rectangle", *, 
         
         elif shape_type == "ellipse":
             
-            pass
+            shape_dimensions: np.array = np.array([[initial_start, initial_start], [initial_end, initial_start], [initial_end, initial_end], [initial_start, initial_end]])
         
         elif shape_type == "line":
             
-            pass
+            shape_dimensions: np.array = np.array([[initial_start, initial_start], [initial_end, initial_end]])
         
         shape_layer = viewer.add_shapes()
-        shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", face_color = "red")
+        shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", edge_width = 2, face_color = "#ff000000")
         
         return shape_layer
             

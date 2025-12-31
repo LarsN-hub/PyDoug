@@ -7,7 +7,6 @@ Module for import/export of images, parameters, and plots
 import tkfilebrowser as tkfb
 import numpy as np
 import platform
-import trans
 import h5py
 import os
 
@@ -376,7 +375,7 @@ def read_stack_fast(stack_path: str) -> np.array:
         im_collection: io.MultiImage = io.MultiImage(stack_path)
         im_array: np.array = io.concatenate_images(im_collection)
     
-    return np.moveaxis(np.squeeze(im_array), 0, 2)
+    return np.squeeze(im_array)
     
 def read_stack(stack_path: str) -> np.array:
     
@@ -437,11 +436,10 @@ def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff
         
         print("\nInvalid image file extneion!")
         
-def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff", multi_page: bool = False) -> None:
+def write_stack(im_array: np.array, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
     
     global write_exts
     global h5_exts
-    save_path: str = save_dir + "/" + file_name + "." + ext
     
     if any(ext == x for x in write_exts):
         
@@ -450,17 +448,17 @@ def write_stack(im_array: np.array, save_dir: str, file_name: str, ext: str = "t
         if multi_page:
             
             save_path: str = save_dir + "/" + file_name + "." + ext
-            io.imsave(save_path, np.moveaxis(im_array, 2, 0), check_contrast = False)
+            io.imsave(save_path, im_array, check_contrast = False)
             
         else:
             
             os.makedirs(save_dir + "/" + file_name)
-            no_slices: int = im_array.shape[2]
+            no_slices: int = im_array.shape[0]
             
             for n in range(0, no_slices):
                 
                 save_path: str = save_dir + "/" + file_name + "/" + f"slice_{n:04}." + ext
-                io.imsave(save_path, im_array[:, :, n], check_contrast = False)
+                io.imsave(save_path, im_array[n], check_contrast = False)
                 
         end = timer()
         print(f"\nFinished export in {(end - start):.2} s!")

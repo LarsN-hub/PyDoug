@@ -3,13 +3,16 @@ io/readwrite.py
 - fix persistent tkinter window
 
 ui/sliceview.py
-- Add listener function
+- Create extract shape dimensions function
 
 ui/cli.py
 - Create file
 - Add main function
 
 proc/trans.py
+- Fix rotate function
+- Fix mirror function
+- Fix re-slice function
 - Add translation function
 - Add registration function
 
