@@ -16,7 +16,6 @@ proc/trans.py
 proc/pixels.py
 
 proc/cropclip.py
-- Create file
 - Add crop function
 - Add mask function
 - Add pad function

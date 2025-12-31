@@ -7,6 +7,7 @@ Module for import/export of images, parameters, and plots
 import tkfilebrowser as tkfb
 import numpy as np
 import platform
+import trans
 import h5py
 import os
 
@@ -392,6 +393,7 @@ def read_stack(stack_path: str) -> np.array:
     if valid:
     
         start = timer()
+        
         try:
             
             im_array: np.array = read_stack_fast(stack_path)
