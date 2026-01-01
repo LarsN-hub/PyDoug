@@ -12,7 +12,7 @@ from skimage import transform
 
 # Functions
 
-def rotate(im_array: np.array, angle: float, direction: str = "CCW", resize: bool = False) -> np.array:
+def rotate(im_array: np.array, angle: float, direction: str = "CCW", *, resize: bool = False) -> np.array:
     
     valid_directions: tuple[str] = ("CW", "CCW")
     
@@ -20,11 +20,11 @@ def rotate(im_array: np.array, angle: float, direction: str = "CCW", resize: boo
         
         if direction == "CCW":
             
-            rot_array: np.array = pixels.convert_im_type(transform.rotate(im_array, angle, resize = resize), im_array.dtype)
+            rot_array: np.array = pixels.convert_im_type(np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), angle, resize = resize), 2, 0), im_array.dtype)
         
         elif direction == "CW":
             
-            rot_array: np.array = pixels.convert_im_type(transform.rotate(im_array, -angle, resize = resize), im_array.dtype)
+            rot_array: np.array = pixels.convert_im_type(np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), -angle, resize = resize), 2, 0), im_array.dtype)
         
         return rot_array
     
@@ -32,7 +32,7 @@ def rotate(im_array: np.array, angle: float, direction: str = "CCW", resize: boo
         
         print("\nInvalid rotation direction!")
 
-def mirror(im_array: np.array, direction: str) -> np.array:
+def mirror(im_array: np.array, direction: str = "vertical") -> np.array:
     
     valid_directions: tuple[str] = ("vertical", "horizontal", "through")
     
@@ -40,15 +40,15 @@ def mirror(im_array: np.array, direction: str) -> np.array:
     
         if direction == "vertical":
             
-            mir_array: np.array = np.flipud(im_array)
+            mir_array: np.array = np.moveaxis(np.flipud(np.moveaxis(im_array, 0, 2)), 2, 0)
         
         elif direction == "horizontal":
             
-            mir_array: np.array = np.fliplr(im_array)
+            mir_array: np.array = np.moveaxis(np.fliplr(np.moveaxis(im_array, 0, 2)), 2, 0)
         
         elif direction == "through":
             
-            mir_array: np.array = np.flip(im_array, 2)
+            mir_array: np.array = np.moveaxis(np.flip(np.moveaxis(im_array, 0, 2), 2), 2, 0)
         
         return mir_array
         
@@ -56,7 +56,7 @@ def mirror(im_array: np.array, direction: str) -> np.array:
         
         print("\nInvalid mirror direction!")
 
-def reslice(im_array: np.array, orientation: str) -> np.array:
+def reslice(im_array: np.array, orientation: str = "top") -> np.array:
     
     valid_orientations: tuple[str] = ("left", "right", "top", "bottom", "back")
     
@@ -64,19 +64,19 @@ def reslice(im_array: np.array, orientation: str) -> np.array:
     
         if orientation == "left":
             
-            res_array: np.array = mirror(np.swapaxes(im_array, 1, 2), "horizontal")
+            res_array: np.array = mirror(np.swapaxes(im_array, 0, 2), "horizontal")
         
         elif orientation == "right":
             
-            res_array: np.array = mirror(np.swapaxes(im_array, 1, 2), "through")
+            res_array: np.array = mirror(np.swapaxes(im_array, 0, 2), "through")
         
         elif orientation == "top":
             
-            res_array: np.array = mirror(np.swapaxes(im_array, 0, 2), "vertical")
+            res_array: np.array = mirror(np.swapaxes(im_array, 0, 1), "vertical")
         
         elif orientation == "bottom":
             
-            res_array: np.array = mirror(np.swapaxes(im_array, 0, 2), "through")
+            res_array: np.array = mirror(np.swapaxes(im_array, 0, 1), "through")
         
         elif orientation == "back":
             

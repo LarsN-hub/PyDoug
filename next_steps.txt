@@ -3,23 +3,21 @@ io/readwrite.py
 - fix persistent tkinter window
 
 ui/sliceview.py
-- Create extract shape dimensions function
 
 ui/cli.py
 - Create file
 - Add main function
 
 proc/trans.py
-- Fix rotate function
-- Fix mirror function
-- Fix re-slice function
 - Add translation function
 - Add registration function
 
 proc/pixels.py
 
 proc/cropclip.py
-- Add crop function
+- Finish shape_mask_coords function
+- Finish crop function
+- Add slice trimmer function
 - Add mask function
 - Add pad function
 
