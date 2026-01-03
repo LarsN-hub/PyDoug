@@ -1,6 +1,7 @@
 io/readwrite.py
 - Add parameter import and export functions
 - fix persistent tkinter window
+- make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
 
@@ -15,9 +16,7 @@ proc/trans.py
 proc/pixels.py
 
 proc/cropclip.py
-- Finish shape_mask_coords function
-- Finish crop function
-- Add slice trimmer function
+- Test slice trimmer function
 - Add mask function
 - Add pad function
 
