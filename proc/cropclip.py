@@ -137,8 +137,8 @@ def coords_2_mask(im_array: np.array, shape_coords: np.array, shape_type: str) -
     else:
         
         print("\nInvalid shape type!")
-
-def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside_mask_int: int | float = 0, conserve_mem: bool = False) -> np.array:
+        
+def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_method: str = "out", outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.array:
     
     valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
     
@@ -146,18 +146,84 @@ def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside
         
         mask_dict: dict[str, np.array, tuple] = coords_2_mask(im_array, shape_coords, shape_type)
         mask_array = np.expand_dims(mask_dict["mask"], 0)
-        low_coords: tuple = mask_dict["start"]
-        high_coords: tuple = mask_dict["end"]
         
         if conserve_mem:
             
             if len(im_array.shape) > 2:
                 
-                im_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                if mask_method == "out":
+                    
+                    im_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                    
+                elif mask_method == "in":
+                    
+                    im_array[np.repeat(mask_array, im_array.shape[0], axis = 0)] = outside_mask_int
                 
             else:
                 
-                im_array[np.logical_not(mask_dict["mask"], axis = 0)] = outside_mask_int
+                if mask_method == "out":
+                                    
+                    im_array[np.logical_not(mask_dict["mask"])] = outside_mask_int
+                    
+                elif mask_method == "in":
+                    
+                    im_array[mask_dict["mask"]] = outside_mask_int
+                
+            if return_mask:
+                
+                return im_array, mask_dict
+            
+            else:
+                
+                return im_array
+        
+        else:
+            
+            masked_array: np.array = np.copy(im_array)
+            
+            if len(im_array.shape) > 2:
+                
+                if mask_method == "out":
+                
+                    masked_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                    
+                elif mask_method == "in":
+                    
+                    masked_array[np.repeat(mask_array, im_array.shape[0], axis = 0)] = outside_mask_int
+                
+            else:
+                
+                if mask_method == "out":
+                
+                    masked_array[np.logical_not(mask_dict["mask"])] = outside_mask_int
+                    
+                elif mask_method == "in":
+                    
+                    masked_array[mask_dict["mask"]] = outside_mask_int
+        
+            if return_mask:
+                
+                return masked_array, mask_dict
+            
+            else:
+                
+                return masked_array
+    
+    else:
+        
+        print("\nInvalid shape type!")
+
+def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside_mask_int: int | float = 0, conserve_mem: bool = False) -> np.array:
+    
+    valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
+    
+    if any(shape_type.find(x) != -1 for x in valid_shapes):
+        
+        if conserve_mem:
+            
+            im_array, mask_dict = mask(im_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, conserve_mem = True, return_mask = True)
+            low_coords: tuple = mask_dict["start"]
+            high_coords: tuple = mask_dict["end"]
         
             return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
         
@@ -167,7 +233,9 @@ def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside
             
             if len(im_array.shape) > 2:
                 
-                crop_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                crop_array, mask_dict = mask(crop_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, conserve_mem = True, return_mask = True)
+                low_coords: tuple = mask_dict["start"]
+                high_coords: tuple = mask_dict["end"]
                 
             else:
                 
@@ -179,9 +247,43 @@ def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside
         
         print("\nInvalid shape type!")
         
-def trim_depth(im_array: np.array, bounds: tuple[int]) -> np.array:
+def trim(im_array: np.array, bounds: np.array) -> np.array:
     
-    return im_array[bounds[0]:bounds[1]]
+    return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
+
+def pad(im_array: np.array, bounds: np.array, pad_method: str = "add", *, mode: str = "constant", constant: int | float = 0, dimensions_method: str = "split") -> np.array:
+    
+    if pad_method == "dimensions":
+        
+        old_dims: tuple[int] = im_array.shape
+        new_bounds: np.array = np.empty(len(old_dims))
+        
+        for index, bound in enumerate(bounds):
+        
+            if dimensions_method == "split":
+                
+                fore_val: int = int(math.ceil((bound - old_dims[index]) / 2))
+                
+            elif dimensions_method == "front":
+                
+                fore_val: int = bound - old_dims[index]
+            
+            elif dimensions_method == "rear":
+                
+                fore_val: int = 0
+            
+            rear_val: int = bound - old_dims[index] - fore_val
+            new_bounds[index] = np.array([fore_val, rear_val])
+            
+        bounds = np.copy(new_bounds)
+        
+    if mode == "constant":
+        
+        return np.pad(im_array, bounds, mode = mode, constant_values = constant)
+    
+    else:
+        
+        return np.pad(im_array, bounds, mode = mode)
 
 
 # Main

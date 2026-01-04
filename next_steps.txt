@@ -16,9 +16,6 @@ proc/trans.py
 proc/pixels.py
 
 proc/cropclip.py
-- Test slice trimmer function
-- Add mask function
-- Add pad function
 
 proc/filters.py
 - Create file
