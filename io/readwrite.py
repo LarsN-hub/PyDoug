@@ -483,9 +483,9 @@ def write_plot(fig: plt.figure, file_name: str, save_dir: str) -> None:
 
 # Main
 
-def main() -> None:
+def main() -> np.array:
     
-    pass
+    return read_stack(get_path())
 
 if __name__ == "__main__":
     

@@ -124,11 +124,9 @@ def extract_shapes(viewer: napari.viewer) -> dict[str, np.array]:
 
 # Main
 
-def main() -> napari.viewer:
+def main() -> None:
     
-    viewer = create_viewer()
-    
-    return viewer
+    pass
 
 if __name__ == "__main__":
     

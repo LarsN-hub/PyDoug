@@ -46,15 +46,15 @@ def saturate(im_array: np.array, bounds: tuple) -> np.array:
 
 def normalize(im_array: np.array, norm_bounds: tuple) -> np.array:
     
-    return (((im_array - im_array.min()) / (im_array.max() - im_array.min())) * (max(norm_bounds) - min(norm_bounds))) + min(norm_bounds)
+    return np.astype((((im_array - im_array.min()) / (im_array.max() - im_array.min())) * (max(norm_bounds) - min(norm_bounds))) + min(norm_bounds), im_array.dtype)
 
-def convert_im_type(im_array: np.array, convert_type: str, float_bounds: tuple[float] = None) -> np.array:
+def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False, float_bounds: tuple[float] = None) -> np.array:
     
     valid_types: tuple[str] = ("uint8", "uint16", "int16", "float", "float32", "float64", "bool")
     
     if any(x == convert_type for x in valid_types):
         
-        if str(im_array.dtype).find("float") != -1:
+        if str(im_array.dtype).find("float") != -1 and norm:
             
             if float_bounds:
                 
