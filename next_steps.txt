@@ -18,30 +18,23 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filters.py
-- Complete wavelet in denoising function by installing PyWaves thing
-- Add Fourier / inverse Fourier transform functions (FFT and inverse FFT)
 
-proc/segmentation.py
-- Create file
-- Add manual thresholding function
-- Add Otsu thresholding function
+proc/segment.py
 - Add watershed segmentation function
 - Add clustering segmentation function
 
 proc/binary.py
-- Create file
-- Add binary flip function
 - Add opening function
 - Add closing function
-- Add particle identification function
-- Add particle size filter
+- Test particle size filter
+- Test hole size filter
 
 proc/dic.py
 - Create file
 - Add digital image / volume correlation function
 
-analysis/quantification.py
-- Create file
+analysis/quant.py
+- Test label function
 - Add particle count function
 - Add particle size distribution function
 - Add volume calculation function

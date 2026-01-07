@@ -9,6 +9,7 @@ import pixels
 
 from skimage import restoration
 from skimage import filters
+from scipy import fft
 
 
 # Classes
@@ -70,7 +71,7 @@ class Parameters:
             self.wavelet: str = "db1"
             self.mode: str = "soft"
             self.wavelet_levels: int = None
-            self.convert2ycbr: bool = True
+            self.convert2ycbcr: bool = False
             self.method: str = "BayesShrink"
             self.rescale_sigma: bool = True
             self.channel_axis: int = None
@@ -108,7 +109,7 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
         
         if method == "bilateral":
             
-            dn_array: np.array = np.empty(im_array.shape)
+            dn_array: np.array = np.empty(im_array.shape, im_array.dtype)
             
             if parameters:
                 
@@ -182,11 +183,20 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
             
             if parameters:
                 
-                pass
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_wavelet(im_array,
+                                                                                        sigma = parameters.sigma,
+                                                                                        wavelet = parameters.wavelet,
+                                                                                        mode = parameters.mode,
+                                                                                        wavelet_levels = parameters.wavelet_levels,
+                                                                                        convert2ycbcr = parameters.convert2ycbcr,
+                                                                                        method = parameters.method,
+                                                                                        rescale_sigma = parameters.rescale_sigma,
+                                                                                        channel_axis = parameters.channel_axis),
+                                                            im_array.dtype)
             
             else:
             
-                dn_array: np.array = restoration.denoise_wavelet(im_array)
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_wavelet(im_array), im_array.dtype)
         
         return dn_array
     
@@ -194,13 +204,25 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
         
         print("\nInvalid denoising method!")
 
-def fft(im_array: np.array) -> np.array:
+def ft(im_array: np.array) -> np.array:
     
-    pass
+    if len(im_array.shape) == 2:
+        
+        return fft.fftshift(fft.fft2(np.astype(im_array, np.float64)))
+    
+    else:
+        
+        return fft.fftshift(fft.fftn(np.astype(im_array, np.float64)))
 
-def ifft(im_array: np.array) -> np.array:
+def ift(im_array: np.array) -> np.array:
     
-    pass
+    if len(im_array.shape) == 2:
+        
+        return fft.ifft2(fft.ifftshift(im_array))
+    
+    else:
+        
+        return fft.ifftn(fft.ifftshift(im_array))
 
 
 # Main

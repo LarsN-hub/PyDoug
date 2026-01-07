@@ -54,7 +54,7 @@ def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False
     
     if any(x == convert_type for x in valid_types):
         
-        if str(im_array.dtype).find("float") != -1 and norm:
+        if str(im_array.dtype).find("float") != -1 and (norm or (np.max(im_array) > 1 or np.min(im_array) < -1)):
             
             if float_bounds:
                 
@@ -113,6 +113,10 @@ def rescale(im_array: np.array, scale: float) -> np.array:
     else:
         
         print("\nInvalid rescaling factor!")
+        
+def invert(im_array: np.array) -> np.array:
+    
+    return util.invert(im_array)
 
 
 # Main
