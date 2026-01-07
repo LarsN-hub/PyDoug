@@ -18,7 +18,7 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filters.py
-- Complete edge detection / sharp filter functions (bilateral filter and nonlocal means filter)
+- Complete wavelet in denoising function by installing PyWaves thing
 - Add Fourier / inverse Fourier transform functions (FFT and inverse FFT)
 
 proc/segmentation.py

@@ -135,7 +135,7 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
             
             if parameters:
                 
-                pixels.convert_im_type(restoration.denoise_nl_means(im_array,
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_nl_means(im_array,
                                                                     patch_size = parameters.patch_size,
                                                                     patch_distance = parameters.patch_distance,
                                                                     h = parameters.h,
@@ -153,21 +153,30 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
             
             if parameters:
                 
-                pass
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_bregman(im_array,
+                                                                                           weight = parameters.weight,
+                                                                                           max_num_iter = parameters.max_num_iter,
+                                                                                           eps = parameters.eps,
+                                                                                           isotropic = parameters.isotropic,
+                                                                                           channel_axis = parameters.channel_axis), im_array.dtype)
             
             else:
             
-                dn_array: np.array = restoration.denoise_tv_bregman(im_array)
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_bregman(im_array), im_array.dtype)
                 
         elif method == "tv chambolle":
             
             if parameters:
                 
-                pass
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_chambolle(im_array,
+                                                                                             weight = parameters.weight,
+                                                                                             eps = parameters.eps,
+                                                                                             max_num_iter = parameters.max_num_iter,
+                                                                                             channel_axis = parameters.channel_axis), im_array.dtype)
             
             else:
             
-                dn_array: np.array = restoration.denoise_tv_chambolle(im_array)
+                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_chambolle(im_array), im_array.dtype)
         
         elif method == "wavelet":
             
