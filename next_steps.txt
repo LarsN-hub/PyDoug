@@ -10,30 +10,25 @@ ui/cli.py
 - Add main function
 
 proc/trans.py
-- Add translation function
-- Add registration function
 
 proc/pixels.py
 
 proc/cropclip.py
 
-proc/filters.py
-
-proc/segment.py
-- Test label function
-- Add clustering segmentation function
-
-proc/binary.py
-- Test particle size filter
-- Test hole size filter
+proc/filtering.py
 - Add erosion function
 - Add dilation function
 - Add opening function
 - Add closing function
+- Add rank filtering function
+
+proc/segment.py
+- Add clustering segmentation function
 
 proc/dic.py
 - Create file
-- Add digital image / volume correlation function
+- Add registration function
+- Add digital image / volume correlation functions
 
 analysis/quant.py
 - Add particle count function

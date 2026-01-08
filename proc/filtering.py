@@ -203,6 +203,26 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
     else:
         
         print("\nInvalid denoising method!")
+        
+def rank(im_array, method: str = "median", parameters = None) -> np.array:
+    
+    pass
+
+def dilation(im_array: np.array) -> np.array:
+    
+    pass
+
+def erosion(im_array: np.array) -> np.array:
+    
+    pass
+
+def opening(im_array: np.array) -> np.array:
+    
+    pass
+
+def closing(im_array: np.array) -> np.array:
+    
+    pass
 
 def ft(im_array: np.array) -> np.array:
     

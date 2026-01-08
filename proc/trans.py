@@ -88,9 +88,31 @@ def reslice(im_array: np.array, orientation: str = "top") -> np.array:
         
         print("\nInvalid reslice orientation!")
 
-def translate(im_array: np.array, trans_vector: tuple[int], expand_dim: bool = False) -> np.array:
+def translate(im_array: np.array, trans_vector: tuple[int], *, x_direction: str = "right", y_direction: str = "down") -> np.array:
     
-    pass
+    if x_direction == "right":
+        
+        trans_vector = (-trans_vector[0], trans_vector[1])
+        
+    if y_direction == "down":
+        
+        trans_vector = (trans_vector[0], -trans_vector[1])
+    
+    translation_matrix: transform.AffineTransform = transform.AffineTransform(translation = trans_vector)
+    
+    if len(im_array.shape) == 2:
+        
+        return pixels.convert_im_type(transform.warp(im_array, translation_matrix), im_array.dtype)
+    
+    else:
+        
+        trans_array: np.array = np.empty(im_array.shape)
+        
+        for n in range(0, im_array.shape[0]):
+            
+            trans_array[n] = transform.warp(im_array[n], translation_matrix)
+            
+        return pixels.convert_im_type(trans_array, im_array.dtype)
 
 
 # Main

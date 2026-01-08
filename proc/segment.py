@@ -7,6 +7,7 @@ Module for image segmentation
 import numpy as np
 
 from skimage import segmentation
+from skimage import morphology
 from skimage import filters
 from skimage import measure
 
@@ -85,15 +86,27 @@ def threshold(im_array: np.array, thresholds: np.array, inclusivity: str = "uppe
         
         print("\nInvalid inclusivity method!")
 
-def otsu(im_array: np.array, num_classes: int = 2) -> np.array:
+def otsu(im_array: np.array, num_classes: int = 2, *, return_thresholds = False) -> np.array:
     
     if num_classes == 2:
         
-        return threshold(im_array, filters.threshold_otsu(im_array))
+        if return_thresholds:
+            
+            return threshold(im_array, filters.threshold_otsu(im_array)), filters.threshold_otsu(im_array)
+        
+        else:
+        
+            return threshold(im_array, filters.threshold_otsu(im_array))
         
     else:
         
-        return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes))
+        if return_thresholds:
+            
+            return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes)), filters.threshold_multiotsu(im_array, num_classes)
+        
+        else:
+        
+            return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes))
     
 def label(seg_array: np.array) -> np.array:
     
@@ -102,6 +115,14 @@ def label(seg_array: np.array) -> np.array:
 def watershed(seg_array: np.array, *, markers = None, connectivity = 1) -> np.array:
     
     return segmentation.watershed(seg_array, markers = markers, connectivity = connectivity)
+
+def remove_particles(lab_array: np.array, min_size: int, *, connectivity: int = 1) -> np.array:
+    
+    return morphology.remove_small_objects(lab_array, min_size = min_size, connectivity = connectivity)
+
+def remove_holes(seg_array: np.array, max_size: int, *, connectivity: int = 1) -> np.array:
+    
+    return morphology.remove_small_holes(seg_array, connectivity = connectivity, area_threshold = max_size)
 
 def cluster(im_array: np.array) -> np.array:
     

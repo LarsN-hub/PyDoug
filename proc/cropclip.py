@@ -4,7 +4,9 @@ Module for cropping, clipping, and padding image dimensions
 
 # Imports
 
+import sliceview as sv
 import numpy as np
+import napari
 import math
 
 from skimage import draw
@@ -231,8 +233,16 @@ def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_me
     else:
         
         print("\nInvalid shape type!")
+        
+def quick_mask(im_array: np.array, viewer: napari.viewer, *, mask_method = "out", outside_mask_int: int | float = 0, return_mask: bool = False) -> np.array:
+    
+    shape_dict: dict[str, np.array] = sv.extract_shapes(viewer)
+    shape_type = list(shape_dict.keys())[0]
+    shape_coords = shape_dict[shape_type]
+    
+    return mask(im_array, shape_type, shape_coords, mask_method = mask_method, outside_mask_int = outside_mask_int, return_mask = return_mask)
 
-def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside_mask_int: int | float = 0, conserve_mem: bool = False) -> np.array:
+def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.array:
     
     valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
     
@@ -243,8 +253,14 @@ def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside
             im_array, mask_dict = mask(im_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, conserve_mem = True, return_mask = True)
             low_coords: tuple = mask_dict["start"]
             high_coords: tuple = mask_dict["end"]
+            
+            if return_mask:
+                
+                return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]], mask_dict
+            
+            else:
         
-            return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
+                return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
         
         else:
             
@@ -259,12 +275,26 @@ def crop(im_array: np.array, shape_type: str, shape_coords: np.array, *, outside
             else:
                 
                 crop_array[np.logical_not(mask_dict["mask"], axis = 0)] = outside_mask_int
+                
+            if return_mask:
         
-            return crop_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
+                return crop_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]], mask_dict
+            
+            else:
+                
+                return crop_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
     
     else:
         
         print("\nInvalid shape type!")
+        
+def quick_crop(im_array: np.array, viewer: napari.viewer, *, outside_mask_int: int | float = 0, return_mask: bool = False) -> np.array:
+    
+    shape_dict: dict[str, np.array] = sv.extract_shapes(viewer)
+    shape_type = list(shape_dict.keys())[0]
+    shape_coords = shape_dict[shape_type]
+    
+    return crop(im_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, return_mask = return_mask)
         
 def trim(im_array: np.array, bounds: np.array) -> np.array:
     
