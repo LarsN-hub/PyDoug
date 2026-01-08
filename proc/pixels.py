@@ -4,9 +4,9 @@ Module for altering and assessing pixel values and dimensions
 
 # Imports
 
+import cropclip as cc
 import numpy as np
 
-from matplotlib import pyplot as plt
 from skimage import transform
 from skimage import exposure
 from skimage import util
@@ -14,28 +14,51 @@ from skimage import util
 
 # Functions
 
-def statistics(im_array: np.array) -> dict:
+def statistics(im_array: np.array, *, shape_coords: np.array = None, shape_type: str = None) -> dict:
     
     im_stats: dict = {}
-    im_stats["mean"] = float(np.mean(im_array))
-    im_stats["median"] = float(np.median(im_array))
-    im_stats["min"] = float(np.min(im_array))
-    im_stats["max"] = float(np.max(im_array))
-    im_stats["stdev"] = float(np.std(im_array))
+    
+    if shape_type:
+            
+        mask_shape: tuple[int] = cc.get_in_plane_dims(im_array)
+        coords_dict: dict[str, list] = cc.coords_2_lists(shape_coords)
+        rot_angle: float = cc.get_rot_angle(shape_coords, shape_type)
+        
+        if shape_type == "rectangle":
+            
+            mask_dict: dict[str, list] = cc.rectangle_mask(mask_shape, coords_dict, rot_angle)
+            
+        elif shape_type == "ellipse":
+            
+            mask_dict: dict[str, list] = cc.ellipse_mask(mask_shape, coords_dict, rot_angle)
+        
+        elif shape_type == "polygon":
+            
+            mask_dict: dict[str, list] = cc.polygon_mask(mask_shape, coords_dict)
+           
+        if len(im_array.shape) == 3:
+            
+            mask_array: np.array = cc.mask_2d_to_3d(np.expand_dims(mask_dict["mask"], axis = 0), im_array.shape[0])
+            
+        else:
+            
+            mask_array: np.array = mask_dict["mask"]
+        
+        im_stats["mean"] = float(np.mean(im_array[mask_array]))
+        im_stats["median"] = float(np.median(im_array[mask_array]))
+        im_stats["min"] = float(np.min(im_array[mask_array]))
+        im_stats["max"] = float(np.max(im_array[mask_array]))
+        im_stats["stdev"] = float(np.std(im_array[mask_array]))
+
+    else:
+        
+        im_stats["mean"] = float(np.mean(im_array))
+        im_stats["median"] = float(np.median(im_array))
+        im_stats["min"] = float(np.min(im_array))
+        im_stats["max"] = float(np.max(im_array))
+        im_stats["stdev"] = float(np.std(im_array))
     
     return im_stats
-
-def histogram(im_array: np.array) -> plt.figure:
-    
-    counts, bin_centers = exposure.histogram(im_array)
-    fig: plt.figure = plt.figure(dpi = 300)
-    fax: plt.axes = plt.axes()
-    fax.figure = fig
-    fax.set_xlabel("Intensity")
-    fax.set_ylabel("Counts")
-    plt.hist(bin_centers, bin_centers, weights = counts, axes = fax)
-    
-    return fig
 
 def saturate(im_array: np.array, bounds: tuple) -> np.array:
     

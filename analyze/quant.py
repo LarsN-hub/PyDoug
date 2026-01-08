@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Module for analysis of segmented images
 """
@@ -12,9 +11,7 @@ from skimage import measure
 
 # Functions
 
-def label(seg_array: np.array) -> np.array:
-    
-    return measure.label(seg_array)
+
 
 
 # Main

@@ -20,7 +20,6 @@ proc/cropclip.py
 proc/filters.py
 
 proc/segment.py
-- Add watershed segmentation function
 - Add clustering segmentation function
 
 proc/binary.py
@@ -46,7 +45,6 @@ analysis/quant.py
 - Add directional position calculation function
 
 analysis/plots.py
-- Create file
 - Add total particle count plot function
 - Add particle size distribution plot function
 - Add total volume plot function

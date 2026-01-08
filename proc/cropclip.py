@@ -86,12 +86,38 @@ def ellipse_mask(mask_shape: tuple[int], coords_dict: dict[str, list], rot_angle
         
     return get_mask_dict(mask_array, rr, cc)
 
+def polygon_mask(mask_shape: tuple[int], coords_dict: dict[str, list]) -> dict[str, np.array, tuple]:
+    
+    mask_array: np.array = np.zeros(mask_shape, dtype = np.bool)
+    r_coords = np.array(coords_dict["rows"])
+    c_coords = np.array(coords_dict["cols"])
+    rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
+    mask_array[rr, cc] = 1
+    
+    return get_mask_dict(mask_array, rr, cc)
+
 def get_mask_dict(mask_array: np.array, rr: np.array, cc: np.array) -> dict[str, np.array, tuple]:
     
     low_coords: tuple[int] = (np.min(rr), np.min(cc))
     high_coords: tuple[int] = (np.max(rr), np.max(cc))
     
     return {"mask": mask_array, "start": low_coords, "end": high_coords}
+
+def get_rot_angle(shape_coords: np.array, shape_type: str) -> float:
+    
+    coords_dict: dict[str, list] = coords_2_lists(shape_coords)
+    
+    if len(coords_dict["rows"]) == 4 and shape_type != "polygon":
+
+        orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
+        next_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
+        rot_angle: float = -math.atan2((next_coords[0] - orig_coords[0]), (next_coords[1] - orig_coords[1]))
+    
+    elif len(coords_dict["rows"]) == 2 and shape_type == "rectangle":
+        
+        rot_angle: float = 0
+        
+    return rot_angle
 
 def coords_2_mask(im_array: np.array, shape_coords: np.array, shape_type: str) -> dict[str, np.array, tuple]:
     
@@ -102,20 +128,7 @@ def coords_2_mask(im_array: np.array, shape_coords: np.array, shape_type: str) -
         mask_shape: tuple[int] = get_in_plane_dims(im_array)
         coords_dict: dict[str, list] = coords_2_lists(shape_coords)
         
-        if len(coords_dict["rows"]) == 4 and shape_type != "polygon":
-
-            orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
-            next_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
-            rot_angle: float = -math.atan2((next_coords[0] - orig_coords[0]), (next_coords[1] - orig_coords[1]))
-        
-        elif len(coords_dict["rows"]) == 2 and shape_type == "rectangle":
-            
-            rot_angle: float = 0
-            
-        else:
-            
-            r_coords = np.array(coords_dict["rows"])
-            c_coords = np.array(coords_dict["cols"])
+        rot_angle: float = get_rot_angle(shape_coords, shape_type)
         
         if shape_type == "rectangle":
             
@@ -127,16 +140,17 @@ def coords_2_mask(im_array: np.array, shape_coords: np.array, shape_type: str) -
             
         elif shape_type == "polygon":
             
-            rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
-            mask_array: np.array = np.zeros(mask_shape, dtype = np.bool)
-            mask_array[rr, cc] = 1
-            mask_dict: dict[str, np.array, tuple] = get_mask_dict(mask_array, rr, cc)
+            mask_dict: dict[str, np.array, tuple] = polygon_mask(mask_shape, coords_dict)
             
         return mask_dict
     
     else:
         
         print("\nInvalid shape type!")
+        
+def mask_2d_to_3d(mask_array: np.array, num_slices: int) -> np.array:
+    
+    return np.repeat(mask_array, num_slices, axis = 0)
         
 def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_method: str = "out", outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.array:
     
@@ -145,19 +159,21 @@ def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_me
     if any(shape_type.find(x) != -1 for x in valid_shapes):
         
         mask_dict: dict[str, np.array, tuple] = coords_2_mask(im_array, shape_coords, shape_type)
-        mask_array = np.expand_dims(mask_dict["mask"], 0)
         
         if conserve_mem:
             
             if len(im_array.shape) > 2:
                 
+                mask_array: np.array = np.expand_dims(mask_dict["mask"], 0)
+                mask_array = mask_2d_to_3d(mask_array, im_array.shape[0])
+                
                 if mask_method == "out":
                     
-                    im_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                    im_array[np.logical_not(mask_array)] = outside_mask_int
                     
                 elif mask_method == "in":
                     
-                    im_array[np.repeat(mask_array, im_array.shape[0], axis = 0)] = outside_mask_int
+                    im_array[mask_array] = outside_mask_int
                 
             else:
                 
@@ -183,13 +199,16 @@ def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_me
             
             if len(im_array.shape) > 2:
                 
+                mask_array: np.array = np.expand_dims(mask_dict["mask"], 0)
+                mask_array = mask_2d_to_3d(mask_array, im_array.shape[0])
+                
                 if mask_method == "out":
                 
-                    masked_array[np.logical_not(np.repeat(mask_array, im_array.shape[0], axis = 0))] = outside_mask_int
+                    masked_array[np.logical_not(mask_array)] = outside_mask_int
                     
                 elif mask_method == "in":
                     
-                    masked_array[np.repeat(mask_array, im_array.shape[0], axis = 0)] = outside_mask_int
+                    masked_array[mask_array] = outside_mask_int
                 
             else:
                 

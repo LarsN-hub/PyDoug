@@ -8,6 +8,7 @@ import numpy as np
 
 from skimage import segmentation
 from skimage import filters
+from skimage import measure
 
 
 # Functions
@@ -31,6 +32,16 @@ def threshold(im_array: np.array, thresholds: np.array, inclusivity: str = "uppe
     if any(x == inclusivity for x in valid_methods):
     
         seg_array = np.zeros(im_array.shape, np.uint8)
+        
+        if len(thresholds.shape) == 0 and (inclusivity == "upper" or inclusivity == "lower"):
+            
+            if inclusivity == "upper":
+            
+                seg_array[im_array > thresholds] = 255
+                
+            elif inclusivity == "lower":
+                
+                seg_array[im_array >= thresholds] = 255
     
         if len(thresholds.shape) == 1 and (inclusivity == "upper" or inclusivity == "lower"):
             
@@ -83,10 +94,14 @@ def otsu(im_array: np.array, num_classes: int = 2) -> np.array:
     else:
         
         return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes))
-
-def watershed(im_array: np.array) -> np.array:
     
-    pass
+def label(seg_array: np.array) -> np.array:
+    
+    return measure.label(seg_array)
+
+def watershed(seg_array: np.array, *, markers = None, connectivity = 1) -> np.array:
+    
+    return segmentation.watershed(seg_array, markers = markers, connectivity = connectivity)
 
 def cluster(im_array: np.array) -> np.array:
     
