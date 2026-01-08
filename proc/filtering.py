@@ -8,6 +8,7 @@ import numpy as np
 import pixels
 
 from skimage import restoration
+from skimage import morphology
 from skimage import filters
 from scipy import fft
 
@@ -75,6 +76,50 @@ class Parameters:
             self.method: str = "BayesShrink"
             self.rescale_sigma: bool = True
             self.channel_axis: int = None
+            
+        else:
+            
+            print("\nInvalid filter type!")
+            
+class Footprint:
+    
+    def __init__(self, footprint_type: str) -> None:
+        
+        self.footprint = footprint_type
+        
+        if footprint_type == "ball":
+            
+            self.radius = 1
+        
+        elif footprint_type == "diamond":
+            
+            self.radius = 1
+        
+        elif footprint_type == "disk":
+            
+            self.radius = 1
+        
+        elif footprint_type == "ellipse":
+            
+            self.width = 1
+            self.height = 1
+        
+        elif footprint_type == "octagon":
+            
+            self.m = 1
+            self.n = 1
+        
+        elif footprint_type == "octahedron":
+            
+            self.radius = 1
+        
+        elif footprint_type == "star":
+            
+            self.a = 1
+            
+        else:
+            
+            print("\nInvalid footprint type!")
 
 
 # Functions
@@ -203,26 +248,30 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
     else:
         
         print("\nInvalid denoising method!")
-        
-def rank(im_array, method: str = "median", parameters = None) -> np.array:
-    
-    pass
 
-def dilation(im_array: np.array) -> np.array:
+def dilation(im_array: np.array, footprint: np.array = None) -> np.array:
     
-    pass
+    return morphology.dilation(im_array, footprint)
 
-def erosion(im_array: np.array) -> np.array:
+def erosion(im_array: np.array, footprint: np.array = None) -> np.array:
     
-    pass
+    return morphology.erosion(im_array, footprint)
 
-def opening(im_array: np.array) -> np.array:
+def opening(im_array: np.array, footprint: np.array = None) -> np.array:
     
-    pass
+    return morphology.opening(im_array, footprint)
 
-def closing(im_array: np.array) -> np.array:
+def closing(im_array: np.array, footprint: np.array = None) -> np.array:
     
-    pass
+    return morphology.closing(im_array, footprint)
+
+def white_tophat(im_array: np.array, footprint: np.array = None) -> np.array:
+    
+    return morphology.white_tophat(im_array, footprint)
+
+def black_tophat(im_array: np.array, footprint: np.array = None) -> np.array:
+    
+    return morphology.black_tophat(im_array, footprint)
 
 def ft(im_array: np.array) -> np.array:
     

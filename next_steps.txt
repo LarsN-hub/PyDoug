@@ -16,14 +16,13 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filtering.py
-- Add erosion function
-- Add dilation function
-- Add opening function
-- Add closing function
+- Add filtering along axis
+- Convert tophat functions to use custom opening/closing in case of filtering along axis addition
 - Add rank filtering function
 
 proc/segment.py
 - Add clustering segmentation function
+- Add other segmentation algorithms
 
 proc/dic.py
 - Create file
