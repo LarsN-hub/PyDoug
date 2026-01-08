@@ -19,6 +19,22 @@ def hole_filter(seg_array: np.array, max_size: int, *, connectivity: int = 1) ->
     
     return morphology.remove_small_holes(seg_array, max_size = max_size, connectivity = connectivity)
 
+def erosion(seg_array: np.array) -> np.array:
+    
+    pass
+
+def dilation(seg_array: np.arra) -> np.array:
+    
+    pass
+
+def opening(seg_array: np.array) -> np.array:
+    
+    pass
+
+def closing(seg_array: np.array) -> np.array:
+    
+    pass
+
 
 # Main
 

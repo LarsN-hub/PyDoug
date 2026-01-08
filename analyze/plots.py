@@ -6,7 +6,7 @@ Module for generating plots to analyze images
 
 import numpy as np
 
-from mathplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 from skimage import exposure
 
 

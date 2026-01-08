@@ -77,13 +77,13 @@ def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False
     
     if any(x == convert_type for x in valid_types):
         
-        if str(im_array.dtype).find("float") != -1 and (norm or (np.max(im_array) > 1 or np.min(im_array) < -1)):
+        if str(im_array.dtype).find("float") != -1 and (norm or (np.max(im_array) > 1 or np.min(im_array) < 0)):
             
             if float_bounds:
                 
                 im_array = saturate(im_array, float_bounds);
             
-            im_array = normalize(im_array, (-1, 1))
+            im_array = normalize(im_array, (0, 1))
             
         if convert_type == "uint8":
                     
@@ -140,6 +140,34 @@ def rescale(im_array: np.array, scale: float) -> np.array:
 def invert(im_array: np.array) -> np.array:
     
     return util.invert(im_array)
+
+def histogram_equalization(im_array: np.array, method: str = "global", *, mask_array: np.array = None, kernel_size = None, clip_limit = 0.01) -> np.array:
+    
+    valid_methods: tuple[str] = ("global", "local")
+    
+    if any(x == method for x in valid_methods):
+        
+        if method == "global":
+            
+            if np.any(mask_array):
+                
+                if mask_array.shape != im_array.shape:
+                    
+                    mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+            
+            return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
+        
+        elif method == "local":
+            
+            return convert_im_type(exposure.equalize_adapthist(im_array, kernel_size, clip_limit), im_array.dtype)
+    
+    else:
+        
+        print("\nInvalid histogram equalization method!")
+        
+def histogram_matching(im_array: np.array, ref_array: np.array) -> np.array:
+    
+    return convert_im_type(exposure.match_histograms(im_array, ref_array), im_array.dtype)
 
 
 # Main

@@ -20,20 +20,22 @@ proc/cropclip.py
 proc/filters.py
 
 proc/segment.py
+- Test label function
 - Add clustering segmentation function
 
 proc/binary.py
-- Add opening function
-- Add closing function
 - Test particle size filter
 - Test hole size filter
+- Add erosion function
+- Add dilation function
+- Add opening function
+- Add closing function
 
 proc/dic.py
 - Create file
 - Add digital image / volume correlation function
 
 analysis/quant.py
-- Test label function
 - Add particle count function
 - Add particle size distribution function
 - Add volume calculation function
