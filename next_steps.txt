@@ -16,7 +16,7 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filtering.py
-- Add rank filtering function
+- Add rank filtering functions
 
 proc/morph.py
 
