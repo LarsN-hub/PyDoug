@@ -8,7 +8,6 @@ import numpy as np
 import pixels
 
 from skimage import restoration
-from skimage import morphology
 from skimage import filters
 from scipy import fft
 
@@ -80,67 +79,9 @@ class Parameters:
         else:
             
             print("\nInvalid filter type!")
-            
-class Footprint:
-    
-    def __init__(self, footprint_type: str) -> None:
-        
-        self.footprint = footprint_type
-        
-        if footprint_type == "ball":
-            
-            self.radius = 1
-        
-        elif footprint_type == "diamond":
-            
-            self.radius = 1
-        
-        elif footprint_type == "disk":
-            
-            self.radius = 1
-        
-        elif footprint_type == "ellipse":
-            
-            self.width = 1
-            self.height = 1
-        
-        elif footprint_type == "octagon":
-            
-            self.m = 1
-            self.n = 1
-        
-        elif footprint_type == "octahedron":
-            
-            self.radius = 1
-        
-        elif footprint_type == "star":
-            
-            self.a = 1
-            
-        else:
-            
-            print("\nInvalid footprint type!")
 
 
 # Functions
-
-def smooth(im_array: np.array, *, sigma: float = 1, parameters: Parameters = None) -> np.array:
-    
-    if parameters:
-        
-        return pixels.convert_im_type(filters.gaussian(im_array,
-                                                      sigma = parameters.sigma,
-                                                      mode = parameters.mode,
-                                                      cval = parameters.cval,
-                                                      preserve_range = parameters.preserve_range,
-                                                      truncate = parameters.truncate,
-                                                      channel_axis = parameters.channel_axis,
-                                                      out = parameters.out),
-                                      im_array.dtype)
-    
-    else:
-    
-        return pixels.convert_im_type(filters.gaussian(im_array, sigma = sigma), im_array.dtype)
 
 def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters = None) -> np.array:
     
@@ -148,7 +89,7 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
         
         method = parameters.filter_type
     
-    valid_methods: tuple[str] = ("bilateral", "non-local means", "tv bregman", "tv chambolle", "wavelet")
+    valid_methods: tuple[str] = ("bilateral", "gaussian", "non-local means", "tv bregman", "tv chambolle", "wavelet")
     
     if any(x == method for x in valid_methods):
         
@@ -176,6 +117,24 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
                     
                     dn_array[n] = pixels.convert_im_type(restoration.denoise_bilateral(im_array[n]),
                                                          im_array.dtype)
+                    
+        elif method == "gaussian":
+            
+            if parameters:
+                
+                dn_array: np.array = pixels.convert_im_type(filters.gaussian(im_array,
+                                                                             sigma = parameters.sigma,
+                                                                             mode = parameters.mode,
+                                                                             cval = parameters.cval,
+                                                                             preserve_range = parameters.preserve_range,
+                                                                             truncate = parameters.truncate,
+                                                                             channel_axis = parameters.channel_axis,
+                                                                             out = parameters.out),
+                                                            im_array.dtype)
+            
+            else:
+            
+                dn_array: np.array = pixels.convert_im_type(filters.gaussian(im_array), im_array.dtype)
         
         elif method == "non-local means":
             
@@ -248,30 +207,10 @@ def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters 
     else:
         
         print("\nInvalid denoising method!")
-
-def dilation(im_array: np.array, footprint: np.array = None) -> np.array:
+        
+def rank(im_array: np.array, *, parameters: Parameters = None) -> np.array:
     
-    return morphology.dilation(im_array, footprint)
-
-def erosion(im_array: np.array, footprint: np.array = None) -> np.array:
-    
-    return morphology.erosion(im_array, footprint)
-
-def opening(im_array: np.array, footprint: np.array = None) -> np.array:
-    
-    return morphology.opening(im_array, footprint)
-
-def closing(im_array: np.array, footprint: np.array = None) -> np.array:
-    
-    return morphology.closing(im_array, footprint)
-
-def white_tophat(im_array: np.array, footprint: np.array = None) -> np.array:
-    
-    return morphology.white_tophat(im_array, footprint)
-
-def black_tophat(im_array: np.array, footprint: np.array = None) -> np.array:
-    
-    return morphology.black_tophat(im_array, footprint)
+    pass
 
 def ft(im_array: np.array) -> np.array:
     

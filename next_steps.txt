@@ -16,9 +16,9 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filtering.py
-- Add filtering along axis
-- Convert tophat functions to use custom opening/closing in case of filtering along axis addition
 - Add rank filtering function
+
+proc/morph.py
 
 proc/segment.py
 - Add clustering segmentation function
