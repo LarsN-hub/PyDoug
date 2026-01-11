@@ -12,9 +12,16 @@ from skimage import exposure
 
 # Functions
 
-def histogram(im_array: np.array) -> plt.figure:
+def histogram(im_array: np.array, *, mask_array: np.array = None) -> plt.figure:
     
-    counts, bin_centers = exposure.histogram(im_array)
+    if np.any(mask_array):
+    
+        counts, bin_centers = exposure.histogram(im_array[mask_array])
+        
+    else:
+        
+        counts, bin_centers = exposure.histogram(im_array)
+    
     fig: plt.figure = plt.figure(dpi = 300)
     fax: plt.axes = plt.axes()
     fax.figure = fig

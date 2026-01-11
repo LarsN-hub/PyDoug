@@ -1,5 +1,5 @@
 """
-Module for smoothing, denoising, and ffts of images
+Module for filtering images
 """
 
 # Imports
@@ -12,205 +12,97 @@ from skimage import filters
 from scipy import fft
 
 
-# Classes
-
-class Parameters:
-    
-    def __init__(self, filter_type: str) -> None:
-        
-        self.filter_type = filter_type
-        
-        if filter_type == "gaussian":
-            
-            self.sigma: float = 1
-            self.mode: str = "nearest"
-            self.cval: float = 0
-            self.preserve_range: bool = False
-            self.truncate: float = 4
-            self.channel_axis: int = None
-            self.out = None
-            
-        elif filter_type == "bilateral":
-            
-            self.win_size: int = 5
-            self.sigma_color: float = None
-            self.sigma_spatial: float = 1
-            self.bins: float = 10000
-            self.mode: str = "constant"
-            self.cval: float = 0
-            self.channel_axis: int = None
-            
-        elif filter_type == "non-local means":
-            
-            self.patch_size: int = 7
-            self.patch_distance: int = 11
-            self.h: float = 0.1
-            self.fast_mode: bool = True
-            self.sigma: float = 0
-            self.preserve_range: bool = False
-            self.channel_axis: int = None
-            
-        elif filter_type == "tv bregman":
-            
-            self.weight: float = 5
-            self.max_num_iter: int = 100
-            self.eps: float = 0.001
-            self.isotropic: bool = True
-            self.channel_axis: int = None
-            
-        elif filter_type == "tv chambolle":
-            
-            self.weight: float = 0.1
-            self.eps: float = 0.0002
-            self.max_num_iter: int = 200
-            self.channel_axis: int = None
-            
-        elif filter_type == "wavelet":
-            
-            self.sigma: float = None
-            self.wavelet: str = "db1"
-            self.mode: str = "soft"
-            self.wavelet_levels: int = None
-            self.convert2ycbcr: bool = False
-            self.method: str = "BayesShrink"
-            self.rescale_sigma: bool = True
-            self.channel_axis: int = None
-            
-        else:
-            
-            print("\nInvalid filter type!")
-
-
 # Functions
 
-def denoise(im_array: np.array, *, method = "bilateral", parameters: Parameters = None) -> np.array:
+def bilateral(im_array: np.array, *,
+              win_size: int | None = None,
+              sigma_color: float | None = None,
+              sigma_spatial: float = 1,
+              bins: int = 10000,
+              mode: str = "constant",
+              cval: int | float = 0,
+              channel_axis: int | None = None) -> np.array:
     
-    if parameters:
-        
-        method = parameters.filter_type
+    bilat_array: np.array = np.empty(im_array.shape)
     
-    valid_methods: tuple[str] = ("bilateral", "gaussian", "non-local means", "tv bregman", "tv chambolle", "wavelet")
+    for n in range(0, im_array.shape[0]):
+            
+        bilat_array[n] = restoration.denoise_bilateral(im_array[n], win_size, sigma_color, sigma_spatial, bins, mode, cval,
+                                                       channel_axis = channel_axis)
+        
+    return pixels.convert_im_type(bilat_array, im_array.dtype)
+
+def gaussian(im_array: np.array, *,
+             sigma: float = 1,
+             mode: str = "nearest",
+             cval: int | float = 0,
+             preserve_range: bool = False,
+             truncate: float = 4,
+             channel_axis: int | None = None,
+             out: np.array | None = None) -> np.array:
     
-    if any(x == method for x in valid_methods):
-        
-        if method == "bilateral":
-            
-            dn_array: np.array = np.empty(im_array.shape, im_array.dtype)
-            
-            if parameters:
-                
-                for n in range(0, im_array.shape[0]):
-                    
-                    dn_array[n] = pixels.convert_im_type(restoration.denoise_bilateral(im_array[n],
-                                                                                       win_size = parameters.win_size,
-                                                                                       sigma_color = parameters.sigma_color,
-                                                                                       sigma_spatial = parameters.sigma_spatial,
-                                                                                       bins = parameters.bins,
-                                                                                       mode = parameters.mode,
-                                                                                       cval = parameters.cval,
-                                                                                       channel_axis = parameters.channel_axis),
-                                                         im_array.dtype)
-            
-            else:
-                
-                for n in range(0, im_array.shape[0]):
-                    
-                    dn_array[n] = pixels.convert_im_type(restoration.denoise_bilateral(im_array[n]),
-                                                         im_array.dtype)
-                    
-        elif method == "gaussian":
-            
-            if parameters:
-                
-                dn_array: np.array = pixels.convert_im_type(filters.gaussian(im_array,
-                                                                             sigma = parameters.sigma,
-                                                                             mode = parameters.mode,
-                                                                             cval = parameters.cval,
-                                                                             preserve_range = parameters.preserve_range,
-                                                                             truncate = parameters.truncate,
-                                                                             channel_axis = parameters.channel_axis,
-                                                                             out = parameters.out),
-                                                            im_array.dtype)
-            
-            else:
-            
-                dn_array: np.array = pixels.convert_im_type(filters.gaussian(im_array), im_array.dtype)
-        
-        elif method == "non-local means":
-            
-            if parameters:
-                
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_nl_means(im_array,
-                                                                    patch_size = parameters.patch_size,
-                                                                    patch_distance = parameters.patch_distance,
-                                                                    h = parameters.h,
-                                                                    fast_mode = parameters.fast_mode,
-                                                                    sigma = parameters.sigma,
-                                                                    preserve_range = parameters.preserve_range,
-                                                                    channel_axis = parameters.channel_axis),
-                                       im_array.dtype)
-            
-            else:
-            
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_nl_means(im_array, fast_mode = True), im_array.dtype)
-        
-        elif method == "tv bregman":
-            
-            if parameters:
-                
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_bregman(im_array,
-                                                                                           weight = parameters.weight,
-                                                                                           max_num_iter = parameters.max_num_iter,
-                                                                                           eps = parameters.eps,
-                                                                                           isotropic = parameters.isotropic,
-                                                                                           channel_axis = parameters.channel_axis), im_array.dtype)
-            
-            else:
-            
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_bregman(im_array), im_array.dtype)
-                
-        elif method == "tv chambolle":
-            
-            if parameters:
-                
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_chambolle(im_array,
-                                                                                             weight = parameters.weight,
-                                                                                             eps = parameters.eps,
-                                                                                             max_num_iter = parameters.max_num_iter,
-                                                                                             channel_axis = parameters.channel_axis), im_array.dtype)
-            
-            else:
-            
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_tv_chambolle(im_array), im_array.dtype)
-        
-        elif method == "wavelet":
-            
-            if parameters:
-                
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_wavelet(im_array,
-                                                                                        sigma = parameters.sigma,
-                                                                                        wavelet = parameters.wavelet,
-                                                                                        mode = parameters.mode,
-                                                                                        wavelet_levels = parameters.wavelet_levels,
-                                                                                        convert2ycbcr = parameters.convert2ycbcr,
-                                                                                        method = parameters.method,
-                                                                                        rescale_sigma = parameters.rescale_sigma,
-                                                                                        channel_axis = parameters.channel_axis),
-                                                            im_array.dtype)
-            
-            else:
-            
-                dn_array: np.array = pixels.convert_im_type(restoration.denoise_wavelet(im_array), im_array.dtype)
-        
-        return dn_array
+    gaus_array: np.array = filters.gaussian(im_array, sigma,
+                                            mode = mode,
+                                            cval = cval,
+                                            preserve_range = preserve_range,
+                                            truncate = truncate,
+                                            channel_axis = channel_axis,
+                                            out = out)
     
-    else:
-        
-        print("\nInvalid denoising method!")
-        
-def rank(im_array: np.array, *, parameters: Parameters = None) -> np.array:
+    return pixels.convert_im_type(gaus_array, im_array.dtype)
+
+def non_local_means(im_array: np.array, *,
+                    patch_size: int = 7,
+                    patch_distance: int = 11,
+                    h: float = 0.1,
+                    fast_mode: bool = True,
+                    sigma: float = 0,
+                    preserve_range: bool = False,
+                    channel_axis: int | None = None) -> np.array:
     
-    pass
+    nl_array: np.array =  restoration.denoise_nl_means(im_array, patch_size, patch_distance, h, fast_mode, sigma,
+                                                       preserve_range = preserve_range,
+                                                       channel_axis = channel_axis)
+    
+    return pixels.convert_im_type(nl_array, im_array.dtype)
+
+def tv_bregman(im_array: np.array, *,
+               weight: float = 5,
+               max_num_iter: int = 100,
+               eps: float = 0.001,
+               isotropic: bool = True,
+               channel_axis: int | None = None) -> np.array:
+    
+    tv_array: np.array = restoration.denoise_tv_bregman(im_array, weight, max_num_iter, eps, isotropic,
+                                                        channel_axis = channel_axis)
+    
+    return pixels.convert_im_type(tv_array, im_array.dtype)
+
+def tv_chambolle(im_array: np.array, *,
+                 weight: float = 0.1,
+                 eps: float = 0.0002,
+                 max_num_iter: int = 200,
+                 channel_axis: int | None = None) -> np.array:
+    
+    tv_array: np.array = restoration.denoise_tv_chambolle(im_array, weight, eps, max_num_iter,
+                                                          channel_axis = channel_axis)
+    
+    return pixels.convert_im_type(tv_array, im_array.dtype)
+
+def wavelet(im_array: np.array, *,
+            sigma: float | int = None,
+            wavelet: str = "db1",
+            mode: str = "soft",
+            wavelet_levels: int | None = None,
+            convert2ycbcr: bool = False,
+            method: str = "BayesShrink",
+            rescale_sigma: bool = True,
+            channel_axis: int | None = None) -> np.array:
+    
+    wave_array: np.array = restoration.denoise_wavelet(im_array, sigma, wavelet, mode, wavelet_levels, convert2ycbcr, method, rescale_sigma,
+                                                       channel_axis = channel_axis)
+    
+    return pixels.convert_im_type(wave_array, im_array.dtype)
 
 def ft(im_array: np.array) -> np.array:
     

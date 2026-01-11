@@ -115,7 +115,7 @@ def get_rot_angle(shape_coords: np.array, shape_type: str) -> float:
         next_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
         rot_angle: float = -math.atan2((next_coords[0] - orig_coords[0]), (next_coords[1] - orig_coords[1]))
     
-    elif len(coords_dict["rows"]) == 2 and shape_type == "rectangle":
+    else:
         
         rot_angle: float = 0
         
@@ -150,9 +150,17 @@ def coords_2_mask(im_array: np.array, shape_coords: np.array, shape_type: str) -
         
         print("\nInvalid shape type!")
         
+def quick_get_mask(im_array: np.array, viewer: napari.viewer) -> np.array:
+    
+    shape_dict: dict[str, np.array] = sv.extract_shapes(viewer)
+    shape_type = list(shape_dict.keys())[0]
+    shape_coords = shape_dict[shape_type]
+    
+    return coords_2_mask(im_array, shape_coords, shape_type)["mask"]
+        
 def mask_2d_to_3d(mask_array: np.array, num_slices: int) -> np.array:
     
-    return np.repeat(mask_array, num_slices, axis = 0)
+    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
         
 def mask(im_array: np.array, shape_type: str, shape_coords: np.array, *, mask_method: str = "out", outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.array:
     
