@@ -359,13 +359,26 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
 
 def read_stack_fast(stack_path: str) -> np.array:
     
+    valid_fast_removals: list[str] = ["txt"]
+    
     if get_ext(stack_path) == "directory":
         
         dir_contents: list[str] = os.listdir(stack_path)
+        removal_list: list[str] = []
         
         for index, file in enumerate(dir_contents):
             
-            dir_contents[index] = stack_path + "/" + file
+            if any(x == get_ext(file) for x in valid_fast_removals):
+            
+                removal_list.append(file)
+                
+            else:
+                
+                dir_contents[index] = stack_path + "/" + file
+            
+        for item in removal_list:
+            
+            dir_contents.remove(item)
             
         im_collection: io.ImageCollection = io.imread_collection(dir_contents)
         im_array: np.array = io.concatenate_images(im_collection)
@@ -434,7 +447,7 @@ def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff
         
     else:
         
-        print("\nInvalid image file extneion!")
+        print("\nInvalid image file extension!")
         
 def write_stack(im_array: np.array, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
     
@@ -483,9 +496,9 @@ def write_plot(fig: plt.figure, file_name: str, save_dir: str) -> None:
 
 # Main
 
-def main() -> np.array:
+def main(directory: bool = False) -> np.array:
     
-    return read_stack(get_path())
+    return read_stack(get_path(directory))
 
 if __name__ == "__main__":
     

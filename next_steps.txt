@@ -12,6 +12,7 @@ ui/cli.py
 proc/trans.py
 
 proc/pixels.py
+- finish saturation by percentage function
 
 proc/cropclip.py
 
@@ -41,6 +42,7 @@ analysis/quant.py
 - Add directional position calculation function
 
 analysis/plots.py
+- Fix second y axis title rotation
 - Add total particle count plot function
 - Add particle size distribution plot function
 - Add total volume plot function

@@ -14,36 +14,12 @@ from skimage import util
 
 # Functions
 
-def statistics(im_array: np.array, *, shape_coords: np.array = None, shape_type: str = None) -> dict:
+def statistics(im_array: np.array, *, mask_array: np.array = None) -> dict:
     
     im_stats: dict = {}
     
-    if shape_type:
+    if np.any(mask_array):
             
-        mask_shape: tuple[int] = cc.get_in_plane_dims(im_array)
-        coords_dict: dict[str, list] = cc.coords_2_lists(shape_coords)
-        rot_angle: float = cc.get_rot_angle(shape_coords, shape_type)
-        
-        if shape_type == "rectangle":
-            
-            mask_dict: dict[str, list] = cc.rectangle_mask(mask_shape, coords_dict, rot_angle)
-            
-        elif shape_type == "ellipse":
-            
-            mask_dict: dict[str, list] = cc.ellipse_mask(mask_shape, coords_dict, rot_angle)
-        
-        elif shape_type == "polygon":
-            
-            mask_dict: dict[str, list] = cc.polygon_mask(mask_shape, coords_dict)
-           
-        if len(im_array.shape) == 3:
-            
-            mask_array: np.array = cc.mask_2d_to_3d(np.expand_dims(mask_dict["mask"], axis = 0), im_array.shape[0])
-            
-        else:
-            
-            mask_array: np.array = mask_dict["mask"]
-        
         im_stats["mean"] = float(np.mean(im_array[mask_array]))
         im_stats["median"] = float(np.median(im_array[mask_array]))
         im_stats["min"] = float(np.min(im_array[mask_array]))
@@ -60,8 +36,16 @@ def statistics(im_array: np.array, *, shape_coords: np.array = None, shape_type:
     
     return im_stats
 
-def saturate(im_array: np.array, bounds: tuple) -> np.array:
+def get_percentage_intensities(im_array: np.array, percentages: tuple) -> tuple:
     
+    pass
+
+def saturate(im_array: np.array, bounds: tuple, *, bounds_percent: bool = False) -> np.array:
+    
+    if bounds_percent:
+        
+        pass
+        
     im_array[im_array > max(bounds)] = max(bounds)
     im_array[im_array < min(bounds)] = min(bounds)
     
