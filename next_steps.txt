@@ -1,3 +1,6 @@
+general
+- check typing everywhere
+
 io/readwrite.py
 - Add parameter import and export functions
 - fix persistent tkinter window

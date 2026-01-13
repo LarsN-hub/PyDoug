@@ -14,11 +14,11 @@ from skimage import measure
 
 # Functions
 
-def sort_double_bound_thresholds(thresholds: np.array) -> np.array:
+def sort_double_bound_thresholds(thresholds: np.ndarray) -> np.ndarray:
     
-    threshold_sums: np.array = np.sum(thresholds, 1)
+    threshold_sums: np.ndarray = np.sum(thresholds, 1)
     sorted_sums = np.sort(threshold_sums)
-    new_thresholds: np.array = np.empty([len(thresholds), 2], thresholds.dtype)
+    new_thresholds: np.ndarray = np.empty([len(thresholds), 2], thresholds.dtype)
     
     for index, current_sum in enumerate(sorted_sums):
         
@@ -26,7 +26,7 @@ def sort_double_bound_thresholds(thresholds: np.array) -> np.array:
         
     return new_thresholds
 
-def threshold(im_array: np.array, thresholds: np.array, inclusivity: str = "upper") -> np.array:
+def threshold(im_array: np.ndarray, thresholds: np.ndarray, inclusivity: str = "upper") -> np.ndarray:
     
     valid_methods: tuple[str] = ("upper", "lower", "both", "neither")
     
@@ -46,7 +46,7 @@ def threshold(im_array: np.array, thresholds: np.array, inclusivity: str = "uppe
     
         if len(thresholds.shape) == 1 and (inclusivity == "upper" or inclusivity == "lower"):
             
-            thresholds: np.array = np.sort(thresholds)
+            thresholds: np.ndarray = np.sort(thresholds)
             
             for index, thresh in enumerate(thresholds, start = 1):
                 
@@ -86,7 +86,7 @@ def threshold(im_array: np.array, thresholds: np.array, inclusivity: str = "uppe
         
         print("\nInvalid inclusivity method!")
 
-def otsu(im_array: np.array, num_classes: int = 2, *, return_thresholds = False) -> np.array:
+def otsu(im_array: np.ndarray, num_classes: int = 2, *, return_thresholds = False) -> np.ndarray:
     
     if num_classes == 2:
         
@@ -108,23 +108,23 @@ def otsu(im_array: np.array, num_classes: int = 2, *, return_thresholds = False)
         
             return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes))
     
-def label(seg_array: np.array) -> np.array:
+def label(seg_array: np.ndarray) -> np.ndarray:
     
     return measure.label(seg_array)
 
-def watershed(seg_array: np.array, *, markers = None, connectivity = 1) -> np.array:
+def watershed(seg_array: np.ndarray, *, markers = None, connectivity = 1) -> np.ndarray:
     
     return segmentation.watershed(seg_array, markers = markers, connectivity = connectivity)
 
-def remove_particles(lab_array: np.array, min_size: int, *, connectivity: int = 1) -> np.array:
+def remove_particles(lab_array: np.ndarray, min_size: int, *, connectivity: int = 1) -> np.ndarray:
     
     return morphology.remove_small_objects(lab_array, min_size = min_size, connectivity = connectivity)
 
-def remove_holes(seg_array: np.array, max_size: int, *, connectivity: int = 1) -> np.array:
+def remove_holes(seg_array: np.ndarray, max_size: int, *, connectivity: int = 1) -> np.ndarray:
     
     return morphology.remove_small_holes(seg_array, connectivity = connectivity, area_threshold = max_size)
 
-def cluster(im_array: np.array) -> np.array:
+def cluster(im_array: np.ndarray) -> np.ndarray:
     
     pass
 

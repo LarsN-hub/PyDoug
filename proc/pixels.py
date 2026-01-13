@@ -14,7 +14,7 @@ from skimage import util
 
 # Functions
 
-def statistics(im_array: np.array, *, mask_array: np.array = None) -> dict:
+def statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict:
     
     im_stats: dict = {}
     
@@ -36,11 +36,11 @@ def statistics(im_array: np.array, *, mask_array: np.array = None) -> dict:
     
     return im_stats
 
-def get_percentage_intensities(im_array: np.array, percentages: tuple) -> tuple:
+def get_percentage_intensities(im_array: np.ndarray, percentages: tuple) -> tuple:
     
     pass
 
-def saturate(im_array: np.array, bounds: tuple, *, bounds_percent: bool = False) -> np.array:
+def saturate(im_array: np.ndarray, bounds: tuple, *, bounds_percent: bool = False) -> np.ndarray:
     
     if bounds_percent:
         
@@ -51,11 +51,11 @@ def saturate(im_array: np.array, bounds: tuple, *, bounds_percent: bool = False)
     
     return im_array
 
-def normalize(im_array: np.array, norm_bounds: tuple) -> np.array:
+def normalize(im_array: np.ndarray, norm_bounds: tuple) -> np.ndarray:
     
     return np.astype((((im_array - im_array.min()) / (im_array.max() - im_array.min())) * (max(norm_bounds) - min(norm_bounds))) + min(norm_bounds), im_array.dtype)
 
-def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False, float_bounds: tuple[float] = None) -> np.array:
+def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = False, float_bounds: tuple[float] = None) -> np.ndarray:
     
     valid_types: tuple[str] = ("uint8", "uint16", "int16", "float", "float32", "float64", "bool")
     
@@ -71,31 +71,31 @@ def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False
             
         if convert_type == "uint8":
                     
-            conv_array: np.array = util.img_as_ubyte(im_array)
+            conv_array: np.ndarray = util.img_as_ubyte(im_array)
                 
         elif convert_type == "uint16":
                     
-            conv_array: np.array = util.img_as_uint(im_array)
+            conv_array: np.ndarray = util.img_as_uint(im_array)
                 
         elif convert_type == "int16":
                     
-            conv_array: np.array = util.img_as_int(im_array)
+            conv_array: np.ndarray = util.img_as_int(im_array)
                 
         elif convert_type == "float":
                     
-            conv_array: np.array = util.img_as_float(im_array)
+            conv_array: np.ndarray = util.img_as_float(im_array)
                     
         elif convert_type == "float32":
                     
-            conv_array: np.array = util.img_as_float32(im_array)
+            conv_array: np.ndarray = util.img_as_float32(im_array)
                     
         elif convert_type == "float64":
                     
-            conv_array: np.array = util.img_as_float64(im_array)
+            conv_array: np.ndarray = util.img_as_float64(im_array)
                 
         elif convert_type == "bool":
                     
-            conv_array: np.array = util.img_as_bool(im_array)
+            conv_array: np.ndarray = util.img_as_bool(im_array)
             
         return conv_array
         
@@ -103,7 +103,7 @@ def convert_im_type(im_array: np.array, convert_type: str, *, norm: bool = False
             
         print("\nInvalid convert type!")
         
-def rescale(im_array: np.array, scale: float) -> np.array:
+def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
     
     if scale == 1:
         
@@ -121,11 +121,11 @@ def rescale(im_array: np.array, scale: float) -> np.array:
         
         print("\nInvalid rescaling factor!")
         
-def invert(im_array: np.array) -> np.array:
+def invert(im_array: np.ndarray) -> np.ndarray:
     
     return util.invert(im_array)
 
-def histogram_equalization(im_array: np.array, method: str = "global", *, mask_array: np.array = None, kernel_size = None, clip_limit = 0.01) -> np.array:
+def histogram_equalization(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, kernel_size = None, clip_limit = 0.01) -> np.ndarray:
     
     valid_methods: tuple[str] = ("global", "local")
     
@@ -149,7 +149,7 @@ def histogram_equalization(im_array: np.array, method: str = "global", *, mask_a
         
         print("\nInvalid histogram equalization method!")
         
-def histogram_matching(im_array: np.array, ref_array: np.array) -> np.array:
+def histogram_matching(im_array: np.ndarray, ref_array: np.ndarray) -> np.ndarray:
     
     return convert_im_type(exposure.match_histograms(im_array, ref_array), im_array.dtype)
 

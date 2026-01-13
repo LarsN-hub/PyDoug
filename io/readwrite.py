@@ -11,7 +11,7 @@ import h5py
 import os
 
 from timeit import default_timer as timer
-from matplotlib import pyplot as plt
+from matplotlib import figure
 from skimage import io
 from PIL import Image
 
@@ -223,32 +223,32 @@ def get_largest_data(h5_file: h5py.File) -> str:
             
     return current_largest
 
-def read_h5(file_path: str) -> np.array:
+def read_h5(file_path: str) -> np.ndarray:
     
     h5_file: h5py.File = h5py.File(file_path)
     dataset_dir: str = get_largest_data(h5_file)
-    im_array = np.array(h5_file[dataset_dir])
+    im_array: np.ndarray = np.array(h5_file[dataset_dir])
     h5_file.close()
     
     return im_array
 
-def read_im(file_path: str) -> np.array:
+def read_im(file_path: str) -> np.ndarray:
     
     if detect_valid_ext(file_path):
         
         if detect_h5(file_path):
             
-            im_array: np.array = read_h5(file_path)
+            im_array: np.ndarray = read_h5(file_path)
         
         else:
             
             try:
             
-                im_array: np.array = io.imread(file_path)
+                im_array: np.ndarray = io.imread(file_path)
                 
             except OSError:
                 
-                im_array: np.array = np.array(Image.open(file_path))
+                im_array: np.ndarray = np.array(Image.open(file_path))
         
         return im_array
             
@@ -263,7 +263,7 @@ def get_dir_stack_info(dir_path: str) -> dict:
     global valid_exts
     global h5_exts
     dir_contents: list[str] = os.listdir(dir_path)
-    index_list = [np.nan, np.nan]
+    index_list: list = [np.nan, np.nan]
     
     for index, file in enumerate(dir_contents):
         
@@ -292,9 +292,9 @@ def get_dir_stack_info(dir_path: str) -> dict:
         
     else:
         
-        first_im_array: np.array = read_im(dir_path + "/" + dir_contents[index_list[0]])
+        first_im_array: np.ndarray = read_im(dir_path + "/" + dir_contents[index_list[0]])
         no_slices: int = len(dir_contents) + index_list[1] + 1 - index_list[0]
-        im_array_shape = (first_im_array.shape[0], first_im_array.shape[1], no_slices)
+        im_array_shape: tuple[int] = (first_im_array.shape[0], first_im_array.shape[1], no_slices)
     
     return {"Start": index_list[0],
             "End": index_list[1],
@@ -302,12 +302,12 @@ def get_dir_stack_info(dir_path: str) -> dict:
             "Extension": ext,
             "List": dir_contents}
 
-def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
+def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.ndarray:
     
     if get_ext(stack_path) == "directory":
         
         dir_stack_info: dict = get_dir_stack_info(stack_path)
-        im_array_shape = dir_stack_info["Shape"]
+        im_array_shape: tuple[int] = dir_stack_info["Shape"]
     
         if dir_stack_info["End"] == -1:
                 
@@ -319,7 +319,7 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
             
         if im_array_shape:
             
-            im_array = np.empty(im_array_shape)
+            im_array: np.ndarray = np.empty(im_array_shape)
         
             for index, file in enumerate(dir_contents):
                 
@@ -331,24 +331,24 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
                 
                 if index == 0:
                     
-                    im_array: np.array = read_h5(stack_path + "/" + file)
+                    im_array: np.ndarray = read_h5(stack_path + "/" + file)
                     
                 else:
                     
-                    int_array: np.array = read_h5(stack_path + "/" + file)
+                    int_array: np.ndarray = read_h5(stack_path + "/" + file)
                     im_array = np.concat([im_array, int_array], axis = h5_concat_axis)
     
     else:
         
         if detect_h5(stack_path):
             
-            im_array: np.array = read_h5(stack_path)
+            im_array: np.ndarray = read_h5(stack_path)
                 
         else:
         
-            im = Image.open(stack_path)
+            im: Image.Image = Image.open(stack_path)
             no_rows, no_cols = np.shape(im)
-            im_array = np.empty((no_rows, no_cols, im.n_frames))
+            im_array: np.ndarray = np.empty((no_rows, no_cols, im.n_frames))
             
             for i in range(0, (im.n_frames + 1)):
                 
@@ -357,7 +357,7 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.array:
     
     return im_array
 
-def read_stack_fast(stack_path: str) -> np.array:
+def read_stack_fast(stack_path: str) -> np.ndarray:
     
     valid_fast_removals: list[str] = ["txt"]
     
@@ -381,16 +381,16 @@ def read_stack_fast(stack_path: str) -> np.array:
             dir_contents.remove(item)
             
         im_collection: io.ImageCollection = io.imread_collection(dir_contents)
-        im_array: np.array = io.concatenate_images(im_collection)
+        im_array: np.ndarray = io.concatenate_images(im_collection)
         
     else:
         
         im_collection: io.MultiImage = io.MultiImage(stack_path)
-        im_array: np.array = io.concatenate_images(im_collection)
+        im_array: np.ndarray = io.concatenate_images(im_collection)
     
     return np.squeeze(im_array)
     
-def read_stack(stack_path: str) -> np.array:
+def read_stack(stack_path: str) -> np.ndarray:
     
     ext = get_ext(stack_path)
     
@@ -408,11 +408,11 @@ def read_stack(stack_path: str) -> np.array:
         
         try:
             
-            im_array: np.array = read_stack_fast(stack_path)
+            im_array: np.ndarray = read_stack_fast(stack_path)
                 
         except OSError:
             
-            im_array: np.array = read_stack_slow(stack_path)
+            im_array: np.ndarray = read_stack_slow(stack_path)
             
         end = timer()
         print(f"\nFinished import in {(end - start):.2} s!")
@@ -425,13 +425,13 @@ def read_stack(stack_path: str) -> np.array:
         
         return None
     
-def write_h5(im_array: np.array, save_path: str) -> None:
+def write_h5(im_array: np.ndarray, save_path: str) -> None:
     
     h5_file: h5py.File = h5py.File(save_path, "w")
     h5_file.create_dataset("im_array", data = im_array)
     h5_file.close()
     
-def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff") -> None:
+def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "tiff") -> None:
     
     global write_exts
     global h5_exts
@@ -449,7 +449,7 @@ def write_im(im_array: np.array, save_dir: str, file_name: str, ext: str = "tiff
         
         print("\nInvalid image file extension!")
         
-def write_stack(im_array: np.array, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
+def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
     
     global write_exts
     global h5_exts
@@ -488,7 +488,7 @@ def write_stack(im_array: np.array, save_dir: str, file_name: str, *, ext: str =
         
         print("\nInvalid image file extension!")
         
-def write_plot(fig: plt.figure, file_name: str, save_dir: str) -> None:
+def write_plot(fig: figure.Figure, file_name: str, save_dir: str) -> None:
     
     save_path: str = save_dir + "/" + file_name + ".png"
     fig.savefig(save_path)
@@ -496,7 +496,7 @@ def write_plot(fig: plt.figure, file_name: str, save_dir: str) -> None:
 
 # Main
 
-def main(directory: bool = False) -> np.array:
+def main(directory: bool = False) -> np.ndarray:
     
     return read_stack(get_path(directory))
 

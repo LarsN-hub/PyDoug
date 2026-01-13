@@ -5,75 +5,78 @@ Module for generating plots to analyze images
 # Imports
 
 import numpy as np
+import quant
 
 from matplotlib import pyplot as plt
-from skimage import exposure
+from matplotlib import figure
 
 
 # Functions
 
-def histogram(im_array: np.array, *, mask_array: np.array = None) -> plt.figure:
+def histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None, return_data: bool = False) -> figure.Figure | dict:
     
-    if np.any(mask_array):
-    
-        counts, bin_centers = exposure.histogram(im_array[mask_array])
-        
-    else:
-        
-        counts, bin_centers = exposure.histogram(im_array)
-    
+    hist_dict: dict[str, np.ndarray] = quant.get_histogram(im_array, mask_array = mask_array)
     fig: plt.figure = plt.figure(dpi = 300)
     fax: plt.axes = plt.axes()
     fax.figure = fig
     fax.set_xlabel("Intensity")
     fax.set_ylabel("Counts")
-    plt.hist(bin_centers, bin_centers, weights = counts, axes = fax)
+    plt.hist(hist_dict["bin centers"], hist_dict["bin centers"], weights = hist_dict["counts"], axes = fax)
     
-    return fig
-
-def cdf(im_array: np.array, *, mask_array: np.array = None) -> plt.figure:
-    
-    if np.any(mask_array):
-    
-        im_cdf, bin_centers = exposure.cumulative_distribution(im_array[mask_array])
+    if return_data:
         
+        hist_dict["plot"] = fig
+        
+        return hist_dict
+    
     else:
         
-        im_cdf, bin_centers = exposure.cumulative_distribution(im_array)
-        
+        return fig
+
+def cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None, return_data: bool = False) -> figure.Figure | dict:
+    
+    cdf_dict: dict[str, np.ndarray] = quant.get_cdf(im_array, mask_array = mask_array)
     fig: plt.figure = plt.figure(dpi = 300)
     fax: plt.axes = plt.axes()
     fax.figure = fig
     fax.set_xlabel("Intensity")
     fax.set_ylabel("Probability")
     fax.set_ylim(0, 1)
-    plt.plot(bin_centers, im_cdf, "red")
+    plt.plot(cdf_dict["bin_centers"], cdf_dict["cdf"], "red")
     
-    return fig
-
-def hist_and_cdf(im_array: np.array, *, mask_array: np.array = None) -> plt.figure:
-    
-    if np.any(mask_array):
-    
-        counts, hist_bin_centers = exposure.histogram(im_array[mask_array])
-        im_cdf, cdf_bin_centers = exposure.cumulative_distribution(im_array[mask_array])
+    if return_data:
         
+        cdf_dict["plot"] = fig
+        
+        return cdf_dict
+    
     else:
         
-        counts, hist_bin_centers = exposure.histogram(im_array)
-        im_cdf, cdf_bin_centers = exposure.cumulative_distribution(im_array)
-        
+        return fig
+
+def hist_and_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None, return_data: bool = False) -> figure.Figure:
+    
+    hist_dict: dict[str, np.ndarray] = quant.get_histogram(im_array, mask_array = mask_array)
+    cdf_dict: dict[str, np.ndarray] = quant.get_cdf(im_array, mask_array = mask_array)
     fig: plt.figure = plt.figure(dpi = 300)
     fax: plt.axes = plt.axes()
     fax.figure = fig
     fax.set_xlabel("Intensity")
     fax.set_ylabel("Counts")
-    plt.hist(hist_bin_centers, hist_bin_centers, weights = counts, axes = fax)
+    plt.hist(hist_dict["bin centers"], hist_dict["bin centers"], weights = hist_dict["counts"], axes = fax)
     fax2 = fax.twinx()
     fax2.set_xlabel("Intensity")
     fax2.set_ylabel("Probability")
     fax2.set_ylim(0, 1)
-    plt.plot(cdf_bin_centers, im_cdf, "red")
+    plt.plot(cdf_dict["bin_centers"], cdf_dict["cdf"], "red")
+    
+    if return_data:
+        
+        return {"plot": fig, "histogram": hist_dict, "cdf": cdf_dict}
+    
+    else:
+        
+        return fig
 
 
 # Main

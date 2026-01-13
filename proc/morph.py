@@ -51,7 +51,7 @@ class Footprint:
             
             print("\nInvalid footprint type!")
             
-    def get_footprint(self) -> np.array:
+    def get_footprint(self) -> np.ndarray:
         
         if self.footprint_type == "ball":
             
@@ -84,11 +84,11 @@ class Footprint:
 
 # Functions
 
-def dilation(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def dilation(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     if along_axis:
         
-        dil_array: np.array = np.empty(im_array.shape, im_array.dtype)
+        dil_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
         
         for n in range(0, im_array.shape[0]):
             
@@ -100,11 +100,11 @@ def dilation(im_array: np.array, *, footprint: np.array = None, along_axis: bool
     
         return morphology.dilation(im_array, footprint)
 
-def erosion(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def erosion(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     if along_axis:
         
-        erod_array: np.array = np.empty(im_array.shape, im_array.dtype)
+        erod_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
         
         for n in range(0, im_array.shape[0]):
             
@@ -116,11 +116,11 @@ def erosion(im_array: np.array, *, footprint: np.array = None, along_axis: bool 
     
         return morphology.erosion(im_array, footprint)
 
-def opening(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def opening(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     if along_axis:
         
-        open_array: np.array = np.empty(im_array.shape, im_array.dtype)
+        open_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
         
         for n in range(0, im_array.shape[0]):
             
@@ -132,11 +132,11 @@ def opening(im_array: np.array, *, footprint: np.array = None, along_axis: bool 
     
         return morphology.opening(im_array, footprint)
 
-def closing(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def closing(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     if along_axis:
         
-        close_array: np.array = np.empty(im_array.shape, im_array.dtype)
+        close_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
         
         for n in range(0, im_array.shape[0]):
             
@@ -148,11 +148,11 @@ def closing(im_array: np.array, *, footprint: np.array = None, along_axis: bool 
     
         return morphology.closing(im_array, footprint)
 
-def white_tophat(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def white_tophat(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     return im_array - opening(im_array, footprint = footprint, along_axis = along_axis)
 
-def black_tophat(im_array: np.array, *, footprint: np.array = None, along_axis: bool = False) -> np.array:
+def black_tophat(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     return closing(im_array, footprint = footprint, along_axis = along_axis) - im_array
 
