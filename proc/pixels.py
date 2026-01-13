@@ -6,10 +6,12 @@ Module for altering and assessing pixel values and dimensions
 
 import cropclip as cc
 import numpy as np
+import quant
+import util
 
+from skimage import util as skutil
 from skimage import transform
 from skimage import exposure
-from skimage import util
 
 
 # Functions
@@ -36,20 +38,45 @@ def statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict:
     
     return im_stats
 
-def get_percentage_intensities(im_array: np.ndarray, percentages: tuple) -> tuple:
+def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_dict: dict = None) -> tuple:
     
-    pass
+    if max(percentages) > 1:
+        
+        percentages = (percentages[0] / 100, percentages[1] / 100)
+        
+    if not cdf_dict:
+        
+        cdf_dict: dict = quant.get_cdf(im_array, mask_array = mask_array)
+        
+    im_cdf: np.ndarray = cdf_dict["cdf"]
+    bin_centers: np.ndarray = cdf_dict["bin centers"]
+    low_index = util.quick_get_first_index(im_cdf, min(percentages), "greater or equal")
+    high_index = len(im_cdf) - util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal") - 1
+    low_bin = np.astype(bin_centers[low_index], im_array.dtype)
+    high_bin = np.astype(bin_centers[high_index], im_array.dtype)
+    
+    return (low_bin, high_bin)
 
-def saturate(im_array: np.ndarray, bounds: tuple, *, bounds_percent: bool = False) -> np.ndarray:
+def saturate(im_array: np.ndarray, bounds: tuple, *, bounds_percent: bool = True, mask_array: np.ndarray = None, cdf_dict: dict = None, conserve_mem: bool = False) -> np.ndarray:
     
     if bounds_percent:
         
-        pass
+        bounds = get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_dict = cdf_dict)
         
-    im_array[im_array > max(bounds)] = max(bounds)
-    im_array[im_array < min(bounds)] = min(bounds)
+    if conserve_mem:
+        
+        im_array[im_array > max(bounds)] = max(bounds)
+        im_array[im_array < min(bounds)] = min(bounds)
     
-    return im_array
+        return im_array
+    
+    else:
+        
+        sat_array = np.copy(im_array)
+        sat_array[im_array > max(bounds)] = max(bounds)
+        sat_array[im_array < min(bounds)] = min(bounds)
+        
+        return sat_array
 
 def normalize(im_array: np.ndarray, norm_bounds: tuple) -> np.ndarray:
     
@@ -71,31 +98,31 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = Fal
             
         if convert_type == "uint8":
                     
-            conv_array: np.ndarray = util.img_as_ubyte(im_array)
+            conv_array: np.ndarray = skutil.img_as_ubyte(im_array)
                 
         elif convert_type == "uint16":
                     
-            conv_array: np.ndarray = util.img_as_uint(im_array)
+            conv_array: np.ndarray = skutil.img_as_uint(im_array)
                 
         elif convert_type == "int16":
                     
-            conv_array: np.ndarray = util.img_as_int(im_array)
+            conv_array: np.ndarray = skutil.img_as_int(im_array)
                 
         elif convert_type == "float":
                     
-            conv_array: np.ndarray = util.img_as_float(im_array)
+            conv_array: np.ndarray = skutil.img_as_float(im_array)
                     
         elif convert_type == "float32":
                     
-            conv_array: np.ndarray = util.img_as_float32(im_array)
+            conv_array: np.ndarray = skutil.img_as_float32(im_array)
                     
         elif convert_type == "float64":
                     
-            conv_array: np.ndarray = util.img_as_float64(im_array)
+            conv_array: np.ndarray = skutil.img_as_float64(im_array)
                 
         elif convert_type == "bool":
                     
-            conv_array: np.ndarray = util.img_as_bool(im_array)
+            conv_array: np.ndarray = skutil.img_as_bool(im_array)
             
         return conv_array
         
@@ -123,7 +150,7 @@ def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
         
 def invert(im_array: np.ndarray) -> np.ndarray:
     
-    return util.invert(im_array)
+    return skutil.invert(im_array)
 
 def histogram_equalization(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, kernel_size = None, clip_limit = 0.01) -> np.ndarray:
     

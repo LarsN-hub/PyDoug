@@ -33,7 +33,7 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict[str,
         
         im_cdf, bin_centers = exposure.cumulative_distribution(im_array)
         
-    return {"cdf": im_cdf, "bin_centers": bin_centers}
+    return {"cdf": im_cdf, "bin centers": bin_centers}
 
 
 # Main
