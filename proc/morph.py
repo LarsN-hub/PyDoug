@@ -55,31 +55,31 @@ class Footprint:
         
         if self.footprint_type == "ball":
             
-            self.footprint = morphology.ball(self.radius)
+            return morphology.ball(self.radius)
         
         elif self.footprint_type == "diamond":
             
-            self.footprint = morphology.diamond(self.radius)
+            return morphology.diamond(self.radius)
         
         elif self.footprint_type == "disk":
             
-            self.footprint = morphology.disk(self.radius)
+            return morphology.disk(self.radius)
         
         elif self.footprint_type == "ellipse":
             
-            self.footprint = morphology.ellipse(self.width, self.height)
+            return morphology.ellipse(self.width, self.height)
         
         elif self.footprint_type == "octagon":
             
-            self.footprint = morphology.octagon(self.m, self.n)
+            return morphology.octagon(self.m, self.n)
         
         elif self.footprint_type == "octahedron":
             
-            self.footprint = morphology.octahedron(self.radius)
+            return morphology.octahedron(self.radius)
         
         elif self.footprint_type == "star":
             
-            self.footprint = morphology.star(self.a)
+            return morphology.star(self.a)
 
 
 # Functions

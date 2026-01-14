@@ -7,68 +7,56 @@ Module for altering and assessing pixel values and dimensions
 import cropclip as cc
 import numpy as np
 import quant
-import util
+import morph
 
 from skimage import util as skutil
 from skimage import transform
 from skimage import exposure
+from skimage import filters
 
 
 # Functions
 
-def statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict:
-    
-    im_stats: dict = {}
-    
-    if np.any(mask_array):
+def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: tuple | str = None) -> np.ndarray:
+     
+    if in_range:
+        
+        if out_range:
             
-        im_stats["mean"] = float(np.mean(im_array[mask_array]))
-        im_stats["median"] = float(np.median(im_array[mask_array]))
-        im_stats["min"] = float(np.min(im_array[mask_array]))
-        im_stats["max"] = float(np.max(im_array[mask_array]))
-        im_stats["stdev"] = float(np.std(im_array[mask_array]))
-
+            return exposure.rescale_intensity(im_array, in_range, out_range)
+        
+        else:
+            
+            return exposure.rescale_intensity(im_array, in_range, "dtype")
+    
     else:
         
-        im_stats["mean"] = float(np.mean(im_array))
-        im_stats["median"] = float(np.median(im_array))
-        im_stats["min"] = float(np.min(im_array))
-        im_stats["max"] = float(np.max(im_array))
-        im_stats["stdev"] = float(np.std(im_array))
-    
-    return im_stats
+        if out_range:
+            
+            return exposure.rescale_intensity(im_array, "image", out_range)
+        
+        else:
+            
+            return exposure.rescale_intensity(im_array, "image", "dtype")
 
-def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_dict: dict = None) -> tuple:
+def saturate(im_array: np.ndarray, bounds: tuple, *, auto_normalize: bool = True, bounds_as_percents: bool = True, mask_array: np.ndarray = None, cdf_dict: dict = None, conserve_mem: bool = False) -> np.ndarray:
     
-    if max(percentages) > 1:
+    if bounds_as_percents:
         
-        percentages = (percentages[0] / 100, percentages[1] / 100)
-        
-    if not cdf_dict:
-        
-        cdf_dict: dict = quant.get_cdf(im_array, mask_array = mask_array)
-        
-    im_cdf: np.ndarray = cdf_dict["cdf"]
-    bin_centers: np.ndarray = cdf_dict["bin centers"]
-    low_index = util.quick_get_first_index(im_cdf, min(percentages), "greater or equal")
-    high_index = len(im_cdf) - util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal") - 1
-    low_bin = np.astype(bin_centers[low_index], im_array.dtype)
-    high_bin = np.astype(bin_centers[high_index], im_array.dtype)
-    
-    return (low_bin, high_bin)
-
-def saturate(im_array: np.ndarray, bounds: tuple, *, bounds_percent: bool = True, mask_array: np.ndarray = None, cdf_dict: dict = None, conserve_mem: bool = False) -> np.ndarray:
-    
-    if bounds_percent:
-        
-        bounds = get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_dict = cdf_dict)
+        bounds = quant.get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_dict = cdf_dict)
         
     if conserve_mem:
         
         im_array[im_array > max(bounds)] = max(bounds)
         im_array[im_array < min(bounds)] = min(bounds)
     
-        return im_array
+        if auto_normalize:
+            
+            return normalize(im_array)
+        
+        else:
+            
+            return im_array
     
     else:
         
@@ -76,11 +64,13 @@ def saturate(im_array: np.ndarray, bounds: tuple, *, bounds_percent: bool = True
         sat_array[im_array > max(bounds)] = max(bounds)
         sat_array[im_array < min(bounds)] = min(bounds)
         
-        return sat_array
-
-def normalize(im_array: np.ndarray, norm_bounds: tuple) -> np.ndarray:
-    
-    return np.astype((((im_array - im_array.min()) / (im_array.max() - im_array.min())) * (max(norm_bounds) - min(norm_bounds))) + min(norm_bounds), im_array.dtype)
+        if auto_normalize:
+            
+            return normalize(sat_array)
+        
+        else:
+            
+            return sat_array
 
 def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = False, float_bounds: tuple[float] = None) -> np.ndarray:
     
@@ -94,7 +84,7 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = Fal
                 
                 im_array = saturate(im_array, float_bounds);
             
-            im_array = normalize(im_array, (0, 1))
+            im_array = normalize(im_array, out_range = (0, 1))
             
         if convert_type == "uint8":
                     
@@ -152,23 +142,39 @@ def invert(im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)
 
-def histogram_equalization(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, kernel_size = None, clip_limit = 0.01) -> np.ndarray:
+def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, kernel_size: int | np.ndarray = None, clip_limit: float = 0.01, radius: int = 5) -> np.ndarray:
     
-    valid_methods: tuple[str] = ("global", "local")
+    valid_methods: tuple[str] = ("global", "local", "adaptive")
     
     if any(x == method for x in valid_methods):
         
-        if method == "global":
-            
-            if np.any(mask_array):
+        if np.any(mask_array):
                 
-                if mask_array.shape != im_array.shape:
+            if mask_array.shape != im_array.shape:
                     
-                    mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+                mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+                
+        if method == "global":
             
             return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
         
         elif method == "local":
+            
+            if len(im_array.shape) == 2:
+                
+                disk = morph.Footprint("disk")
+                disk.radius = radius
+                footprint = disk.get_footprint()
+                
+            else:
+                
+                ball = morph.Footprint("ball")
+                ball.radius = radius
+                footprint = ball.get_footprint()
+            
+            return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
+        
+        elif method == "adaptive":
             
             return convert_im_type(exposure.equalize_adapthist(im_array, kernel_size, clip_limit), im_array.dtype)
     
