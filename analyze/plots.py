@@ -48,7 +48,7 @@ def set_intensity_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x",
                 
     return axis
 
-def histogram_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
+def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
@@ -63,7 +63,7 @@ def histogram_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array:
         hist_dict["bin centers"] = hist_dict["bin centers"][1:-1]
         hist_dict["counts"] = hist_dict["counts"][1:-1]
         
-    hist_axis: plt.Axes = input_axis
+    hist_axis: plt.Axes = input_ax
     hist_axis.set_xlabel("Gray Value")
     hist_axis.set_ylabel("Counts")
     hist_axis.hist(hist_dict["bin centers"], hist_dict["bin centers"], weights = hist_dict["counts"])
@@ -78,7 +78,7 @@ def histogram_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array:
         
     return hist_axis
 
-def cdf_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Axes:
+def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
@@ -88,7 +88,7 @@ def cdf_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array: np.nd
         
         cdf_dict: dict[str, np.ndarray] = data.copy()
         
-    cdf_axis: plt.Axes = input_axis
+    cdf_axis: plt.Axes = input_ax
     cdf_axis.set_xlabel("Gray Value")
     cdf_axis.set_ylabel("Probability", rotation = 270, va = "bottom")
     cdf_axis.set_ylim(0, 1)
@@ -104,26 +104,82 @@ def cdf_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, mask_array: np.nd
         
     return cdf_axis
 
-def histogram(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def histogram(data: np.ndarray | dict, *, input_ax: plt.Axes = None, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
     
     return fig
 
-def cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Figure:
+def cdf(data: np.ndarray | dict, *, input_ax: plt.Axes = None, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Figure:
     
     fig, cdf_ax = plt.subplots()
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, axlims = axlims)
     
     return fig
 
-def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def hist_cdf(data: np.ndarray | dict, *, input_ax: plt.Axes = None, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
     cdf_ax: plt.Axes = hist_ax.twinx()
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, axlims = axlims)
+    
+    return fig
+
+def subplot_layout(num_plots: int) -> tuple:
+    
+    if num_plots == 1:
+        
+        return (1, 1)
+    
+    elif num_plots == 2:
+        
+        return (1, 2)
+    
+    elif num_plots == 3:
+        
+        return (1, 3)
+    
+    elif num_plots == 4:
+        
+        return (2, 2)
+    
+    elif num_plots == 5 or num_plots == 6:
+        
+        return (2, 3)
+    
+    elif num_plots == 7 or num_plots == 8 or num_plots == 9:
+        
+        return (3, 3)
+
+def multi_plot(data_array: np.ndarray, function_list: list, layout: tuple = None) -> plt.Figure:
+    
+    functions: dict = {"hist": histogram_axis, "cdf": cdf_axis, "hist cdf": "hist cdf"}
+       
+    if not layout:
+        
+        layout: tuple = subplot_layout(len(data_array))
+    
+    fig, axs = plt.subplots(layout[0], layout[1])
+    
+    if any(x == "hist cdf" for x in function_list):
+        
+        cdf_axs = np.copy(axs)
+    
+    for index, data in enumerate(data_array):
+        
+        if functions[function_list[index]] == "hist cdf":
+            
+            axs[index] = histogram_axis(data, axs[index])
+            cdf_axs[index]: plt.Axes = axs[index].twinx()
+            cdf_axs[index] = cdf_axis(data, cdf_axs[index])
+        
+        else:
+        
+            functions[function_list[index]](data, input_ax = axs[index])
+        
+    fig.tight_layout()
     
     return fig
         

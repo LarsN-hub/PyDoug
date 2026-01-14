@@ -30,6 +30,7 @@ proc/dic.py
 - Add digital image / volume correlation functions
 
 analysis/quant.py
+- Add cdf to linear probability array function for later slider function
 - Add particle count function
 - Add particle size distribution function
 - Add volume calculation function
