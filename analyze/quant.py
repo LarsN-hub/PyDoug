@@ -62,6 +62,13 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict[str,
         
     return {"cdf": im_cdf, "bin centers": bin_centers}
 
+def linear_cdf(cdf_dict: dict, percent_interval: float = 0.1, *, mask_array: np.ndarray = None) -> dict[str, np.ndarray]:
+    
+    interval_array: np.ndarray = np.arange(0, 1, percent_interval)
+    linear_indices: np.ndarray = util.quick_get_indices(cdf_dict["cdf"], interval_array)
+    
+    return {"cdf": interval_array, "bin_centers": cdf_dict["bin centers"][linear_indices]}
+
 def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_dict: dict = None) -> tuple:
     
     if max(percentages) > 1:
