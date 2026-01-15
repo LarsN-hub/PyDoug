@@ -180,6 +180,10 @@ def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: 
 
 def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False, quant_axes: tuple = (0, 1, 2)) -> plt.Figure:
        
+    if len(function_list) == 1:
+        
+        function_list *= data_array.shape[0]
+    
     if not layout:
         
         layout: tuple = subplot_layout(len(data_array))

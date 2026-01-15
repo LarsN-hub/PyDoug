@@ -4,6 +4,7 @@ Module for analysis of segmented images
 
 # Imports
 
+import cropclip as cc
 import numpy as np
 import util
 
@@ -38,27 +39,87 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.
     
     ax_stats: dict = {}
     
-    if axis == 0:
-        
-        exclude_axes: tuple = (1, 2)
-        
-    elif axis == 1:
-        
-        exclude_axes: tuple = (0, 2)
-        
-    elif axis == 2:
-        
-        exclude_axes: tuple = (0, 1)
-    
     if np.any(mask_array):
         
-        ax_stats["mean"] = np.mean(im_array[mask_array], exclude_axes)
-        ax_stats["median"] = np.median(im_array[mask_array], exclude_axes)
-        ax_stats["min"] = np.min(im_array[mask_array], exclude_axes)
-        ax_stats["max"] = np.max(im_array[mask_array], exclude_axes)
-        ax_stats["stdev"] = np.std(im_array[mask_array], exclude_axes)
+        ax_stats["mean"] = np.empty(im_array.shape[axis])
+        ax_stats["median"] = np.empty(im_array.shape[axis])
+        ax_stats["min"] = np.empty(im_array.shape[axis])
+        ax_stats["max"] = np.empty(im_array.shape[axis])
+        ax_stats["stdev"] = np.empty(im_array.shape[axis])
+        
+        if axis == 0:
+        
+            for slice_index in range(0, im_array.shape[axis]):
+                
+                if np.any(mask_array[slice_index]):
+                    
+                    ax_stats["mean"][slice_index] = np.mean(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats["median"][slice_index] = np.median(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats["min"][slice_index] = np.min(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats["max"][slice_index] = np.max(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats["stdev"][slice_index] = np.std(im_array[slice_index][mask_array[slice_index]])
+                    
+                else:
+                    
+                    ax_stats["mean"][slice_index] = 0
+                    ax_stats["median"][slice_index] = 0
+                    ax_stats["min"][slice_index] = 0
+                    ax_stats["max"][slice_index] = 0
+                    ax_stats["stdev"][slice_index] = 0
+                
+        elif axis == 1:
+            
+            for slice_index in range(0, im_array.shape[axis]):
+                
+                if np.any(mask_array[:, slice_index, :]):
+                
+                    ax_stats["mean"][slice_index] = np.mean(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats["median"][slice_index] = np.median(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats["min"][slice_index] = np.min(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats["max"][slice_index] = np.max(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats["stdev"][slice_index] = np.std(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    
+                else:
+                    
+                    ax_stats["mean"][slice_index] = 0
+                    ax_stats["median"][slice_index] = 0
+                    ax_stats["min"][slice_index] = 0
+                    ax_stats["max"][slice_index] = 0
+                    ax_stats["stdev"][slice_index] = 0
+                
+        elif axis == 2:
+            
+            for slice_index in range(0, im_array.shape[axis]):
+                
+                if np.any(mask_array[:, :, slice_index]):
+                
+                    ax_stats["mean"][slice_index] = np.mean(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats["median"][slice_index] = np.median(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats["min"][slice_index] = np.min(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats["max"][slice_index] = np.max(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats["stdev"][slice_index] = np.std(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    
+                else:
+                    
+                    ax_stats["mean"][slice_index] = 0
+                    ax_stats["median"][slice_index] = 0
+                    ax_stats["min"][slice_index] = 0
+                    ax_stats["max"][slice_index] = 0
+                    ax_stats["stdev"][slice_index] = 0
     
     else:
+        
+        if axis == 0:
+            
+            exclude_axes: tuple = (1, 2)
+            
+        elif axis == 1:
+            
+            exclude_axes: tuple = (0, 2)
+            
+        elif axis == 2:
+            
+            exclude_axes: tuple = (0, 1)
         
         ax_stats["mean"] = np.mean(im_array, exclude_axes)
         ax_stats["median"] = np.median(im_array, exclude_axes)

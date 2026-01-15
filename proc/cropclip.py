@@ -150,17 +150,24 @@ def coords_2_mask(im_array: np.ndarray, shape_coords: np.ndarray, shape_type: st
         
         print("\nInvalid shape type!")
         
-def quick_get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer) -> np.ndarray:
+def mask_2d_to_3d(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
+    
+    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
+
+def quick_get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, convert_to_3d: bool = True) -> np.ndarray:
     
     shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer)
     shape_type = list(shape_dict.keys())[0]
     shape_coords = shape_dict[shape_type]
+    mask_array: np.ndarray = coords_2_mask(im_array, shape_coords, shape_type)["mask"]
     
-    return coords_2_mask(im_array, shape_coords, shape_type)["mask"]
+    if convert_to_3d:
         
-def mask_2d_to_3d(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
+        return mask_2d_to_3d(mask_array, im_array.shape[0])
     
-    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
+    else:
+        
+        return mask_array
         
 def mask(im_array: np.ndarray, shape_type: str, shape_coords: np.ndarray, *, mask_method: str = "out", outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.ndarray:
     

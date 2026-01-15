@@ -41,6 +41,7 @@ analysis/quant.py
 - Add directional position calculation function
 
 analysis/plots.py
+- Fix use of additional parameters in multi-plot function
 - Add total particle count plot function
 - Add particle size distribution plot function
 - Add total volume plot function
