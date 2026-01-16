@@ -7,12 +7,12 @@ Module for altering and assessing pixel values and dimensions
 import cropclip as cc
 import numpy as np
 import quant
-import morph
 
 from skimage import util as skutil
 from skimage import transform
 from skimage import exposure
 from skimage import filters
+from filtering import morph
 
 
 # Functions

@@ -16,7 +16,8 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filtering/denoising.py
-- add rank filters (done with restoration and filters sections)
+- add optimized denoising filter function and figure out j-invariant denoising thing
+- will likely need to add functions to plots for self-supervised loss
 
 proc/filtering/fourier.py
 
@@ -25,13 +26,13 @@ proc/segment/thresh.py
 
 proc/segment/edge.py
 - create file
-- add edge-based segmentation functions
+- add edge-based segmentation functions from filters section
 
 proc/segment/region.py
 - create file
-- add region-based segmentation functions
+- add region-based segmentation functions from filters section 
 
-proc/morph.py
+proc/filtering/morph.py
 
 proc/dic.py
 - Create file

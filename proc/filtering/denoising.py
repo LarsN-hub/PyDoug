@@ -6,6 +6,7 @@ Module for denoising images
 
 import numpy as np
 import pixels
+import typing
 
 from skimage import restoration
 from skimage import filters
@@ -49,6 +50,16 @@ def gaussian(im_array: np.ndarray, *,
                                               out = out)
     
     return pixels.convert_im_type(gaus_array, im_array.dtype)
+
+def median(im_array: np.ndarray, *,
+           footprint: np.ndarray = None,
+           out: np.ndarray = None,
+           mask: np.ndarray = None,
+           shift_x: int = 0,
+           shift_y: int = 0,
+           shift_z: int = 0) -> np.ndarray:
+    
+    return filters.rank.median(im_array, footprint, out, mask, shift_x, shift_y, shift_z)
 
 def non_local_means(im_array: np.ndarray, *,
                     patch_size: int = 7,
@@ -119,6 +130,15 @@ def wavelet(im_array: np.ndarray, *,
                                                          channel_axis = channel_axis)
     
     return pixels.convert_im_type(wave_array, im_array.dtype)
+
+def calibrated_denoiser(im_array: np.ndarray, *,
+                        denoiser: str,
+                        parameters: dict[list],
+                        stride: int = 4,
+                        approximate_loss: bool = True,
+                        extra_output: bool = False) -> None:
+    
+    pass
 
 
 # Main
