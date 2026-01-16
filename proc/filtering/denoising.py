@@ -1,5 +1,5 @@
 """
-Module for filtering images
+Module for denoising images
 """
 
 # Imports
@@ -9,7 +9,6 @@ import pixels
 
 from skimage import restoration
 from skimage import filters
-from scipy import fft
 
 
 # Functions
@@ -39,7 +38,7 @@ def gaussian(im_array: np.ndarray, *,
              preserve_range: bool = False,
              truncate: float = 4,
              channel_axis: int | None = None,
-             out: np.array | None = None) -> np.ndarray:
+             out: np.ndarray | None = None) -> np.ndarray:
     
     gaus_array: np.ndarray = filters.gaussian(im_array, sigma,
                                               mode = mode,
@@ -78,6 +77,23 @@ def tv_bregman(im_array: np.ndarray, *,
     
     return pixels.convert_im_type(tv_array, im_array.dtype)
 
+def remove_background(im_array: np.ndarray, *,
+                      radius: int = 100,
+                      kernel: np.ndarray = None,
+                      return_background: bool = False) -> np.ndarray:
+    
+    back_array: np.ndarray = restoration.rolling_ball(im_array,
+                                                      radius = radius,
+                                                      kernel = kernel)
+    
+    if return_background:
+        
+        return back_array
+    
+    else:
+        
+        return im_array - back_array
+
 def tv_chambolle(im_array: np.ndarray, *,
                  weight: float = 0.1,
                  eps: float = 0.0002,
@@ -103,26 +119,6 @@ def wavelet(im_array: np.ndarray, *,
                                                          channel_axis = channel_axis)
     
     return pixels.convert_im_type(wave_array, im_array.dtype)
-
-def ft(im_array: np.ndarray) -> np.array:
-    
-    if len(im_array.shape) == 2:
-        
-        return fft.fftshift(fft.fft2(np.astype(im_array, np.float64)))
-    
-    else:
-        
-        return fft.fftshift(fft.fftn(np.astype(im_array, np.float64)))
-
-def ift(im_array: np.ndarray) -> np.array:
-    
-    if len(im_array.shape) == 2:
-        
-        return fft.ifft2(fft.ifftshift(im_array))
-    
-    else:
-        
-        return fft.ifftn(fft.ifftshift(im_array))
 
 
 # Main

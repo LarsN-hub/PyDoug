@@ -15,14 +15,23 @@ proc/pixels.py
 
 proc/cropclip.py
 
-proc/filtering.py
-- Add rank filtering functions
+proc/filtering/denoising.py
+- add rank filters (done with restoration and filters sections)
+
+proc/filtering/fourier.py
+
+proc/segment/thresh.py
+- add additional intensity-based thresholding functions
+
+proc/segment/edge.py
+- create file
+- add edge-based segmentation functions
+
+proc/segment/region.py
+- create file
+- add region-based segmentation functions
 
 proc/morph.py
-
-proc/segment.py
-- Add clustering segmentation function
-- Add other segmentation algorithms
 
 proc/dic.py
 - Create file
@@ -41,7 +50,6 @@ analysis/quant.py
 - Add directional position calculation function
 
 analysis/plots.py
-- Fix use of additional parameters in multi-plot function
 - Add total particle count plot function
 - Add particle size distribution plot function
 - Add total volume plot function

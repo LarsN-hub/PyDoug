@@ -1,13 +1,13 @@
 """
-Module for analysis of segmented images
+Module for quantified analysis of segmented images
 """
 
 # Imports
 
-import cropclip as cc
 import numpy as np
 import util
 
+from skimage import restoration
 from skimage import exposure
 
 
@@ -193,6 +193,10 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_ar
     high_bin = np.astype(bin_centers[high_index], im_array.dtype)
     
     return (low_bin, high_bin)
+
+def estimate_noise(im_array: np.ndarray) -> float:
+    
+    return restoration.estimate_sigma(im_array)
 
 
 # Main
