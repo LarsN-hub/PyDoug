@@ -51,16 +51,6 @@ def gaussian(im_array: np.ndarray, *,
     
     return pixels.convert_im_type(gaus_array, im_array.dtype)
 
-def median(im_array: np.ndarray, *,
-           footprint: np.ndarray = None,
-           out: np.ndarray = None,
-           mask: np.ndarray = None,
-           shift_x: int = 0,
-           shift_y: int = 0,
-           shift_z: int = 0) -> np.ndarray:
-    
-    return filters.rank.median(im_array, footprint, out, mask, shift_x, shift_y, shift_z)
-
 def non_local_means(im_array: np.ndarray, *,
                     patch_size: int = 7,
                     patch_distance: int = 11,
@@ -135,47 +125,101 @@ def calibrate_function(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np
                        stride: int = 4,
                        approximate_loss: bool = True,
                        extra_output: bool = False,
-                       return_type: str = "parameters") -> Callable[[np.ndarray], np.ndarray] | tuple[list[dict], list[int]] | dict:
+                       return_type: str = "parameters",
+                       bilateral_slice_no: int = None) -> Callable[[np.ndarray], np.ndarray] | tuple[list[dict], list[int]] | dict:
+    
+    if denoiser == restoration.denoise_bilateral:
+        
+        if bilateral_slice_no:
+        
+            denoise_array: np.ndarray = im_array[bilateral_slice_no]
+            
+        else:
+            
+            denoise_array: np.ndarray = im_array[round(im_array.shape[0] / 2)]
+            
+    else:
+        
+        denoise_array: np.ndarray = np.copy(im_array)
     
     if return_type == "parameters":
     
-        _, (parameters_tested, losses) = restoration.calibrate_denoiser(im_array, denoiser, parameters,
+        _, (parameters_tested, losses) = restoration.calibrate_denoiser(denoise_array, denoiser, parameters,
                                           stride = stride, approximate_loss = approximate_loss, extra_output = True)
         
         return parameters_tested[np.argmin(losses)]
     
     elif return_type == "function":
         
-        return restoration.calibrate_denoiser(im_array, denoiser, parameters,
+        return restoration.calibrate_denoiser(denoise_array, denoiser, parameters,
                                           stride = stride, approximate_loss = approximate_loss, extra_output = extra_output)
     
     elif return_type == "im array":
         
-        calibrated_denoiser: Callable[[np.ndarray], np.ndarray] = restoration.calibrate_denoiser(im_array, denoiser, parameters,
-                                                                                                 stride = stride, approximate_loss = approximate_loss, extra_output = False)
+        calibrated_denoiser: Callable[[np.ndarray], np.ndarray] = restoration.calibrate_denoiser(denoise_array, denoiser,
+                                                                                                 parameters, stride = stride,
+                                                                                                 approximate_loss = approximate_loss,
+                                                                                                 extra_output = False)
         
-        return pixels.convert_im_type(calibrated_denoiser(im_array), im_array.dtype)
+        if denoiser == restoration.denoise_bilateral:
+            
+            denoised_array: np.ndarray = np.empty(im_array.shape)
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
+                denoised_array[slice_index] = calibrated_denoiser(im_array[slice_index])
+        
+        else:
+            
+            denoised_array: np.ndarray = calibrated_denoiser(denoise_array)
+        
+        return pixels.convert_im_type(denoised_array, im_array.dtype)
         
 def j_invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray], *,
                 stride: int = 4,
                 masks: list[np.ndarray] = None,
                 denoiser_kwargs: dict = None,
                 calibrate: bool = False,
-                parameters: dict[str, np.ndarray] = None) -> np.ndarray:
+                parameters: dict[str, np.ndarray] = None,
+                bilateral_slice_no: int = None) -> np.ndarray:
     
     if calibrate:
+            
+        optimal_parameters: dict = calibrate_function(im_array, denoiser, parameters, stride = stride, bilateral_slice_no = bilateral_slice_no)
         
-        optimal_parameters: dict = calibrate_function(im_array, denoiser, parameters, stride = stride)
+        if denoiser == restoration.denoise_bilateral:
+            
+            denoised_array: np.ndarray = np.empty(im_array.shape)
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
+                denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser,
+                                                                            stride = stride, masks = masks,
+                                                                            denoiser_kwargs = optimal_parameters)
         
-        return pixels.convert_im_type(restoration.denoise_invariant(im_array, denoiser, stride = stride, masks = masks,
-                                                                    denoiser_kwargs = optimal_parameters),
-                                      im_array.dtype)
+        else:
+        
+            denoised_array: np.ndarray = restoration.denoise_invariant(im_array, denoiser,
+                                                                       stride = stride, masks = masks,
+                                                                       denoiser_kwargs = optimal_parameters)
     
     else:
+        
+        if denoiser == restoration.denoise_bilateral:
+            
+            denoised_array: np.ndarray = np.empty(im_array.shape)
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
+                denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser, stride = stride,
+                                                                           masks = masks, denoiser_kwargs = denoiser_kwargs)
+        
+        else:
+            
+            denoised_array: np.ndarray = restoration.denoise_invariant(im_array, denoiser, stride = stride, masks = masks,
+                                                                       denoiser_kwargs = denoiser_kwargs)
     
-        return pixels.convert_im_type(restoration.denoise_invariant(im_array, denoiser, stride = stride, masks = masks,
-                                                                    denoiser_kwargs = denoiser_kwargs),
-                                      im_array.dtype)
+    return pixels.convert_im_type(denoised_array, im_array.dtype)
 
 
 # Main

@@ -200,9 +200,9 @@ def estimate_noise(im_array: np.ndarray) -> float:
     
     return restoration.estimate_sigma(im_array)
 
-def get_denoise_parameter_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray],
-                                 parameters: dict[str, np.ndarray], *,
-                                 stride: int = 4, approximate_loss: bool = True) -> dict[str, list]:
+def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray],
+                         parameters: dict[str, np.ndarray], *,
+                         stride: int = 4, approximate_loss: bool = True) -> dict[str, list]:
     
     _, (parameters_tested, losses) = denoising.calibrate_function(im_array, denoiser, parameters, stride = stride,
                                                                   approximate_loss = approximate_loss,

@@ -160,24 +160,96 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser:
     
     if isinstance(data, np.ndarray):
         
-        ssl_dict: dict[str, list] = quant.get_denoise_parameter_losses(data, denoiser, parameters,
-                                                                       stride = stride, approximate_loss = approximate_loss)
+        ssl_dict: dict[str, list] = quant.get_denoising_losses(data, denoiser, parameters,
+                                                               stride = stride, approximate_loss = approximate_loss)
         
     else:
         
         ssl_dict: dict[str, list] = data.copy()
-        
-    x_vals: np.ndarray = np.empty(len(ssl_dict["parameters"]))
     
-    for index, dict_val in enumerate(ssl_dict["parameters"]):
+    if len(ssl_dict["parameters"][0]) == 2:
         
-        x_vals[index] = dict_val[list(dict_val.keys())[0]]
+        parameters_tested: list[dict[str, np.float64, np.int64]] = ssl_dict["parameters"]
+        losses: list[np.float64] = ssl_dict["losses"]
+        labels: list[np.float64 | np.int64] = []
+        x_vals: list[np.ndarray] = []
+        y_vals: list[np.ndarray] = []
+        label_index: int = 0
         
-    ssl_ax: plt.Axes = input_axis
-    ssl_ax.set_xlabel(list(ssl_dict["parameters"][0].keys())[0].capitalize())
-    ssl_ax.set_ylabel("Mean Squared Error")
-    ssl_ax.set_xlim(np.min(x_vals), np.max(x_vals))
-    ssl_ax.plot(x_vals, ssl_dict["losses"])
+        for index, dict_item in enumerate(parameters_tested):
+            
+            if index == 0:
+                
+                prev_label: np.float64 | np.int64 = list(dict_item.values())[0]
+                labels.append(prev_label)
+                x_vals.append(np.array([list(dict_item.values())[1]]))
+                y_vals.append(np.array([losses[index]]))
+            
+            else:
+                
+                current_label = list(dict_item.values())[0]
+                
+                if current_label == prev_label:
+                    
+                    x_vals[label_index] = np.append(x_vals[label_index], list(dict_item.values())[1])
+                    y_vals[label_index] = np.append(y_vals[label_index], losses[index])
+                    
+                else:
+                    
+                    label_index += 1
+                    labels.append(current_label)
+                    x_vals.append(np.array([list(dict_item.values())[1]]))
+                    y_vals.append(np.array([losses[index]]))
+                    
+                prev_label = current_label.copy()
+                    
+        color_base: np.ndarray = np.array([0.121, 0.465, 0.703])
+        color_final: np.ndarray = np.array([0.703, 0.047, 0.047])
+        color_inc: np.ndarray = (color_final - color_base) / (len(labels) - 1)
+        color_list: list[tuple] = []
+        
+        for index in range(0, len(labels)):
+            
+            if index == 0:
+                
+                color_list.append(tuple(color_base))
+                
+            else:
+                
+                color_list.append(tuple(color_base + (index * color_inc)))
+                    
+        x_label: str = list(parameters_tested[0].keys())[1].capitalize()
+        x_label = x_label.replace("_", " ")
+        ssl_ax: plt.Axes = input_axis
+        ssl_ax.set_xlabel(x_label)
+        ssl_ax.set_ylabel("Mean Squared Error")
+        ssl_ax.set_xlim(min(x_vals[0]), max(x_vals[0]))
+        
+        for index, x in enumerate(x_vals):
+            
+            ssl_ax.plot(x, y_vals[index], color = color_list[index], label = str(labels[index]))
+            
+        leg_title: str = list(parameters_tested[0].keys())[0].capitalize()
+        leg_title = leg_title.replace("_", " ")
+        ssl_ax.legend(title = leg_title)
+        
+    elif len(ssl_dict["parameters"][0]) == 1:
+        
+        x_vals: np.ndarray = np.empty(len(ssl_dict["parameters"]))
+    
+        for index, dict_item in enumerate(ssl_dict["parameters"]):
+            
+            x_vals[index] = list(dict_item.values())[0]
+            
+        x_label: str = list(ssl_dict["parameters"][0].keys())[0].capitalize()
+        x_label = x_label.replace("_", " ")
+        ssl_ax: plt.Axes = input_axis
+        ssl_ax.set_xlabel(x_label)
+        ssl_ax.set_ylabel("Mean Squared Error")
+        ssl_ax.set_xlim(np.min(x_vals), np.max(x_vals))
+        ssl_ax.plot(x_vals, ssl_dict["losses"])
+        
+    return ssl_ax
 
 def histogram(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
@@ -203,8 +275,8 @@ def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: 
     
     return fig
 
-def denoise_ssl(data: np.ndarray | dict, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
-                parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Figure:
+def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.ndarray] = None,
+                parameters: dict[str, np.ndarray] = None, *, stride: int = 4, approximate_loss: bool = True) -> plt.Figure:
     
     fig, ssl_ax = plt.subplots()
     ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
