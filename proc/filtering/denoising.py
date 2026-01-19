@@ -6,10 +6,10 @@ Module for denoising images
 
 import numpy as np
 import pixels
-import typing
 
 from skimage import restoration
 from skimage import filters
+from typing import Callable
 
 
 # Functions
@@ -131,14 +131,51 @@ def wavelet(im_array: np.ndarray, *,
     
     return pixels.convert_im_type(wave_array, im_array.dtype)
 
-def calibrated_denoiser(im_array: np.ndarray, *,
-                        denoiser: str,
-                        parameters: dict[list],
-                        stride: int = 4,
-                        approximate_loss: bool = True,
-                        extra_output: bool = False) -> None:
+def calibrate_function(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray], parameters: dict[str, np.ndarray], *,
+                       stride: int = 4,
+                       approximate_loss: bool = True,
+                       extra_output: bool = False,
+                       return_type: str = "parameters") -> Callable[[np.ndarray], np.ndarray] | tuple[list[dict], list[int]] | dict:
     
-    pass
+    if return_type == "parameters":
+    
+        _, (parameters_tested, losses) = restoration.calibrate_denoiser(im_array, denoiser, parameters,
+                                          stride = stride, approximate_loss = approximate_loss, extra_output = True)
+        
+        return parameters_tested[np.argmin(losses)]
+    
+    elif return_type == "function":
+        
+        return restoration.calibrate_denoiser(im_array, denoiser, parameters,
+                                          stride = stride, approximate_loss = approximate_loss, extra_output = extra_output)
+    
+    elif return_type == "im array":
+        
+        calibrated_denoiser: Callable[[np.ndarray], np.ndarray] = restoration.calibrate_denoiser(im_array, denoiser, parameters,
+                                                                                                 stride = stride, approximate_loss = approximate_loss, extra_output = False)
+        
+        return pixels.convert_im_type(calibrated_denoiser(im_array), im_array.dtype)
+        
+def j_invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray], *,
+                stride: int = 4,
+                masks: list[np.ndarray] = None,
+                denoiser_kwargs: dict = None,
+                calibrate: bool = False,
+                parameters: dict[str, np.ndarray] = None) -> np.ndarray:
+    
+    if calibrate:
+        
+        optimal_parameters: dict = calibrate_function(im_array, denoiser, parameters, stride = stride)
+        
+        return pixels.convert_im_type(restoration.denoise_invariant(im_array, denoiser, stride = stride, masks = masks,
+                                                                    denoiser_kwargs = optimal_parameters),
+                                      im_array.dtype)
+    
+    else:
+    
+        return pixels.convert_im_type(restoration.denoise_invariant(im_array, denoiser, stride = stride, masks = masks,
+                                                                    denoiser_kwargs = denoiser_kwargs),
+                                      im_array.dtype)
 
 
 # Main

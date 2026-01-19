@@ -16,8 +16,6 @@ proc/pixels.py
 proc/cropclip.py
 
 proc/filtering/denoising.py
-- add optimized denoising filter function and figure out j-invariant denoising thing
-- will likely need to add functions to plots for self-supervised loss
 
 proc/filtering/fourier.py
 

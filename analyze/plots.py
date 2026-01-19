@@ -8,6 +8,7 @@ import numpy as np
 import quant
 
 from matplotlib import pyplot as plt
+from typing import Callable
 
 
 # Functions
@@ -154,6 +155,30 @@ def gray_level_axis(data: np.ndarray | dict, input_ax: plt.Axes, quant_axis: int
     
     return gray_ax
 
+def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
+                     parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Axes:
+    
+    if isinstance(data, np.ndarray):
+        
+        ssl_dict: dict[str, list] = quant.get_denoise_parameter_losses(data, denoiser, parameters,
+                                                                       stride = stride, approximate_loss = approximate_loss)
+        
+    else:
+        
+        ssl_dict: dict[str, list] = data.copy()
+        
+    x_vals: np.ndarray = np.empty(len(ssl_dict["parameters"]))
+    
+    for index, dict_val in enumerate(ssl_dict["parameters"]):
+        
+        x_vals[index] = dict_val[list(dict_val.keys())[0]]
+        
+    ssl_ax: plt.Axes = input_axis
+    ssl_ax.set_xlabel(list(ssl_dict["parameters"][0].keys())[0].capitalize())
+    ssl_ax.set_ylabel("Mean Squared Error")
+    ssl_ax.set_xlim(np.min(x_vals), np.max(x_vals))
+    ssl_ax.plot(x_vals, ssl_dict["losses"])
+
 def histogram(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
@@ -175,6 +200,15 @@ def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: 
     cdf_ax: plt.Axes = hist_ax.twinx()
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, axlims = axlims)
     cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+    
+    return fig
+
+def denoise_ssl(data: np.ndarray | dict, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
+                parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Figure:
+    
+    fig, ssl_ax = plt.subplots()
+    ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
+                              stride = stride, approximate_loss = approximate_loss)
     
     return fig
 
@@ -214,6 +248,10 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         elif function_list[index] == "gray lvl":
             
             axs[index] = gray_level_axis(data, axs[index], quant_axes[index], mask_array = mask_array)
+            
+        elif function_list[index] == "ssl":
+            
+            axs[index] = denoise_ssl_axis(data, axs[index])
         
     fig.tight_layout()
     

@@ -7,8 +7,10 @@ Module for quantified analysis of segmented images
 import numpy as np
 import util
 
+from filtering import denoising
 from skimage import restoration
 from skimage import exposure
+from typing import Callable
 
 
 # Functions
@@ -197,6 +199,17 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_ar
 def estimate_noise(im_array: np.ndarray) -> float:
     
     return restoration.estimate_sigma(im_array)
+
+def get_denoise_parameter_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray],
+                                 parameters: dict[str, np.ndarray], *,
+                                 stride: int = 4, approximate_loss: bool = True) -> dict[str, list]:
+    
+    _, (parameters_tested, losses) = denoising.calibrate_function(im_array, denoiser, parameters, stride = stride,
+                                                                  approximate_loss = approximate_loss,
+                                                                  extra_output = True,
+                                                                  return_type = "function")
+    
+    return {"parameters": parameters_tested, "losses": losses}
 
 
 # Main
