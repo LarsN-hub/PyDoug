@@ -75,7 +75,7 @@ def set_intensity_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x",
                 
     return axis
 
-def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
+def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
@@ -95,17 +95,21 @@ def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: n
     hist_ax.set_ylabel("Counts")
     hist_ax.hist(hist_dict["bin centers"], hist_dict["bin centers"], weights = hist_dict["counts"])
     
-    if axlims:
+    if xlims:
         
-        hist_ax = set_intensity_axlims(hist_ax, hist_dict["bin centers"].dtype, "x", axlims = axlims)
+        hist_ax = set_intensity_axlims(hist_ax, hist_dict["bin centers"].dtype, "x", axlims = xlims)
         
     else:
         
         hist_ax.set_xlim(np.min(hist_dict["bin centers"]), np.max(hist_dict["bin centers"]))
         
+    if ylims:
+        
+        hist_ax.set_ylim(min(ylims), max(ylims))
+        
     return hist_ax
 
-def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Axes:
+def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
@@ -121,13 +125,17 @@ def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndar
     cdf_ax.set_ylim(0, 1)
     cdf_ax.plot(cdf_dict["bin centers"], cdf_dict["cdf"], "red")
     
-    if axlims:
+    if xlims:
         
-        cdf_ax = set_intensity_axlims(cdf_ax, cdf_dict["bin centers"].dtype, "x", axlims = axlims)
+        cdf_ax = set_intensity_axlims(cdf_ax, cdf_dict["bin centers"].dtype, "x", axlims = xlims)
         
     else:
         
         cdf_ax.set_xlim(np.min(cdf_dict["bin centers"]), np.max(cdf_dict["bin centers"]))
+        
+    if ylims:
+        
+        cdf_ax.set_ylim(min(ylims), max(ylims))
         
     return cdf_ax
 
@@ -251,26 +259,26 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser:
         
     return ssl_ax
 
-def histogram(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def histogram(data: np.ndarray | dict, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
+    hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
     
     return fig
 
-def cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None) -> plt.Figure:
+def cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
     
     fig, cdf_ax = plt.subplots()
-    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, axlims = axlims)
+    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
     
     return fig
 
-def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def hist_cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
+    hist_ax = histogram_axis(data, hist_ax, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
     cdf_ax: plt.Axes = hist_ax.twinx()
-    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, axlims = axlims)
+    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
     cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
     
     return fig
@@ -284,7 +292,7 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
     
     return fig
 
-def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, mask_array: np.ndarray = None, axlims: tuple = None, ignore_edges: bool = False, quant_axes: tuple = (0, 1, 2)) -> plt.Figure:
+def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, quant_axes: tuple = (0, 1, 2)) -> plt.Figure:
        
     if len(function_list) == 1:
         
@@ -304,17 +312,17 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         
         if function_list[index] == "hist":
             
-            axs[index] = histogram_axis(data, axs[index], mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
+            axs[index] = histogram_axis(data, axs[index], mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
         
         elif function_list[index] == "cdf":
             
-            axs[index] = cdf_axis(data, axs[index], mask_array = mask_array, axlims = axlims)
+            axs[index] = cdf_axis(data, axs[index], mask_array = mask_array, xlims = xlims, ylims = ylims)
         
         elif function_list[index] == "hist cdf":
             
-            axs[index] = histogram_axis(data, axs[index], mask_array = mask_array, axlims = axlims, ignore_edges = ignore_edges)
+            axs[index] = histogram_axis(data, axs[index], mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
             cdf_axs[index]: plt.Axes = axs[index].twinx()
-            cdf_axs[index] = cdf_axis(data, cdf_axs[index], mask_array = mask_array, axlims = axlims)
+            cdf_axs[index] = cdf_axis(data, cdf_axs[index], mask_array = mask_array, xlims = xlims)
             cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom")
             
         elif function_list[index] == "gray lvl":

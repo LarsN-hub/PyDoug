@@ -16,10 +16,10 @@ from typing import Callable
 
 def bilateral(im_array: np.ndarray, *,
               win_size: int | None = None,
-              sigma_color: float | None = None,
+              sigma_color: float | None = 0.1,
               sigma_spatial: float = 1,
               bins: int = 10000,
-              mode: str = "constant",
+              mode: str = "edge",
               cval: int | float = 0,
               channel_axis: int | None = None) -> np.ndarray:
     
@@ -175,7 +175,7 @@ def calibrate_function(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np
         
         return pixels.convert_im_type(denoised_array, im_array.dtype)
         
-def j_invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray], *,
+def invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray], *,
                 stride: int = 4,
                 masks: list[np.ndarray] = None,
                 denoiser_kwargs: dict = None,
