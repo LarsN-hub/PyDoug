@@ -24,11 +24,12 @@ proc/segment/thresh.py
 
 proc/segment/edge.py
 - create file
-- add edge-based segmentation functions from filters section
+- add canny filter
+- add sobel + post-processing filter
 
 proc/segment/region.py
 - create file
-- add region-based segmentation functions from filters section 
+- add watershed filter
 
 proc/filtering/morph.py
 

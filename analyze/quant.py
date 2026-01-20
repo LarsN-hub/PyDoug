@@ -10,6 +10,7 @@ import util
 from filtering import denoising
 from skimage import restoration
 from skimage import exposure
+from skimage import measure
 from typing import Callable
 
 
@@ -210,6 +211,10 @@ def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], 
                                                                   return_type = "function")
     
     return {"parameters": parameters_tested, "losses": losses}
+
+def label(seg_array: np.ndarray) -> np.ndarray:
+    
+    return measure.label(seg_array)
 
 
 # Main

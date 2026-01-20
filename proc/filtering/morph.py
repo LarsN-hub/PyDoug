@@ -156,6 +156,14 @@ def black_tophat(im_array: np.ndarray, *, footprint: np.ndarray = None, along_ax
     
     return closing(im_array, footprint = footprint, along_axis = along_axis) - im_array
 
+def remove_particles(lab_array: np.ndarray, min_size: int, *, connectivity: int = 1) -> np.ndarray:
+    
+    return morphology.remove_small_objects(lab_array, min_size = min_size, connectivity = connectivity)
+
+def remove_holes(seg_array: np.ndarray, max_size: int, *, connectivity: int = 1) -> np.ndarray:
+    
+    return morphology.remove_small_holes(seg_array, connectivity = connectivity, area_threshold = max_size)
+
 
 # Main
 
