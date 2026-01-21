@@ -19,19 +19,14 @@ proc/filtering/denoising.py
 
 proc/filtering/fourier.py
 
-proc/segment/thresh.py
-- add additional intensity-based thresholding functions
-
-proc/segment/edge.py
-- create file
-- add canny filter
-- add sobel + post-processing filter
-
-proc/segment/region.py
-- create file
-- add watershed filter
-
 proc/filtering/morph.py
+
+proc/segment/thresh.py
+- finish local function
+
+proc/segment/detect.py
+- add corner detection from feature
+- add watershed and other region-based segmentation filters
 
 proc/dic.py
 - Create file

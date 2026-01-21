@@ -4,10 +4,14 @@ Module for threshold-based image segmentation
 
 # Imports
 
+import cropclip as cc
 import numpy as np
+import pixels
+import quant
 
 from skimage import segmentation
 from skimage import filters
+from filtering import morph
 
 
 # Functions
@@ -24,37 +28,37 @@ def sort_double_bound_thresholds(thresholds: np.ndarray) -> np.ndarray:
         
     return new_thresholds
 
-def threshold(im_array: np.ndarray, thresholds: np.ndarray, inclusivity: str = "upper") -> np.ndarray:
+def threshold(im_array: np.ndarray, thresholds: float | np.ndarray, inclusivity: str = "upper") -> np.ndarray:
     
     valid_methods: tuple[str] = ("upper", "lower", "both", "neither")
     
     if any(x == inclusivity for x in valid_methods):
     
-        seg_array = np.zeros(im_array.shape, np.uint8)
+        thresh_array = np.zeros(im_array.shape, np.uint8)
         
-        if len(thresholds.shape) == 0 and (inclusivity == "upper" or inclusivity == "lower"):
+        if len(thresholds.shape) == 0:
             
-            if inclusivity == "upper":
-            
-                seg_array[im_array > thresholds] = 255
+            if inclusivity == "lower":
                 
-            elif inclusivity == "lower":
+                thresh_array[im_array >= thresholds] = 255
                 
-                seg_array[im_array >= thresholds] = 255
+            else:
+                
+                thresh_array[im_array > thresholds] = 255
     
-        if len(thresholds.shape) == 1 and (inclusivity == "upper" or inclusivity == "lower"):
+        if len(thresholds.shape) == 1:
             
             thresholds: np.ndarray = np.sort(thresholds)
             
             for index, thresh in enumerate(thresholds, start = 1):
                 
-                if inclusivity == "upper":
-                
-                    seg_array[im_array > thresh] = round((255 / len(thresholds)) * index)
+                if inclusivity == "lower":
                     
-                elif inclusivity == "lower":
+                    thresh_array[im_array >= thresh] = round((255 / len(thresholds)) * index)
                     
-                    seg_array[im_array >= thresh] = round((255 / len(thresholds)) * index)
+                else:
+                    
+                    thresh_array[im_array > thresh] = round((255 / len(thresholds)) * index)
         
         elif len(thresholds.shape) == 2:
             
@@ -64,53 +68,105 @@ def threshold(im_array: np.ndarray, thresholds: np.ndarray, inclusivity: str = "
                 
                 if inclusivity == "upper":
                 
-                    seg_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                    thresh_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
                 elif inclusivity == "lower":
                     
-                    seg_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                    thresh_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
                 elif inclusivity == "both":
                     
-                    seg_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                    thresh_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
                 elif inclusivity == "neither":
                     
-                    seg_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                    thresh_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
                 
-        return seg_array
+        return thresh_array
     
     else:
         
         print("\nInvalid inclusivity method!")
-
-def otsu(im_array: np.ndarray, num_classes: int = 2, *, return_thresholds = False) -> np.ndarray:
     
-    if num_classes == 2:
+def hist_thresholds(data: np.ndarray | dict, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu") -> np.float64 | np.int64 | np.ndarray:
+    
+    if isinstance(data, np.ndarray):
         
-        if return_thresholds:
+        if np.any(mask_array):
             
-            return threshold(im_array, filters.threshold_otsu(im_array)), filters.threshold_otsu(im_array)
+            if len(mask_array.shape) < len(data.shape):
+                
+                mask_array = cc.mask_2d_to_3d(mask_array, data.shape[0])
         
-        else:
-        
-            return threshold(im_array, filters.threshold_otsu(im_array))
+        hist_dict: dict[str, np.ndarray] = quant.get_histogram(data, mask_array = mask_array)
         
     else:
         
-        if return_thresholds:
+        hist_dict = data.copy()
+    
+    hist: tuple[np.ndarray] = (hist_dict["counts"], hist_dict["bin centers"])
+    
+    if method == "otsu":
+        
+        if otsu_classes == 2:
             
-            return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes)), filters.threshold_multiotsu(im_array, num_classes)
+            return filters.threshold_otsu(hist = hist)
         
         else:
+            
+            return filters.threshold_multiotsu(classes = otsu_classes, hist = hist)
         
-            return threshold(im_array, filters.threshold_multiotsu(im_array, num_classes))
-
-def watershed(seg_array: np.ndarray, *, markers = None, connectivity = 1) -> np.ndarray:
+    elif method == "iso":
+        
+        return filters.threshold_isodata(hist = hist)
     
-    return segmentation.watershed(seg_array, markers = markers, connectivity = connectivity)
-
-def cluster(im_array: np.ndarray) -> np.ndarray:
+    elif method == "mean":
+        
+        return filters.threshold_mean(data)
+    
+    elif method == "min":
+        
+        return filters.threhsold_minimum(hist = hist)
+    
+    elif method == "triangle":
+        
+        return filters.threshold_triangle(data)
+    
+    elif method == "yen":
+        
+        return filters.threshold_yen(hist = hist)
+    
+def hist(im_array: np.ndarray, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu", return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
+    
+    thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(im_array, otsu_classes = otsu_classes, mask_array = mask_array, method = method)
+    
+    if return_thresholds:
+        
+        return threshold(im_array, thresholds), thresholds
+    
+    else:
+    
+        return threshold(im_array, thresholds)
+    
+def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", block_size: int = 3, footprint_type: str = "disk", fp_radius: int = 1) -> np.ndarray:
+    
+    if method == "adaptive":
+        
+        return pixels.convert_im_type((im_array > filters.threshold_local(im_array, block_size = block_size)), "uint8")
+    
+    elif method == "li":
+        
+        return filters.threshold_li(im_array)
+    
+    elif method == "niblack":
+        
+        return filters.threshold_niblack(im_array)
+    
+    elif method == "sauvola":
+        
+        return filters.threshold_sauvola(im_array)
+    
+def test(im_array) -> None:
     
     pass
 
