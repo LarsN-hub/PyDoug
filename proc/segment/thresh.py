@@ -9,9 +9,7 @@ import numpy as np
 import pixels
 import quant
 
-from skimage import segmentation
 from skimage import filters
-from filtering import morph
 
 
 # Functions
@@ -120,6 +118,10 @@ def hist_thresholds(data: np.ndarray | dict, *, otsu_classes: int = 2, mask_arra
         
         return filters.threshold_isodata(hist = hist)
     
+    elif method == "li":
+        
+        return filters.threshold_isodata(data)
+    
     elif method == "mean":
         
         return filters.threshold_mean(data)
@@ -148,23 +150,27 @@ def hist(im_array: np.ndarray, *, otsu_classes: int = 2, mask_array: np.ndarray 
     
         return threshold(im_array, thresholds)
     
-def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", block_size: int = 3, footprint_type: str = "disk", fp_radius: int = 1) -> np.ndarray:
+def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", block_size: int = 3, window_size: int = 15, k: float = 0.2, r: float = None) -> np.ndarray:
+    
+    if block_size % 2 == 0:
+        
+        block_size -= 1
+        
+    if window_size % 2 == 0:
+        
+        window_size -= 1
     
     if method == "adaptive":
         
         return pixels.convert_im_type((im_array > filters.threshold_local(im_array, block_size = block_size)), "uint8")
     
-    elif method == "li":
-        
-        return filters.threshold_li(im_array)
-    
     elif method == "niblack":
         
-        return filters.threshold_niblack(im_array)
+        return pixels.convert_im_type((im_array > filters.threshold_niblack(im_array, window_size, k)), "uint8")
     
     elif method == "sauvola":
         
-        return filters.threshold_sauvola(im_array)
+        return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
     
 def test(im_array) -> None:
     

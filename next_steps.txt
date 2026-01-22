@@ -22,11 +22,14 @@ proc/filtering/fourier.py
 proc/filtering/morph.py
 
 proc/segment/thresh.py
-- finish local function
 
 proc/segment/detect.py
-- add corner detection from feature
-- add watershed and other region-based segmentation filters
+- finish igg masking in edge function
+- finish corners
+- finish watershed
+- finish RW
+- finish morph_snakes
+- finish active_countour
 
 proc/dic.py
 - Create file

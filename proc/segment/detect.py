@@ -15,7 +15,7 @@ from skimage import feature
 
 # Functions
 
-def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "sobel", sigma: float = 1.0, ksize: int = 3) -> np.ndarray:
+def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "sobel", sigma: float = 1.0, ksize: int = 3, alpha: float = 100, sigma_2: float = 5, convert_type: bool = True) -> np.ndarray:
     
     if np.any(mask_array):
         
@@ -25,7 +25,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     if method == "sobel":
         
-        return pixels.convert_im_type(filters.sobel(im_array, mask = mask_array), im_array.dtype)
+        edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array)
     
     elif method == "canny":
         
@@ -42,20 +42,28 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
             for slice_index in range(0, im_array.shape[0]):
         
                 edge_array[slice_index] = feature.canny(im_array[slice_index], sigma = sigma, mode = "reflect")
-            
-        return pixels.convert_im_type(edge_array, im_array.dtype)
     
     elif method == "farid":
         
-        return pixels.convert_im_type(filters.farid(im_array, mask = mask_array), im_array.dtype)
+        edge_array: np.ndarray = filters.farid(im_array, mask = mask_array)
+        
+    elif method == "igg":
+        
+        if np.any(mask_array):
+            
+            pass
+        
+        else:
+        
+            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(im_array, alpha, sigma_2)
     
     elif method == "laplace":
         
-        return pixels.convert_im_type(filters.laplace(im_array, ksize = ksize, mask = mask_array), im_array.dtype)
+        edge_array: np.ndarray = filters.laplace(im_array, ksize = ksize, mask = mask_array)
     
     elif method == "prewitt":
         
-        return pixels.convert_im_type(filters.prewitt(im_array, mask = mask_array), im_array.dtype)
+        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array)
     
     elif method == "roberts":
         
@@ -72,20 +80,38 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
             for slice_index in range(0, im_array.shape[0]):
         
                 edge_array[slice_index] = filters.roberts(im_array[slice_index])
-            
-        return pixels.convert_im_type(edge_array, im_array.dtype)
     
     elif method == "scharr":
         
-        return pixels.convert_im_type(filters.scharr(im_array, mask = mask_array), im_array.dtype)
+        edge_array: np.ndarray = filters.scharr(im_array, mask = mask_array)
     
-def region(im_array: np.ndarray) -> np.ndarray:
+    if convert_type:
+        
+        return pixels.convert_im_type(edge_array, im_array.dtype)
+    
+    else:
+        
+        return edge_array
+    
+def morph_snakes(im_array: np.ndarray, method: str = "ACWE") -> np.ndarray:
     
     pass
 
-def watershed(seg_array: np.ndarray, *, markers = None, connectivity = 1) -> np.ndarray:
+def active_contour(im_array: np.ndarray, method: str = "ACWE") -> np.ndarray:
     
-    return segmentation.watershed(seg_array, markers = markers, connectivity = connectivity)
+    pass
+
+def random_walk(im_array: np.ndarray) -> np.ndarray:
+    
+    pass
+
+def watershed(im_array: np.ndarray) -> np.ndarray:
+    
+    pass
+
+def corners(im_array: np.ndarray) -> np.ndarray:
+    
+    pass
 
 
 # Main

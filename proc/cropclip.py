@@ -14,6 +14,14 @@ from skimage import draw
 
 # Functions
 
+def remove_slice_coords(coords: np.ndarray) -> dict[str, np.ndarray]:
+    
+    if coords.shape[1] > 2:
+        
+        coords = np.transpose(np.array([coords[:, 1], coords[:, 2]]))
+    
+    return coords
+
 def get_in_plane_dims(im_array: np.ndarray) -> tuple[int]:
     
     if len(im_array.shape) == 2:
@@ -23,97 +31,15 @@ def get_in_plane_dims(im_array: np.ndarray) -> tuple[int]:
     else:
         
         return (im_array.shape[1], im_array.shape[2])
+    
+def get_rot_angle(shape_dict: dict[str: np.ndarray]) -> float:
+    
+    shape_type: str = list(shape_dict.keys())[0]
+    shape_coords: np.ndarray = shape_dict[shape_type]
+    
+    if shape_coords.shape[0] == 4 and shape_type != "polygon":
 
-def coords_2_lists(shape_coords: np.ndarray) -> dict[str, list]:
-    
-    shape_coords = np.rint(shape_coords)
-    rows: list[int] = []
-    cols: list[int] = []
-    
-    for index, coords in enumerate(shape_coords):
-        
-        if len(coords) > 2:
-            
-            rows.append(int(coords[1]))
-            cols.append(int(coords[2]))
-        
-        else:
-            
-            rows.append(int(coords[0]))
-            cols.append(int(coords[1]))
-        
-    return {"rows": rows, "cols": cols}
-
-def rectangle_mask(mask_shape: tuple[int], coords_dict: dict[str, list], rot_angle: float = 0) -> dict[str, np.ndarray, tuple]:
-    
-    mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
-    
-    if rot_angle:
-        
-        r_coords = np.array(coords_dict["rows"])
-        c_coords = np.array(coords_dict["cols"])
-        rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
-        mask_array[rr, cc] = 1
-    
-    else:
-        
-        if len(coords_dict["rows"]) == 2:
-        
-            orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
-            oppo_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
-            
-        else:
-            
-            orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
-            oppo_coords: tuple[int] = (coords_dict["rows"][2], coords_dict["cols"][2])
-            
-        rr, cc = draw.rectangle(orig_coords, oppo_coords, shape = mask_shape)
-        mask_array[rr, cc] = 1
-        
-    return get_mask_dict(mask_array, rr, cc)
-
-def ellipse_mask(mask_shape: tuple[int], coords_dict: dict[str, list], rot_angle: float = 0) -> dict[str, np.ndarray, tuple]:
-    
-    mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
-    orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
-    next_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
-    oppo_coords: tuple[int] = (coords_dict["rows"][2], coords_dict["cols"][2])
-    prev_coords: tuple[int] = (coords_dict["rows"][3], coords_dict["cols"][3])
-    r_radius: float = math.sqrt(((prev_coords[0] - orig_coords[0])**2) + ((prev_coords[1] - orig_coords[1])**2)) / 2
-    c_radius: float = math.sqrt(((next_coords[0] - orig_coords[0])**2) + ((next_coords[1] - orig_coords[1])**2)) / 2
-    r_center: float = orig_coords[0] + ((oppo_coords[0] - orig_coords[0]) / 2)
-    c_center: float = orig_coords[1] + ((oppo_coords[1] - orig_coords[1]) / 2)
-    rr, cc = draw.ellipse(r_center, c_center, r_radius, c_radius, shape = mask_shape, rotation = rot_angle)
-    mask_array[rr, cc] = 1
-        
-    return get_mask_dict(mask_array, rr, cc)
-
-def polygon_mask(mask_shape: tuple[int], coords_dict: dict[str, list]) -> dict[str, np.ndarray, tuple]:
-    
-    mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
-    r_coords = np.array(coords_dict["rows"])
-    c_coords = np.array(coords_dict["cols"])
-    rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
-    mask_array[rr, cc] = 1
-    
-    return get_mask_dict(mask_array, rr, cc)
-
-def get_mask_dict(mask_array: np.ndarray, rr: np.array, cc: np.array) -> dict[str, np.ndarray, tuple]:
-    
-    low_coords: tuple[int] = (np.min(rr), np.min(cc))
-    high_coords: tuple[int] = (np.max(rr), np.max(cc))
-    
-    return {"mask": mask_array, "start": low_coords, "end": high_coords}
-
-def get_rot_angle(shape_coords: np.ndarray, shape_type: str) -> float:
-    
-    coords_dict: dict[str, list] = coords_2_lists(shape_coords)
-    
-    if len(coords_dict["rows"]) == 4 and shape_type != "polygon":
-
-        orig_coords: tuple[int] = (coords_dict["rows"][0], coords_dict["cols"][0])
-        next_coords: tuple[int] = (coords_dict["rows"][1], coords_dict["cols"][1])
-        rot_angle: float = -math.atan2((next_coords[0] - orig_coords[0]), (next_coords[1] - orig_coords[1]))
+        rot_angle: float = -math.atan2((shape_coords[1, 0] - shape_coords[0, 0]), (shape_coords[1, 1] - shape_coords[0, 1]))
     
     else:
         
@@ -121,196 +47,135 @@ def get_rot_angle(shape_coords: np.ndarray, shape_type: str) -> float:
         
     return rot_angle
 
-def coords_2_mask(im_array: np.ndarray, shape_coords: np.ndarray, shape_type: str) -> dict[str, np.ndarray, tuple]:
+def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.ndarray:
     
     valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
+    shape_type: str = list(shape_dict.keys())[0]
+    shape_coords: np.ndarray = shape_dict[shape_type]
     
     if any(shape_type.find(x) != -1 for x in valid_shapes):
     
         mask_shape: tuple[int] = get_in_plane_dims(im_array)
-        coords_dict: dict[str, list] = coords_2_lists(shape_coords)
+        mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
         
-        rot_angle: float = get_rot_angle(shape_coords, shape_type)
-        
-        if shape_type == "rectangle":
+        if shape_type == "ellipse":
             
-            mask_dict: dict[str, np.ndarray, tuple] = rectangle_mask(mask_shape, coords_dict, rot_angle)
-        
-        elif shape_type == "ellipse":
+            rot_angle: float = get_rot_angle(shape_dict)
+            r_radius: float = math.sqrt(((shape_coords[3, 0] - shape_coords[0, 0])**2) + ((shape_coords[3, 1] - shape_coords[0, 1])**2)) / 2
+            c_radius: float = math.sqrt(((shape_coords[1, 0] - shape_coords[0, 0])**2) + ((shape_coords[1, 1] - shape_coords[0, 1])**2)) / 2
+            r_center: float = shape_coords[0, 0] + ((shape_coords[2, 0] - shape_coords[0, 0]) / 2)
+            c_center: float = shape_coords[0, 1] + ((shape_coords[2, 1] - shape_coords[0, 1]) / 2)
+            rr, cc = draw.ellipse(r_center, c_center, r_radius, c_radius, shape = mask_shape, rotation = rot_angle)
+            mask_array[rr, cc] = 1
             
-            mask_dict: dict[str, np.ndarray, tuple] = ellipse_mask(mask_shape, coords_dict, rot_angle)
+        elif shape_type == "polygon" or shape_type == "rectangle":
             
-        elif shape_type == "polygon":
+            r_coords: np.ndarray = shape_coords[:, 0]
+            c_coords: np.ndarray = shape_coords[:, 1]
+            rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
+            mask_array[rr, cc] = 1
             
-            mask_dict: dict[str, np.ndarray, tuple] = polygon_mask(mask_shape, coords_dict)
-            
-        return mask_dict
+        return mask_array
     
     else:
         
         print("\nInvalid shape type!")
-        
-def mask_2d_to_3d(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
+
+def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
     
     return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
 
-def quick_get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, convert_to_3d: bool = True) -> np.ndarray:
+def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, convert_to_3d: bool = True) -> np.ndarray:
     
     shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer)
-    shape_type = list(shape_dict.keys())[0]
-    shape_coords = shape_dict[shape_type]
-    mask_array: np.ndarray = coords_2_mask(im_array, shape_coords, shape_type)["mask"]
+    shape_dict[list(shape_dict.keys())[0]] = remove_slice_coords(shape_dict[list(shape_dict.keys())[0]])
+    mask_array: np.ndarray = shape_2_mask(im_array, shape_dict)
     
     if convert_to_3d:
         
-        return mask_2d_to_3d(mask_array, im_array.shape[0])
+        return project_mask(mask_array, im_array.shape[0])
     
     else:
         
         return mask_array
-        
-def mask(im_array: np.ndarray, shape_type: str, shape_coords: np.ndarray, *, mask_method: str = "out", outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.ndarray:
     
-    valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
+def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
-    if any(shape_type.find(x) != -1 for x in valid_shapes):
+    if len(mask_array.shape) < len(im_array.shape):
         
-        mask_dict: dict[str, np.ndarray, tuple] = coords_2_mask(im_array, shape_coords, shape_type)
+        mask_array = project_mask(mask_array, im_array.shape[0])
+    
+    if conserve_mem:
         
-        if conserve_mem:
-            
-            if len(im_array.shape) > 2:
-                
-                mask_array: np.ndarray = np.expand_dims(mask_dict["mask"], 0)
-                mask_array = mask_2d_to_3d(mask_array, im_array.shape[0])
-                
-                if mask_method == "out":
-                    
-                    im_array[np.logical_not(mask_array)] = outside_mask_int
-                    
-                elif mask_method == "in":
-                    
-                    im_array[mask_array] = outside_mask_int
-                
-            else:
-                
-                if mask_method == "out":
-                                    
-                    im_array[np.logical_not(mask_dict["mask"])] = outside_mask_int
-                    
-                elif mask_method == "in":
-                    
-                    im_array[mask_dict["mask"]] = outside_mask_int
-                
-            if return_mask:
-                
-                return im_array, mask_dict
-            
-            else:
-                
-                return im_array
+        if method == "out":
         
-        else:
+            im_array[np.logical_not(mask_array)] = mask_color
             
-            masked_array: np.ndarray = np.copy(im_array)
+        elif method == "in":
             
-            if len(im_array.shape) > 2:
-                
-                mask_array: np.ndarray = np.expand_dims(mask_dict["mask"], 0)
-                mask_array = mask_2d_to_3d(mask_array, im_array.shape[0])
-                
-                if mask_method == "out":
-                
-                    masked_array[np.logical_not(mask_array)] = outside_mask_int
-                    
-                elif mask_method == "in":
-                    
-                    masked_array[mask_array] = outside_mask_int
-                
-            else:
-                
-                if mask_method == "out":
-                
-                    masked_array[np.logical_not(mask_dict["mask"])] = outside_mask_int
-                    
-                elif mask_method == "in":
-                    
-                    masked_array[mask_dict["mask"]] = outside_mask_int
+            im_array[mask_array] = mask_color
         
-            if return_mask:
-                
-                return masked_array, mask_dict
-            
-            else:
-                
-                return masked_array
+        return im_array
     
     else:
         
-        print("\nInvalid shape type!")
+        masked_array = np.copy(im_array)
         
-def quick_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_method = "out", outside_mask_int: int | float = 0, return_mask: bool = False) -> np.ndarray:
+        if method == "out":
+        
+            masked_array[np.logical_not(mask_array)] = mask_color
+            
+        else:
+            
+            masked_array[mask_array] = mask_color
+        
+        return masked_array
     
-    shape_dict: dict[str, np.array] = sv.extract_shapes(viewer)
-    shape_type = list(shape_dict.keys())[0]
-    shape_coords = shape_dict[shape_type]
+def quick_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
-    return mask(im_array, shape_type, shape_coords, mask_method = mask_method, outside_mask_int = outside_mask_int, return_mask = return_mask)
+    mask_array: np.ndarray = get_mask(im_array, viewer)
+    
+    return mask(im_array, mask_array, method = method, mask_color = mask_color, conserve_mem = conserve_mem)
 
-def crop(im_array: np.ndarray, shape_type: str, shape_coords: np.ndarray, *, outside_mask_int: int | float = 0, conserve_mem: bool = False, return_mask: bool = False) -> np.ndarray:
+def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
-    valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
+    if len(mask_array.shape) < len(im_array.shape):
+        
+        mask_array = project_mask(mask_array, im_array.shape[0])
     
-    if any(shape_type.find(x) != -1 for x in valid_shapes):
+    mask_indices: np.ndarray = remove_slice_coords(np.argwhere(mask_array == True))
+    r_start: np.int64 = np.min(mask_indices[:, 0])
+    c_start: np.int64 = np.min(mask_indices[:, 1])
+    r_end: np.int64 = np.max(mask_indices[:, 0])
+    c_end: np.int64 = np.max(mask_indices[:, 1])
+    mask_array = mask_array[:, r_start:r_end, c_start:c_end]
+    
+    if conserve_mem:
         
-        if conserve_mem:
-            
-            im_array, mask_dict = mask(im_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, conserve_mem = True, return_mask = True)
-            low_coords: tuple = mask_dict["start"]
-            high_coords: tuple = mask_dict["end"]
-            
-            if return_mask:
-                
-                return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]], mask_dict
-            
-            else:
+        im_array = im_array[:, r_start:r_end, c_start:c_end]
         
-                return im_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
+        if not np.all(mask_array):
+            
+            im_array = mask(im_array, mask_array, mask_color = mask_color, conserve_mem = True)
         
-        else:
-            
-            crop_array: np.ndarray = np.copy(im_array)
-            
-            if len(im_array.shape) > 2:
-                
-                crop_array, mask_dict = mask(crop_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, conserve_mem = True, return_mask = True)
-                low_coords: tuple = mask_dict["start"]
-                high_coords: tuple = mask_dict["end"]
-                
-            else:
-                
-                crop_array[np.logical_not(mask_dict["mask"], axis = 0)] = outside_mask_int
-                
-            if return_mask:
-        
-                return crop_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]], mask_dict
-            
-            else:
-                
-                return crop_array[:, low_coords[0]:high_coords[0], low_coords[1]:high_coords[1]]
+        return im_array
     
     else:
         
-        print("\nInvalid shape type!")
+        crop_array: np.ndarray = im_array[:, r_start:r_end, c_start:c_end]
         
-def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, outside_mask_int: int | float = 0, return_mask: bool = False) -> np.ndarray:
-    
-    shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer)
-    shape_type = list(shape_dict.keys())[0]
-    shape_coords = shape_dict[shape_type]
-    
-    return crop(im_array, shape_type, shape_coords, outside_mask_int = outside_mask_int, return_mask = return_mask)
+        if not np.all(mask_array):
+            
+            crop_array = mask(crop_array, mask_array, mask_color = mask_color, conserve_mem = False)
         
+        return crop_array
+
+def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+    
+    mask_array: np.ndarray = get_mask(im_array, viewer)
+    
+    return crop(im_array, mask_array, mask_color = mask_color, conserve_mem = conserve_mem)
+
 def trim(im_array: np.ndarray, bounds: np.ndarray) -> np.ndarray:
     
     return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
