@@ -86,6 +86,10 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = Fal
             
             im_array = normalize(im_array, out_range = (0, 1))
             
+        elif norm:
+            
+            im_array = normalize(im_array)
+            
         if convert_type == "uint8":
                     
             conv_array: np.ndarray = skutil.img_as_ubyte(im_array)

@@ -130,7 +130,7 @@ def hist_thresholds(data: np.ndarray | dict, *, otsu_classes: int = 2, mask_arra
         
         return filters.threhsold_minimum(hist = hist)
     
-    elif method == "triangle":
+    elif method == "tri":
         
         return filters.threshold_triangle(data)
     

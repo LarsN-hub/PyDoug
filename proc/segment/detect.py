@@ -47,11 +47,11 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
         
         edge_array: np.ndarray = filters.farid(im_array, mask = mask_array)
         
-    elif method == "igg":
+    elif method == "IGG":
         
         if np.any(mask_array):
             
-            pass
+            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(cc.mask(im_array, mask_array), alpha, sigma_2)
         
         else:
         
@@ -93,9 +93,25 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
         
         return edge_array
     
-def morph_snakes(im_array: np.ndarray, method: str = "ACWE") -> np.ndarray:
+def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *, init_levels_method: str = "checkerboard", square_size: int = 5, radius: float = 10, num_iter: int = 10, smoothing: int = 1) -> np.ndarray:
     
-    pass
+    if init_levels_method == "checkerboard":
+        
+        init_levels: np.ndarray = segmentation.checkerboard_level_set(im_array.shape, square_size)
+        
+    elif init_levels_method == "disk":
+        
+        init_levels: np.ndarray = segmentation.disk_level_set(im_array.shape, radius = radius)
+    
+    if method == "ACWE":
+        
+        morph_array: np.ndarray = segmentation.morphological_chan_vese(im_array, num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
+    
+    elif method == "GAC":
+        
+        morph_array: np.ndarray = segmentation.morphological_chan_vese(edge(im_array, method = "IGG", convert_type = False), num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
+        
+    return pixels.convert_im_type(morph_array, "uint8", norm = True)
 
 def active_contour(im_array: np.ndarray, method: str = "ACWE") -> np.ndarray:
     

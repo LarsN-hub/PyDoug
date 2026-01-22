@@ -20,7 +20,7 @@ from PIL import Image
 
 write_exts: tuple[str] = ("png", "tif", "tiff")
 h5_exts: tuple[str] = ("h5", "hdf", "hdf5", "he5")
-valid_exts: tuple[str] = h5_exts +("apng",
+valid_exts: tuple[str] = h5_exts + ("apng",
                                   "avif",
                                   "blp",
                                   "bmp",

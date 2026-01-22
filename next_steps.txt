@@ -24,11 +24,9 @@ proc/filtering/morph.py
 proc/segment/thresh.py
 
 proc/segment/detect.py
-- finish igg masking in edge function
 - finish corners
 - finish watershed
 - finish RW
-- finish morph_snakes
 - finish active_countour
 
 proc/dic.py
