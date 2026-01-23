@@ -32,7 +32,6 @@ proc/dic.py
 - Add digital image / volume correlation functions
 
 analysis/quant.py
-- Finish volume calculation function
 - Finish particle size distribution function
 - Finish volume distribution function
 - Finish surface area calculation function
