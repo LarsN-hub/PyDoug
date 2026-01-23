@@ -22,6 +22,7 @@ proc/filtering/fourier.py
 proc/filtering/morph.py
 
 proc/segment/thresh.py
+- Finish separate_labels function
 
 proc/segment/detect.py
 
@@ -31,25 +32,21 @@ proc/dic.py
 - Add digital image / volume correlation functions
 
 analysis/quant.py
-- Add particle count function
-- Add particle size distribution function
-- Add volume calculation function
-- Add volume distribution function
-- Add surface area calculation function
-- Add contact area calculation function
-- Add continuity trajectory calculation function
-- Add directional thickness calculation function
-- Add directional position calculation function
+- Finish volume calculation function
+- Finish particle size distribution function
+- Finish volume distribution function
+- Finish surface area calculation function
+- Finish contact area calculation function
+- Finish directional thickness calculation function
+- Finish directional position calculation function
 
 analysis/plots.py
-- Add total particle count plot function
 - Incorporate particle size distribution plotting in histogram function
 - Add total volume plot function
 - Add volume distribution plot function
 - Add surface area plot function
 - Add contact area plot function
 - Add thickness / position heat map plot function
-- Add continuity trajectory plot function
 
 batch/batchproc.py
 - Create file

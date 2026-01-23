@@ -184,8 +184,12 @@ def label(im_array: np.ndarray, connectivity: int = None, return_num: bool = Fal
         else:
             
             connectivity = 2
-    
+            
     return measure.label(im_array, return_num = return_num, connectivity = connectivity)
+
+def separate_labels(im_array: np.ndarray, connectivity: int = None, return_num: bool = False) -> dict[int, np.ndarray]:
+    
+    pass
 
 
 # Main

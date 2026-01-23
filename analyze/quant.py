@@ -4,6 +4,7 @@ Module for quantified analysis of segmented images
 
 # Imports
 
+import pandas as pd
 import numpy as np
 import util
 
@@ -235,6 +236,41 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
     else:
         
         return feature.corner_orientations(im_array, corners, mask_array)
+    
+def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", background: float | int = 0) -> dict[float | int, float]:
+    
+    phases: np.ndarray = np.unique(im_array)
+    vol_dict = {}
+    
+    for phase in phases:
+        
+        vol_dict[phase] = np.count_nonzero(im_array == phase) * (scale ** 3)
+        
+    return vol_dict
+    
+def get_size_distribution(im_array: np.ndarray | dict, *, scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> dict[str, np.ndarray]:
+    
+    pass
+
+def get_volume_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> dict[str, np.ndarray]:
+    
+    pass
+
+def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> np.ndarray:
+    
+    pass
+
+def get_contact_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> pd.DataFrame:
+    
+    pass
+
+def get_thick_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> np.ndarray:
+    
+    pass
+
+def get_height_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> np.ndarray:
+    
+    pass
 
 
 # Main
