@@ -10,6 +10,7 @@ import pixels
 import quant
 
 from skimage import filters
+from skimage import measure
 
 
 # Functions
@@ -138,7 +139,7 @@ def hist_thresholds(data: np.ndarray | dict, *, otsu_classes: int = 2, mask_arra
         
         return filters.threshold_yen(hist = hist)
     
-def hist(im_array: np.ndarray, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu", return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
+def hist(im_array: np.ndarray, *, method: str = "otsu", otsu_classes: int = 2, mask_array: np.ndarray = None, return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
     
     thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(im_array, otsu_classes = otsu_classes, mask_array = mask_array, method = method)
     
@@ -172,9 +173,19 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
         
         return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
     
-def test(im_array) -> None:
+def label(im_array: np.ndarray, connectivity: int = None, return_num: bool = False) -> np.ndarray | int:
     
-    pass
+    if not connectivity:
+        
+        if len(im_array) > 2:
+            
+            connectivity = 3
+            
+        else:
+            
+            connectivity = 2
+    
+    return measure.label(im_array, return_num = return_num, connectivity = connectivity)
 
 
 # Main

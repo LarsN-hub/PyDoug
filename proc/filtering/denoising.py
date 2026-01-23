@@ -23,11 +23,18 @@ def bilateral(im_array: np.ndarray, *,
               cval: int | float = 0,
               channel_axis: int | None = None) -> np.ndarray:
     
-    bilat_array: np.ndarray = np.empty(im_array.shape)
+    if len(im_array.shape) > 2:
     
-    for n in range(0, im_array.shape[0]):
+        bilat_array: np.ndarray = np.empty(im_array.shape)
+        
+        for n in range(0, im_array.shape[0]):
+                
+            bilat_array[n] = restoration.denoise_bilateral(im_array[n], win_size, sigma_color, sigma_spatial, bins, mode, cval,
+                                                           channel_axis = channel_axis)
             
-        bilat_array[n] = restoration.denoise_bilateral(im_array[n], win_size, sigma_color, sigma_spatial, bins, mode, cval,
+    else:
+        
+        bilat_array = restoration.denoise_bilateral(im_array, win_size, sigma_color, sigma_spatial, bins, mode, cval,
                                                        channel_axis = channel_axis)
         
     return pixels.convert_im_type(bilat_array, im_array.dtype)
@@ -130,13 +137,19 @@ def calibrate_function(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np
     
     if denoiser == restoration.denoise_bilateral:
         
-        if bilateral_slice_no:
+        if len(im_array.shape) > 2:
         
-            denoise_array: np.ndarray = im_array[bilateral_slice_no]
+            if bilateral_slice_no:
+        
+                denoise_array: np.ndarray = im_array[bilateral_slice_no]
             
+            else:
+            
+                denoise_array: np.ndarray = im_array[round(im_array.shape[0] / 2)]
+                
         else:
-            
-            denoise_array: np.ndarray = im_array[round(im_array.shape[0] / 2)]
+                
+            denoise_array: np.ndarray = np.copy(im_array)
             
     else:
         
@@ -163,11 +176,17 @@ def calibrate_function(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np
         
         if denoiser == restoration.denoise_bilateral:
             
-            denoised_array: np.ndarray = np.empty(im_array.shape)
+            if len(im_array.shape) > 2:
             
-            for slice_index in range(0, im_array.shape[0]):
+                denoised_array: np.ndarray = np.empty(im_array.shape)
                 
-                denoised_array[slice_index] = calibrated_denoiser(im_array[slice_index])
+                for slice_index in range(0, im_array.shape[0]):
+                    
+                    denoised_array[slice_index] = calibrated_denoiser(im_array[slice_index])
+                    
+            else:
+                
+                denoised_array = calibrated_denoiser(im_array)
         
         else:
             
@@ -189,13 +208,21 @@ def invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray]
         
         if denoiser == restoration.denoise_bilateral:
             
-            denoised_array: np.ndarray = np.empty(im_array.shape)
+            if len(im_array.shape) > 2:
             
-            for slice_index in range(0, im_array.shape[0]):
+                denoised_array: np.ndarray = np.empty(im_array.shape)
                 
-                denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser,
-                                                                            stride = stride, masks = masks,
-                                                                            denoiser_kwargs = optimal_parameters)
+                for slice_index in range(0, im_array.shape[0]):
+                    
+                    denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser,
+                                                                                stride = stride, masks = masks,
+                                                                                denoiser_kwargs = optimal_parameters)
+                    
+            else:
+                
+                denoised_array = restoration.denoise_invariant(im_array, denoiser,
+                                                               stride = stride, masks = masks,
+                                                               denoiser_kwargs = optimal_parameters)
         
         else:
         
@@ -207,12 +234,19 @@ def invariant(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray]
         
         if denoiser == restoration.denoise_bilateral:
             
-            denoised_array: np.ndarray = np.empty(im_array.shape)
+            if len(im_array.shape) > 2:
             
-            for slice_index in range(0, im_array.shape[0]):
+                denoised_array: np.ndarray = np.empty(im_array.shape)
                 
-                denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser, stride = stride,
-                                                                           masks = masks, denoiser_kwargs = denoiser_kwargs)
+                for slice_index in range(0, im_array.shape[0]):
+                    
+                    denoised_array[slice_index] = restoration.denoise_invariant(im_array[slice_index], denoiser, stride = stride,
+                                                                               masks = masks, denoiser_kwargs = denoiser_kwargs)
+                    
+            else:
+                
+                denoised_array = restoration.denoise_invariant(im_array, denoiser, stride = stride,
+                                                               masks = masks, denoiser_kwargs = denoiser_kwargs)
         
         else:
             

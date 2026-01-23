@@ -10,7 +10,7 @@ import util
 from filtering import denoising
 from skimage import restoration
 from skimage import exposure
-from skimage import measure
+from skimage import feature
 from typing import Callable
 
 
@@ -212,9 +212,29 @@ def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], 
     
     return {"parameters": parameters_tested, "losses": losses}
 
-def label(seg_array: np.ndarray) -> np.ndarray:
+def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_array: np.ndarray = None) -> np.ndarray:
     
-    return measure.label(seg_array)
+    if not mask_array:
+        
+        mask_array: np.ndarray = np.ones((5, 5))
+    
+    if len(im_array.shape) > 2:
+        
+        output_array: np.ndarray = np.empty((corners.shape[0], 2))
+        output_array[:, 0] = corners[:, 0]
+        slices: np.ndarray = np.unique(corners[:, 0])
+        
+        for slice_index in slices:
+            
+            start_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][0]
+            end_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][-1]
+            output_array[start_row:end_row, 1] = feature.corner_orientations(im_array[slice_index], corners[start_row:end_row, 1:2], mask_array)
+            
+        return output_array
+            
+    else:
+        
+        return feature.corner_orientations(im_array, corners, mask_array)
 
 
 # Main

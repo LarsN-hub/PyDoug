@@ -24,10 +24,6 @@ proc/filtering/morph.py
 proc/segment/thresh.py
 
 proc/segment/detect.py
-- finish corners
-- finish watershed
-- finish RW
-- finish active_countour
 
 proc/dic.py
 - Create file
@@ -46,6 +42,7 @@ analysis/quant.py
 - Add directional position calculation function
 
 analysis/plots.py
+- Add corner orientations distribution plot function
 - Add total particle count plot function
 - Add particle size distribution plot function
 - Add total volume plot function
