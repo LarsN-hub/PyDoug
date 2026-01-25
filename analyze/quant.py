@@ -234,7 +234,7 @@ def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels
     if im_array.dtype == np.int64:
         
         vol_array: np.ndarray = np.array([255, np.count_nonzero(im_array > 0)])
-        vol_df: pd.DataFrame = pd.DataFrame(vol_array, columns = ["Gray Value", "Volume"])
+        vol_df: pd.DataFrame = pd.DataFrame(np.expand_dims(vol_array, 1).T, columns = ["Gray Value", "Volume"])
     
     else:
         

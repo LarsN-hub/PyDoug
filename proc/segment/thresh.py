@@ -182,7 +182,7 @@ def label(im_array: np.ndarray, connectivity: int = None, return_num: bool = Fal
     
     if not connectivity:
         
-        if len(im_array) > 2:
+        if im_array.ndim > 2:
             
             connectivity = 3
             
