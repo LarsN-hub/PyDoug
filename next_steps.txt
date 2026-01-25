@@ -26,7 +26,6 @@ proc/segment/thresh.py
 proc/segment/detect.py
 
 analysis/quant.py
-- Finish particle size distribution function
 - Finish volume distribution function
 - Finish surface area calculation function
 - Finish contact area calculation function

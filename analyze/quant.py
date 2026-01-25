@@ -13,6 +13,7 @@ from skimage import restoration
 from skimage import exposure
 from skimage import feature
 from typing import Callable
+from segment import thresh
 
 
 # Functions
@@ -255,10 +256,27 @@ def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels
     vol_df.attrs = {"units": f"{units}^3"}
     
     return vol_df
+
+def __get_size_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> pd.DataFrame:
+    
+    counts, labels = exposure.histogram(im_array)
+    counts = counts * (scale ** 3)
+    size_counts, sizes = exposure.histogram(counts)
+    
+    return pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
 def get_size_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> pd.DataFrame:
     
-    pass
+    if im_array.dtype != np.int64:
+        
+        lab_array = thresh.label(im_array, connectivity = connectivity)
+        size_dist: pd.DataFrame = __get_size_distribution(lab_array, scale = scale, connectivity = connectivity)
+        
+    else:
+        
+        size_dist: pd.DataFrame = __get_size_distribution(im_array, scale = scale, connectivity = connectivity)
+        
+    return size_dist
 
 def get_volume_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> pd.DataFrame:
     
