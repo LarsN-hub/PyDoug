@@ -4,6 +4,7 @@ Module for generating plots to analyze images
 
 # Imports
 
+import pandas as pd
 import numpy as np
 import quant
 
@@ -75,33 +76,33 @@ def set_intensity_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x",
                 
     return axis
 
-def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
+def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
-        hist_dict: dict[str, np.ndarray] = quant.get_histogram(data, mask_array = mask_array)
+        hist_df: pd.DataFrame = quant.get_histogram(data, mask_array = mask_array)
         
     else:
         
-        hist_dict: dict[str, np.ndarray] = data.copy()
+        hist_df: pd.DataFrame = data.copy()
         
     if ignore_edges:
         
-        hist_dict["bin centers"] = hist_dict["bin centers"][1:-1]
-        hist_dict["counts"] = hist_dict["counts"][1:-1]
+        hist_df["Bin Centers"] = hist_df["Bin Centers"][1:-1]
+        hist_df["Counts"] = hist_df["Counts"][1:-1]
         
     hist_ax: plt.Axes = input_ax
     hist_ax.set_xlabel(x_label)
     hist_ax.set_ylabel("Counts")
-    hist_ax.hist(hist_dict["bin centers"], hist_dict["bin centers"], weights = hist_dict["counts"])
+    hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"])
     
     if xlims:
         
-        hist_ax = set_intensity_axlims(hist_ax, hist_dict["bin centers"].dtype, "x", axlims = xlims)
+        hist_ax = set_intensity_axlims(hist_ax, hist_df["Bin Centers"].dtype, "x", axlims = xlims)
         
     else:
         
-        hist_ax.set_xlim(np.min(hist_dict["bin centers"]), np.max(hist_dict["bin centers"]))
+        hist_ax.set_xlim(np.min(hist_df["Bin Centers"]), np.max(hist_df["Bin Centers"]))
         
     if ylims:
         
@@ -109,36 +110,36 @@ def histogram_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, x_label: str 
         
     return hist_ax
 
-def histogram(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def histogram(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
     
     return fig
 
-def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
+def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
-        cdf_dict: dict[str, np.ndarray] = quant.get_cdf(data, mask_array = mask_array)
+        cdf_df: pd.DataFrame = quant.get_cdf(data, mask_array = mask_array)
         
     else:
         
-        cdf_dict: dict[str, np.ndarray] = data.copy()
+        cdf_df: pd.DataFrame = data.copy()
         
     cdf_ax: plt.Axes = input_ax
-    cdf_ax.set_xlabel("Gray Value")
+    cdf_ax.set_xlabel(x_label)
     cdf_ax.set_ylabel("Probability")
     cdf_ax.set_ylim(0, 1)
-    cdf_ax.plot(cdf_dict["bin centers"], cdf_dict["cdf"], "red")
+    cdf_ax.plot(cdf_df["Bin Centers"], cdf_df["Probability"], "red")
     
     if xlims:
         
-        cdf_ax = set_intensity_axlims(cdf_ax, cdf_dict["bin centers"].dtype, "x", axlims = xlims)
+        cdf_ax = set_intensity_axlims(cdf_ax, cdf_df["Bin Centers"].dtype, "x", axlims = xlims)
         
     else:
         
-        cdf_ax.set_xlim(np.min(cdf_dict["bin centers"]), np.max(cdf_dict["bin centers"]))
+        cdf_ax.set_xlim(np.min(cdf_df["Bin Centers"]), np.max(cdf_df["Bin Centers"]))
         
     if ylims:
         
@@ -146,7 +147,7 @@ def cdf_axis(data: np.ndarray | dict, input_ax: plt.Axes, *, mask_array: np.ndar
         
     return cdf_ax
 
-def cdf(data: np.ndarray | dict, *, mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
+def cdf(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
     
     fig, cdf_ax = plt.subplots()
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
@@ -158,10 +159,38 @@ def hist_cdf(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
     cdf_ax: plt.Axes = hist_ax.twinx()
-    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
+    cdf_ax = cdf_axis(data, cdf_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
     cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
     
     return fig
+
+def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_axis: int = 0, *, mask_array: np.ndarray = None) -> plt.Axes:
+    
+    if isinstance(data, np.ndarray):
+        
+        gray_df: pd.DataFrame = quant.single_ax_statistics(data, quant_axis, mask_array = mask_array)
+        
+    else:
+        
+        gray_df: pd.DataFrame = data.copy()
+        
+    pos_std: np.ndarray = gray_df["Mean"] + gray_df["Std Dev"]
+    neg_std: np.ndarray = gray_df["Mean"] - gray_df["Std Dev"]
+    gray_ax: plt.Axes = input_ax
+    gray_ax.set_xlabel("Position [pixels]")
+    gray_ax.set_ylabel("Gray Value")
+    gray_ax.set_xlim(0, max(gray_df["Position"]))
+    gray_ax.plot(gray_df["Position"], gray_df["Mean"], "black")
+    gray_ax.plot(gray_df["Position"], gray_df["Max"], "red")
+    gray_ax.plot(gray_df["Position"], gray_df["Min"], "blue")
+    gray_ax.fill_between(gray_df["Position"], y1 = pos_std, y2 = neg_std, color = "gray", alpha = 0.5)
+    gray_ax.set_title(f"Axis {quant_axis}")
+    
+    return gray_ax
+
+def gray_level(data: np.ndarray | pd.DataFrame, *, mask_array: np.ndarray = None) -> plt.Figure:
+
+    return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array)
 
 def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
                      parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Axes:
@@ -268,34 +297,6 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
     
     return fig
 
-def gray_level_axis(data: np.ndarray | dict, input_ax: plt.Axes, quant_axis: int = 0, *, mask_array: np.ndarray = None) -> plt.Axes:
-    
-    if isinstance(data, np.ndarray):
-        
-        gray_dict: dict[int, np.ndarray] = quant.single_ax_statistics(data, quant_axis, mask_array = mask_array)
-    
-    else:
-        
-        gray_dict: dict[int, np.ndarray] = data.copy()
-        
-    pos_std: np.ndarray = gray_dict["mean"] + gray_dict["stdev"]
-    neg_std: np.ndarray = gray_dict["mean"] - gray_dict["stdev"]
-    gray_ax: plt.Axes = input_ax
-    gray_ax.set_xlabel("Position [pixels]")
-    gray_ax.set_ylabel("Gray Value")
-    gray_ax.set_xlim(0, np.max(gray_dict["position"]))
-    gray_ax.plot(gray_dict["position"], gray_dict["mean"], "black")
-    gray_ax.plot(gray_dict["position"], gray_dict["max"], "red")
-    gray_ax.plot(gray_dict["position"], gray_dict["min"], "blue")
-    gray_ax.fill_between(gray_dict["position"], y1 = pos_std, y2 = neg_std, color = "gray", alpha = 0.5)
-    gray_ax.set_title(f"Axis {quant_axis}")
-    
-    return gray_ax
-
-def gray_level(data: np.ndarray | dict, *, mask_array: np.ndarray = None) -> plt.Figure:
-
-    return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array)
-
 def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, quant_axes: tuple = (0, 1, 2)) -> plt.Figure:
        
     if len(function_list) == 1:
@@ -320,13 +321,13 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         
         elif function_list[index] == "cdf":
             
-            axs[index] = cdf_axis(data, axs[index], mask_array = mask_array, xlims = xlims, ylims = ylims)
+            axs[index] = cdf_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
         
         elif function_list[index] == "hist cdf":
             
             axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
             cdf_axs[index]: plt.Axes = axs[index].twinx()
-            cdf_axs[index] = cdf_axis(data, cdf_axs[index], mask_array = mask_array, xlims = xlims)
+            cdf_axs[index] = cdf_axis(data, cdf_axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims)
             cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom")
             
         elif function_list[index] == "gray lvl":

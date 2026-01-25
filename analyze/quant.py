@@ -17,99 +17,99 @@ from typing import Callable
 
 # Functions
 
-def statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict:
+def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
     
     im_stats: dict = {}
     
     if np.any(mask_array):
             
-        im_stats["mean"] = np.mean(im_array[mask_array])
-        im_stats["median"] = np.median(im_array[mask_array])
-        im_stats["min"] = np.min(im_array[mask_array])
-        im_stats["max"] = np.max(im_array[mask_array])
-        im_stats["stdev"] = np.std(im_array[mask_array])
+        im_stats["Mean"] = np.mean(im_array[mask_array])
+        im_stats["Median"] = np.median(im_array[mask_array])
+        im_stats["Min"] = np.min(im_array[mask_array])
+        im_stats["Max"] = np.max(im_array[mask_array])
+        im_stats["Std Dev"] = np.std(im_array[mask_array])
 
     else:
         
-        im_stats["mean"] = np.mean(im_array)
-        im_stats["median"] = np.median(im_array)
-        im_stats["min"] = np.min(im_array)
-        im_stats["max"] = np.max(im_array)
-        im_stats["stdev"] = np.std(im_array)
+        im_stats["Mean"] = np.mean(im_array)
+        im_stats["Median"] = np.median(im_array)
+        im_stats["Min"] = np.min(im_array)
+        im_stats["Max"] = np.max(im_array)
+        im_stats["Std Dev"] = np.std(im_array)
     
-    return im_stats
+    return pd.DataFrame([im_stats])
 
-def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.ndarray = None) -> dict:
+def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.ndarray = None) -> pd.DataFrame:
     
-    ax_stats: dict = {}
+    ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
     if np.any(mask_array):
-        
-        ax_stats["mean"] = np.empty(im_array.shape[axis])
-        ax_stats["median"] = np.empty(im_array.shape[axis])
-        ax_stats["min"] = np.empty(im_array.shape[axis])
-        ax_stats["max"] = np.empty(im_array.shape[axis])
-        ax_stats["stdev"] = np.empty(im_array.shape[axis])
         
         if axis == 0:
         
             for slice_index in range(0, im_array.shape[axis]):
                 
+                ax_stats[slice_index, 0] = slice_index
+                
                 if np.any(mask_array[slice_index]):
-                    
-                    ax_stats["mean"][slice_index] = np.mean(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats["median"][slice_index] = np.median(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats["min"][slice_index] = np.min(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats["max"][slice_index] = np.max(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats["stdev"][slice_index] = np.std(im_array[slice_index][mask_array[slice_index]])
+
+                    ax_stats[slice_index, 1] = np.mean(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 2] = np.median(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 3] = np.min(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 4] = np.max(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 5] = np.std(im_array[slice_index][mask_array[slice_index]])
                     
                 else:
                     
-                    ax_stats["mean"][slice_index] = 0
-                    ax_stats["median"][slice_index] = 0
-                    ax_stats["min"][slice_index] = 0
-                    ax_stats["max"][slice_index] = 0
-                    ax_stats["stdev"][slice_index] = 0
+                    ax_stats[slice_index, 1] = 0
+                    ax_stats[slice_index, 2] = 0
+                    ax_stats[slice_index, 3] = 0
+                    ax_stats[slice_index, 4] = 0
+                    ax_stats[slice_index, 5] = 0
                 
         elif axis == 1:
             
             for slice_index in range(0, im_array.shape[axis]):
                 
+                ax_stats[slice_index, 0] = slice_index
+                
                 if np.any(mask_array[:, slice_index, :]):
                 
-                    ax_stats["mean"][slice_index] = np.mean(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats["median"][slice_index] = np.median(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats["min"][slice_index] = np.min(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats["max"][slice_index] = np.max(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats["stdev"][slice_index] = np.std(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 1] = np.mean(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 2] = np.median(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 3] = np.min(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 4] = np.max(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 5] = np.std(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
                     
                 else:
                     
-                    ax_stats["mean"][slice_index] = 0
-                    ax_stats["median"][slice_index] = 0
-                    ax_stats["min"][slice_index] = 0
-                    ax_stats["max"][slice_index] = 0
-                    ax_stats["stdev"][slice_index] = 0
+                    ax_stats[slice_index, 1] = 0
+                    ax_stats[slice_index, 2] = 0
+                    ax_stats[slice_index, 3] = 0
+                    ax_stats[slice_index, 4] = 0
+                    ax_stats[slice_index, 5] = 0
                 
         elif axis == 2:
             
             for slice_index in range(0, im_array.shape[axis]):
                 
+                ax_stats[slice_index, 0] = slice_index
+                
                 if np.any(mask_array[:, :, slice_index]):
                 
-                    ax_stats["mean"][slice_index] = np.mean(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats["median"][slice_index] = np.median(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats["min"][slice_index] = np.min(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats["max"][slice_index] = np.max(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats["stdev"][slice_index] = np.std(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 1] = np.mean(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 2] = np.median(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 3] = np.min(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 4] = np.max(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 5] = np.std(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
                     
                 else:
                     
-                    ax_stats["mean"][slice_index] = 0
-                    ax_stats["median"][slice_index] = 0
-                    ax_stats["min"][slice_index] = 0
-                    ax_stats["max"][slice_index] = 0
-                    ax_stats["stdev"][slice_index] = 0
+                    ax_stats[slice_index, 1] = 0
+                    ax_stats[slice_index, 2] = 0
+                    ax_stats[slice_index, 3] = 0
+                    ax_stats[slice_index, 4] = 0
+                    ax_stats[slice_index, 5] = 0
     
     else:
         
@@ -125,26 +125,25 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.
             
             exclude_axes: tuple = (0, 1)
         
-        ax_stats["mean"] = np.mean(im_array, exclude_axes)
-        ax_stats["median"] = np.median(im_array, exclude_axes)
-        ax_stats["min"] = np.min(im_array, exclude_axes)
-        ax_stats["max"] = np.max(im_array, exclude_axes)
-        ax_stats["stdev"] = np.std(im_array, exclude_axes)
+        ax_stats[:, 0] = np.arange(0, im_array.shape[axis])
+        ax_stats[:, 1] = np.mean(im_array, exclude_axes)
+        ax_stats[:, 2] = np.median(im_array, exclude_axes)
+        ax_stats[:, 3] = np.min(im_array, exclude_axes)
+        ax_stats[:, 4] = np.max(im_array, exclude_axes)
+        ax_stats[:, 5] = np.std(im_array, exclude_axes)
     
-    ax_stats["position"] = np.arange(0, len(ax_stats["mean"]))
-    
-    return ax_stats
+    return pd.DataFrame(ax_stats, columns = ["Position", "Mean", "Median", "Min", "Max", "Std Dev"])
 
-def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict:
+def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict[int, pd.DataFrame]:
     
-    axial_stats: dict = {}
+    axial_stats: dict[int, pd.DataFrame] = {}
     axial_stats[0] = single_ax_statistics(im_array, 0, mask_array = mask_array)
     axial_stats[1] = single_ax_statistics(im_array, 1, mask_array = mask_array)
     axial_stats[2] = single_ax_statistics(im_array, 2, mask_array = mask_array)
     
     return axial_stats
 
-def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict[str, np.ndarray]:
+def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if np.any(mask_array):
     
@@ -156,9 +155,9 @@ def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dic
         
     bin_centers = np.astype(bin_centers, im_array.dtype)
     
-    return {"counts": counts, "bin centers": bin_centers}
+    return pd.DataFrame(np.stack((bin_centers, counts), 1), columns = ["Bin Centers", "Counts"])
 
-def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict[str, np.ndarray]:
+def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if np.any(mask_array):
     
@@ -170,14 +169,7 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> dict[str,
         
     bin_centers = np.astype(bin_centers, im_array.dtype)
         
-    return {"cdf": im_cdf, "bin centers": bin_centers}
-
-def linear_cdf(cdf_dict: dict, percent_interval: float = 0.1, *, mask_array: np.ndarray = None) -> dict[str, np.ndarray]:
-    
-    interval_array: np.ndarray = np.arange(0, 1, (percent_interval / 100))
-    linear_indices: np.ndarray = util.quick_get_indices(cdf_dict["cdf"], interval_array)
-    
-    return {"cdf": interval_array, "bin centers": cdf_dict["bin centers"][np.astype(linear_indices, "int")]}
+    return pd.DataFrame(np.stack((bin_centers, im_cdf), 1), columns = ["Bin Centers", "Probability"])
 
 def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_dict: dict = None) -> tuple:
     
@@ -237,26 +229,34 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
         
         return feature.corner_orientations(im_array, corners, mask_array)
     
-def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", background: float | int = 0) -> dict[float | int, float]:
+def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
     
-    phases: np.ndarray = np.unique(im_array)
-    vol_dict = {}
+    phase_array: np.ndarray = np.unique(im_array)
     
-    for phase in phases:
+    if not include_background:
         
-        vol_dict[phase] = np.count_nonzero(im_array == phase) * (scale ** 3)
-        
-    return vol_dict
+        phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
     
-def get_size_distribution(im_array: np.ndarray | dict, *, scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> dict[str, np.ndarray]:
+    vol_array: np.ndarray = np.empty(phase_array.shape)
+    
+    for index, phase in enumerate(phase_array):
+        
+        vol_array[index] = np.count_nonzero(im_array == phase) * (scale ** 3)
+        
+    vol_df: pd.DataFrame = pd.DataFrame(np.stack((phase_array, vol_array), 1), columns = ["Gray Value", "Volume"])
+    vol_df.attrs = {"units": f"{units}^3"}
+    
+    return vol_df
+    
+def get_size_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> pd.DataFrame:
     
     pass
 
-def get_volume_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> dict[str, np.ndarray]:
+def get_volume_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> pd.DataFrame:
     
     pass
 
-def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> np.ndarray:
+def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> pd.DataFrame:
     
     pass
 

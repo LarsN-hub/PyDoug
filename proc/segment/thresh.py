@@ -5,6 +5,7 @@ Module for threshold-based image segmentation
 # Imports
 
 import cropclip as cc
+import pandas as pd
 import numpy as np
 import pixels
 import quant
@@ -27,11 +28,15 @@ def sort_double_bound_thresholds(thresholds: np.ndarray) -> np.ndarray:
         
     return new_thresholds
 
-def threshold(im_array: np.ndarray, thresholds: float | np.ndarray, inclusivity: str = "upper") -> np.ndarray:
+def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusivity: str = "upper") -> np.ndarray:
     
     valid_methods: tuple[str] = ("upper", "lower", "both", "neither")
     
     if any(x == inclusivity for x in valid_methods):
+        
+        if not isinstance(thresholds, np.ndarray):
+            
+            thresholds = np.ndarray(thresholds)
     
         thresh_array = np.zeros(im_array.shape, np.uint8)
         
@@ -59,7 +64,7 @@ def threshold(im_array: np.ndarray, thresholds: float | np.ndarray, inclusivity:
                     
                     thresh_array[im_array > thresh] = round((255 / len(thresholds)) * index)
         
-        elif len(thresholds.shape) == 2:
+        elif thresholds.ndim == 2:
             
             thresholds = sort_double_bound_thresholds(thresholds)
             
@@ -87,23 +92,23 @@ def threshold(im_array: np.ndarray, thresholds: float | np.ndarray, inclusivity:
         
         print("\nInvalid inclusivity method!")
     
-def hist_thresholds(data: np.ndarray | dict, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu") -> np.float64 | np.int64 | np.ndarray:
+def hist_thresholds(data: np.ndarray | pd.DataFrame, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu") -> np.float64 | np.int64 | np.ndarray:
     
     if isinstance(data, np.ndarray):
         
         if np.any(mask_array):
             
-            if len(mask_array.shape) < len(data.shape):
+            if mask_array.ndim < data.ndim:
                 
                 mask_array = cc.mask_2d_to_3d(mask_array, data.shape[0])
         
-        hist_dict: dict[str, np.ndarray] = quant.get_histogram(data, mask_array = mask_array)
+        hist_df: pd.DataFrame = quant.get_histogram(data, mask_array = mask_array)
         
     else:
         
-        hist_dict = data.copy()
+        hist_df = data.copy()
     
-    hist: tuple[np.ndarray] = (hist_dict["counts"], hist_dict["bin centers"])
+    hist: tuple[np.ndarray] = (np.array(hist_df["Counts"]), np.array(hist_df["Bin Centers"]))
     
     if method == "otsu":
         
@@ -186,10 +191,6 @@ def label(im_array: np.ndarray, connectivity: int = None, return_num: bool = Fal
             connectivity = 2
             
     return measure.label(im_array, return_num = return_num, connectivity = connectivity)
-
-def separate_labels(im_array: np.ndarray, connectivity: int = None, return_num: bool = False) -> dict[int, np.ndarray]:
-    
-    pass
 
 
 # Main

@@ -22,14 +22,8 @@ proc/filtering/fourier.py
 proc/filtering/morph.py
 
 proc/segment/thresh.py
-- Finish separate_labels function
 
 proc/segment/detect.py
-
-proc/dic.py
-- Create file
-- Add registration function
-- Add digital image / volume correlation functions
 
 analysis/quant.py
 - Finish particle size distribution function
@@ -50,3 +44,8 @@ analysis/plots.py
 batch/batchproc.py
 - Create file
 - Create batch processing function
+
+proc/dic.py
+- Create file
+- Add registration function
+- Add digital image / volume correlation functions
