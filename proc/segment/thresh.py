@@ -36,7 +36,7 @@ def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusi
         
         if not isinstance(thresholds, np.ndarray):
             
-            thresholds = np.ndarray(thresholds)
+            thresholds = np.array(thresholds)
     
         thresh_array = np.zeros(im_array.shape, np.uint8)
         
@@ -92,7 +92,7 @@ def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusi
         
         print("\nInvalid inclusivity method!")
     
-def hist_thresholds(data: np.ndarray | pd.DataFrame, *, otsu_classes: int = 2, mask_array: np.ndarray = None, method: str = "otsu") -> np.float64 | np.int64 | np.ndarray:
+def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", otsu_classes: int = 2, mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
     
     if isinstance(data, np.ndarray):
         

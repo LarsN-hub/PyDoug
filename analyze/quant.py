@@ -231,19 +231,27 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
     
 def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
     
-    phase_array: np.ndarray = np.unique(im_array)
-    
-    if not include_background:
+    if im_array.dtype == np.int64:
         
-        phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
+        vol_array: np.ndarray = np.array([255, np.count_nonzero(im_array > 0)])
+        vol_df: pd.DataFrame = pd.DataFrame(vol_array, columns = ["Gray Value", "Volume"])
     
-    vol_array: np.ndarray = np.empty(phase_array.shape)
+    else:
+        
+        phase_array: np.ndarray = np.unique(im_array)
+        
+        if not include_background:
+            
+            phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
+        
+        vol_array: np.ndarray = np.empty(phase_array.shape)
+        
+        for index, phase in enumerate(phase_array):
+            
+            vol_array[index] = np.count_nonzero(im_array == phase) * (scale ** 3)
+        
+        vol_df: pd.DataFrame = pd.DataFrame(np.stack((phase_array, vol_array), 1), columns = ["Gray Value", "Volume"])
     
-    for index, phase in enumerate(phase_array):
-        
-        vol_array[index] = np.count_nonzero(im_array == phase) * (scale ** 3)
-        
-    vol_df: pd.DataFrame = pd.DataFrame(np.stack((phase_array, vol_array), 1), columns = ["Gray Value", "Volume"])
     vol_df.attrs = {"units": f"{units}^3"}
     
     return vol_df
