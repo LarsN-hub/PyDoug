@@ -178,20 +178,45 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
         
         return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
     
-def label(im_array: np.ndarray, connectivity: int = None, return_num: bool = False) -> np.ndarray | int:
+def label(im_array: np.ndarray, *, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
     
-    if not connectivity:
+    if not positional:
+    
+        if not connectivity:
+            
+            if im_array.ndim > 2:
+                
+                connectivity = 3
+                
+            else:
+                
+                connectivity = 2
+                
+        return measure.label(im_array, background = background, return_num = return_num, connectivity = connectivity)
+
+    else:
         
-        if im_array.ndim > 2:
-            
-            connectivity = 3
-            
-        else:
+        if not connectivity:
             
             connectivity = 2
             
-    return measure.label(im_array, return_num = return_num, connectivity = connectivity)
-
+        lab_array: np.ndarray = np.empty(im_array.shape)
+        num_unique: np.ndarray = np.empty(im_array.shape[axis])
+        
+        for slice_index in range(0, im_array.shape[axis]):
+            
+            if axis == 0:
+                
+                lab_array[slice_index], num_unique[slice_index] = measure.label(im_array[slice_index], background = background, connectivity = connectivity, return_num = True)
+        
+        if return_num:
+            
+            return lab_array, num_unique
+        
+        else:
+            
+            return lab_array
+        
 
 # Main
 

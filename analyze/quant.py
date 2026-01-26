@@ -230,13 +230,12 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
         
         return feature.corner_orientations(im_array, corners, mask_array)
     
-def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+def __vol_area_precondition(im_array: np.ndarray, *, include_background: bool = False, background: float | int = 0) -> np.ndarray:
     
     if im_array.dtype == np.int64:
         
-        vol_array: np.ndarray = np.array([255, np.count_nonzero(im_array > 0)])
-        vol_df: pd.DataFrame = pd.DataFrame(np.expand_dims(vol_array, 1).T, columns = ["Gray Value", "Volume"])
-    
+        count_array: np.ndarray = np.array([255, np.count_nonzero(im_array > 0)])
+        
     else:
         
         phase_array: np.ndarray = np.unique(im_array)
@@ -245,19 +244,117 @@ def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels
             
             phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
         
-        vol_array: np.ndarray = np.empty(phase_array.shape)
+        count_array: np.ndarray = np.empty(phase_array.shape)
         
         for index, phase in enumerate(phase_array):
             
-            vol_array[index] = np.count_nonzero(im_array == phase) * (scale ** 3)
-        
-        vol_df: pd.DataFrame = pd.DataFrame(np.stack((phase_array, vol_array), 1), columns = ["Gray Value", "Volume"])
+            count_array[index] = np.count_nonzero(im_array == phase)
+            
+        count_array = np.stack((phase_array, count_array), 1)
+            
+    return count_array        
     
+def get_volume(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+    
+    count_array = __vol_area_precondition(im_array, include_background = include_background, background = background)
+    count_array[:, 1] = count_array[:, 1] * (scale ** 3)
+    vol_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Volume"])
     vol_df.attrs = {"units": f"{units}^3"}
     
     return vol_df
 
-def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> pd.DataFrame:
+def get_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+    
+    count_array = __vol_area_precondition(im_array, include_background = include_background, background = background)
+    count_array[:, 1] = count_array[:, 1] * (scale ** 2)
+    area_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Area"])
+    area_df.attrs = {"units": f"{units}^2"}
+    
+    return area_df
+
+def get_position_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+    
+    if temporal_scale:
+        
+        pos_scale = temporal_scale
+        pos_units = temporal_units
+        
+    else:
+        
+        pos_scale = scale
+        pos_units = units
+    
+    phases: np.ndarray = np.unique(im_array)
+    
+    if not include_background:
+        
+        phases = np.delete(phases, np.argwhere(phases == background))
+        
+    pos_array: np.ndarray = np.empty((im_array.shape[axis], 1 + len(phases)))
+    
+    for slice_index in range(0, im_array.shape[axis]):
+        
+        pos_array[slice_index, 0] = slice_index * pos_scale
+    
+        if axis == 0:
+            
+            int_im_array: np.ndarray = im_array[slice_index]
+            
+        elif axis == 1:
+            
+            int_im_array: np.ndarray = im_array[:, slice_index, :]
+        
+        elif axis == 2:
+
+            int_im_array: np.ndarray = im_array[:, :, slice_index]
+            
+        int_array: np.ndarray = __vol_area_precondition(int_im_array, include_background = include_background, background = background)
+        
+        for index, gray_value in enumerate(int_array[:, 0]):
+            
+            pos_array[slice_index, 1 + np.argwhere(phases == gray_value)] = int_array[index, 1]
+            
+    if temporal_scale:
+        
+        columns = ["Time"]
+        
+    else:
+        
+        columns = ["Position"]
+    
+    for phase in phases:
+        
+        columns.append(str(phase))
+            
+    if mode == "vol":
+        
+        pos_array[:, 1:] = pos_array[:, 1:] * (scale ** 3)
+        pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
+        
+        if temporal_scale:
+            
+            pos_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}^3"}
+            
+        else:
+            
+            pos_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}^3"}
+        
+    elif mode == "area":
+        
+        pos_array[:, 1:] = pos_array[:, 1:] * (scale ** 2)
+        pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
+        
+        if temporal_scale:
+            
+            pos_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}^2"}
+            
+        else:
+            
+            pos_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}^2"}
+        
+    return pos_df
+
+def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0) -> pd.DataFrame:
     
     counts, labels = exposure.histogram(im_array)
     
@@ -269,40 +366,92 @@ def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: f
         
         counts = counts * (scale ** 2)
         
+    counts = np.delete(counts, np.argwhere(labels == background))
     size_counts, sizes = exposure.histogram(counts)
+    size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
-    return pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
-    
-def get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pixels", connectivity: int = None) -> pd.DataFrame:
-    
-    if im_array.dtype != np.int64:
+    if mode == "vol":
         
-        lab_array = thresh.label(im_array, connectivity = connectivity)
-        size_dist: pd.DataFrame = __get_size_distribution(lab_array, mode = mode, scale = scale, connectivity = connectivity)
+        size_df.attrs = {"units": f"{units}^3"}
         
-    else:
+    elif mode == "area":
         
-        size_dist: pd.DataFrame = __get_size_distribution(im_array, mode = mode, scale = scale, connectivity = connectivity)
+        size_df.attrs = {"units": f"{units}^2"}
         
-    return size_dist
+    return size_df
 
-def get_volume_distribution(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> pd.DataFrame:
+def get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
+    
+    if not positional:
+    
+        if im_array.dtype != np.int64:
+            
+            lab_array = thresh.label(im_array, connectivity = connectivity, background = background)
+            size_df: pd.DataFrame = __get_size_distribution(lab_array, mode = mode, scale = scale, connectivity = connectivity, background = background)
+            
+        else:
+            
+            size_df: pd.DataFrame = __get_size_distribution(im_array, mode = mode, scale = scale, connectivity = connectivity, background = background)
+            
+        return size_df
+    
+    # else:
+        
+    #     if temporal_scale:
+            
+    #         pos_scale = temporal_scale
+    #         pos_units = temporal_units
+            
+    #     else:
+            
+    #         pos_scale = scale
+    #         pos_units = units
+            
+    #     if im_array.dtype != np.int64:
+            
+    #         lab_array = thresh.label(im_array, connectivity = connectivity, background = background, positional = True)
+            
+    #     for slice_index in range(0, im_array.shape[0]):
+            
+    #         if im_array.dtype != np.int64:
+                
+    #             int_im_array = lab_array[slice_index]
+                
+    #         else:
+                
+    #             int_im_array = im_array[slice_index]
+                
+    #         int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, connectivity = connectivity, background = background)
+
+def get_time_distribution(im_array: np.ndarray, mode: str = "vol", *, size_mode: str = "vol", scale: float = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+    
+    if mode == "size":
+        
+        time_df: pd.DataFrame = get_size_distribution(im_array, mode = size_mode, scale = scale, units = spatial_units, connectivity = connectivity, background = background, positional = True, temporal_scale = temporal_scale, temporal_units = temporal_units)
+    
+    elif mode == "vol":
+        
+        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, scale = scale, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background)
+
+    elif mode == "area":
+        
+        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, scale = scale, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background)
+    
+    return time_df
+
+def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix") -> pd.DataFrame:
     
     pass
 
-def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> pd.DataFrame:
+def get_contact_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix") -> pd.DataFrame:
     
     pass
 
-def get_contact_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels") -> pd.DataFrame:
+def get_thick_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
     
     pass
 
-def get_thick_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> np.ndarray:
-    
-    pass
-
-def get_height_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pixels", axis: int = 0) -> np.ndarray:
+def get_height_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
     
     pass
 
