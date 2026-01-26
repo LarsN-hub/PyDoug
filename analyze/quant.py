@@ -356,9 +356,17 @@ def get_position_distribution(im_array: np.ndarray, *, mode: str = "vol", scale:
 
 def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", background: float | int = 0) -> pd.DataFrame:
     
-    counts, labels = exposure.histogram(im_array)        
+    counts, labels = exposure.histogram(im_array)
     counts = np.delete(counts, np.argwhere(labels == background))
-    size_counts, sizes = exposure.histogram(counts)
+    
+    if len(counts) != 0:
+        
+        size_counts, sizes = exposure.histogram(counts)
+        
+    else:
+        
+        size_counts: np.ndarray = np.array([0, 0])
+        sizes: np.ndarray = np.array([0, 1])
     
     if mode == "vol":
         
@@ -395,35 +403,105 @@ def get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: flo
             
         return size_df
     
-    # else:
+    else:
         
-    #     if temporal_scale:
+        if temporal_scale:
             
-    #         pos_scale = temporal_scale
-    #         pos_units = temporal_units
+            pos_scale = temporal_scale
+            pos_units = temporal_units
             
-    #     else:
+        else:
             
-    #         pos_scale = scale
-    #         pos_units = units
+            pos_scale = scale
+            pos_units = units
             
-    #     if im_array.dtype != np.int64:
+        if im_array.dtype != np.int64:
             
-    #         lab_array = thresh.label(im_array, connectivity = connectivity, background = background, positional = True)
+            lab_array = thresh.label(im_array, connectivity = connectivity, background = background, positional = True)
             
-    #     for slice_index in range(0, im_array.shape[0]):
+        if mode == "vol":
             
-    #         if im_array.dtype != np.int64:
+            size_interval: float | int = scale ** 3
+            
+        elif mode == "area":
+            
+            size_interval: float | int = scale ** 2
+            
+        columns = ["Size"]
+            
+        for slice_index in range(0, im_array.shape[0]):
+            
+            if im_array.dtype != np.int64:
                 
-    #             int_im_array = lab_array[slice_index]
+                int_im_array = lab_array[slice_index]
                 
-    #         else:
+            else:
                 
-    #             int_im_array = im_array[slice_index]
+                int_im_array = im_array[slice_index]
                 
-    #         int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, connectivity = connectivity, background = background)
+            columns.append(str(pos_scale * slice_index))
+            int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, background = background)
+            int_sizes: np.ndarray = np.squeeze(np.array([int_df["Bin Centers"]]))
+            int_counts: np.ndarray = np.squeeze(np.array([int_df["Counts"]]))
+            
+            if not int_sizes.shape:
+                
+                int_sizes = np.expand_dims(int_sizes, 0)
+                int_counts = np.expand_dims(int_counts, 0)
+            
+            if slice_index == 0:
+                
+                size_array: np.ndarray = np.arange(size_interval, (np.max(int_sizes) + size_interval), size_interval)
+                size_array = np.expand_dims(size_array, 1)
+                
+            if size_array[0, 0] != int_sizes[0]:
+                
+                insert_array: np.ndarray = np.arange(size_interval, int_sizes[0], size_interval)
+                insert_zeros: np.ndarray = np.zeros(insert_array.shape)
+                int_sizes = np.append(insert_array, int_sizes)
+                int_counts = np.append(insert_zeros, int_counts)
+            
+            if size_array[-1, 0] > int_sizes[-1]:
+                
+                append_array: np.ndarray = np.arange((int_sizes[-1] + size_interval), size_array[-1, 0] + size_interval, size_interval)
+                append_zeros: np.ndarray = np.zeros(append_array.shape)
+                int_sizes = np.append(int_sizes, append_array)
+                int_counts = np.append(int_counts, append_zeros)
+            
+            elif size_array[-1, 0] < int_sizes[-1]:
+                
+                stack_array: np.ndarray = np.expand_dims(np.arange((size_array[-1, 0] + size_interval), int_sizes[-1] + size_interval, size_interval), 0)
+                stack_zeros: np.ndarray = np.zeros(((size_array.shape[1] - 1), stack_array.shape[1]))
+                stack_array = np.vstack((stack_array, stack_zeros)).T
+                size_array = np.vstack((size_array, stack_array))
+                
+            size_array = np.hstack((size_array, np.expand_dims(int_counts, 1)))
+            
+        size_df: pd.DataFrame = pd.DataFrame(size_array, columns = columns)
+        
+        if mode == "vol":
+            
+            if temporal_scale:
+                
+                size_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}^3"}
+                
+            else:
+                
+                size_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}^3"}
+            
+        elif mode == "area":
 
-def get_time_distribution(im_array: np.ndarray, mode: str = "vol", *, size_mode: str = "vol", scale: float = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+            if temporal_scale:
+                
+                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}^2"}
+                
+            else:
+                
+                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}^2"}
+            
+        return size_df
+
+def get_time_distribution(im_array: np.ndarray, mode: str = "vol", *, size_mode: str = "area", scale: float | int = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
     
     if mode == "size":
         

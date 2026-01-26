@@ -200,7 +200,7 @@ def label(im_array: np.ndarray, *, connectivity: int = None, return_num: bool = 
             
             connectivity = 2
             
-        lab_array: np.ndarray = np.empty(im_array.shape)
+        lab_array: np.ndarray = np.empty(im_array.shape, dtype = np.int64)
         num_unique: np.ndarray = np.empty(im_array.shape[axis])
         
         for slice_index in range(0, im_array.shape[axis]):
