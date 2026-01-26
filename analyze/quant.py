@@ -144,15 +144,15 @@ def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict[int, pd
     
     return axial_stats
 
-def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
+def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None, normalize: bool = False) -> pd.DataFrame:
     
     if np.any(mask_array):
     
-        counts, bin_centers = exposure.histogram(im_array[mask_array])
+        counts, bin_centers = exposure.histogram(im_array[mask_array], normalize = normalize)
         
     else:
         
-        counts, bin_centers = exposure.histogram(im_array)
+        counts, bin_centers = exposure.histogram(im_array, normalize = normalize)
         
     bin_centers = np.astype(bin_centers, im_array.dtype)
     
@@ -354,20 +354,20 @@ def get_position_distribution(im_array: np.ndarray, *, mode: str = "vol", scale:
         
     return pos_df
 
-def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0) -> pd.DataFrame:
+def __get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: float = 1.0, units: str = "pix", background: float | int = 0) -> pd.DataFrame:
     
-    counts, labels = exposure.histogram(im_array)
+    counts, labels = exposure.histogram(im_array)        
+    counts = np.delete(counts, np.argwhere(labels == background))
+    size_counts, sizes = exposure.histogram(counts)
     
     if mode == "vol":
         
-        counts = counts * (scale ** 3)
+        sizes = sizes * (scale ** 3)
         
     elif mode == "area":
         
-        counts = counts * (scale ** 2)
-        
-    counts = np.delete(counts, np.argwhere(labels == background))
-    size_counts, sizes = exposure.histogram(counts)
+        sizes = sizes * (scale ** 2)
+    
     size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
     if mode == "vol":
@@ -387,11 +387,11 @@ def get_size_distribution(im_array: np.ndarray, *, mode: str = "vol", scale: flo
         if im_array.dtype != np.int64:
             
             lab_array = thresh.label(im_array, connectivity = connectivity, background = background)
-            size_df: pd.DataFrame = __get_size_distribution(lab_array, mode = mode, scale = scale, connectivity = connectivity, background = background)
+            size_df: pd.DataFrame = __get_size_distribution(lab_array, mode = mode, scale = scale, units = units, background = background)
             
         else:
             
-            size_df: pd.DataFrame = __get_size_distribution(im_array, mode = mode, scale = scale, connectivity = connectivity, background = background)
+            size_df: pd.DataFrame = __get_size_distribution(im_array, mode = mode, scale = scale, units = units, background = background)
             
         return size_df
     
