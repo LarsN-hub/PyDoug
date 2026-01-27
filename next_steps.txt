@@ -34,7 +34,7 @@ analysis/quant.py
 - Finish directional position calculation function
 
 analysis/plots.py
-- Incorporate particle size distribution plotting in histogram function
+- Get histogram function to also output axis so psd can be included in multi_plot function
 - Add total volume / area plot function
 - Add volume / area distribution plot function
 - Add surface area plot function

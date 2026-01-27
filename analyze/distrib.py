@@ -170,6 +170,8 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
         size_counts: np.ndarray = np.array([0, 0])
         sizes: np.ndarray = np.array([1, 2])
+        
+    size_counts = np.astype(size_counts, np.int64)
     
     if mode == "vol":
         

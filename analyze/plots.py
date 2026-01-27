@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import distrib
 import quant
+import util
 
 from matplotlib import pyplot as plt
 from typing import Callable
@@ -41,7 +42,7 @@ def subplot_layout(num_plots: int) -> tuple:
         
         return (3, 3)
 
-def set_intensity_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims: tuple = None) -> plt.Axes:
+def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims: tuple = None) -> plt.Axes:
     
     if axlims:
         
@@ -89,8 +90,11 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
         
     if ignore_edges:
         
-        hist_df["Bin Centers"] = hist_df["Bin Centers"][1:-1]
-        hist_df["Counts"] = hist_df["Counts"][1:-1]
+        hist_df = hist_df[1:-1].reset_index(drop = True)
+        eval_array: np.ndarray = np.array([hist_df["Counts"]]) != 0
+        new_start: int = util.quick_get_first_index(eval_array)
+        new_end: int = max(eval_array.shape) - util.quick_get_first_index(np.flip(eval_array))
+        hist_df = hist_df[new_start:new_end].reset_index(drop = True)
         
     hist_ax: plt.Axes = input_ax
     hist_ax.set_xlabel(x_label)
@@ -99,7 +103,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
     
     if xlims:
         
-        hist_ax = set_intensity_axlims(hist_ax, hist_df["Bin Centers"].dtype, "x", axlims = xlims)
+        hist_ax = set_axlims(hist_ax, hist_df["Bin Centers"].dtype, "x", axlims = xlims)
         
     else:
         
@@ -115,6 +119,25 @@ def histogram(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_a
     
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+    
+    return fig
+
+def size_distribution(data: np.ndarray | pd.DataFrame, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+    
+    if units == "um":
+        
+        pass
+    
+    if mode == "vol":
+    
+        x_label: str = f"Particle size ({units}^3)"
+        
+    elif mode == "area":
+        
+        x_label: str = f"Particle size ({units}^2)"
+        
+    fig, psd_ax = plt.subplots()
+    psd_ax = histogram_axis(data, psd_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
     
     return fig
 
@@ -136,7 +159,7 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: st
     
     if xlims:
         
-        cdf_ax = set_intensity_axlims(cdf_ax, cdf_df["Bin Centers"].dtype, "x", axlims = xlims)
+        cdf_ax = set_axlims(cdf_ax, cdf_df["Bin Centers"].dtype, "x", axlims = xlims)
         
     else:
         
