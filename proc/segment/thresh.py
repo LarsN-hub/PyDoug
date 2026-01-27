@@ -178,7 +178,13 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
         
         return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
     
-def label(im_array: np.ndarray, *, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
+def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
+    
+    if np.any(mask_array):
+        
+        if mask_array.ndim > im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
     if not positional:
     
@@ -192,7 +198,13 @@ def label(im_array: np.ndarray, *, connectivity: int = None, return_num: bool = 
                 
                 connectivity = 2
                 
-        return measure.label(im_array, background = background, return_num = return_num, connectivity = connectivity)
+        lab_array: np.ndarray = measure.label(im_array, background = background, return_num = return_num, connectivity = connectivity)
+        
+        if np.any(mask_array):
+            
+            lab_array[mask_array] = 0
+            
+        return lab_array
 
     else:
         
@@ -208,6 +220,18 @@ def label(im_array: np.ndarray, *, connectivity: int = None, return_num: bool = 
             if axis == 0:
                 
                 lab_array[slice_index], num_unique[slice_index] = measure.label(im_array[slice_index], background = background, connectivity = connectivity, return_num = True)
+                    
+            elif axis == 1:
+                
+                lab_array[:, slice_index, :], num_unique[slice_index] = measure.label(im_array[:, slice_index, :], background = background, connectivity = connectivity, return_num = True)
+            
+            elif axis == 2:
+                
+                lab_array[:, :, slice_index], num_unique[slice_index] = measure.label(im_array[:, :, slice_index], background = background, connectivity = connectivity, return_num = True)
+            
+            if np.any(mask_array):
+                
+                lab_array[mask_array] = 0
         
         if return_num:
             

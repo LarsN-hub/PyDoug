@@ -26,7 +26,6 @@ proc/segment/thresh.py
 proc/segment/detect.py
 
 analysis/quant.py
-- Add masking option to get_volume, get_area, get_size_distribution, get_position_distribution, and get_time_distribution
 - Finish surface area calculation function
 - Finish contact area calculation function
 - Finish directional thickness calculation function
