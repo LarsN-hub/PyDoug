@@ -7,8 +7,8 @@ Module for threshold-based image segmentation
 import cropclip as cc
 import pandas as pd
 import numpy as np
+import distrib
 import pixels
-import quant
 
 from skimage import filters
 from skimage import measure
@@ -102,7 +102,7 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
                 
                 mask_array = cc.mask_2d_to_3d(mask_array, data.shape[0])
         
-        hist_df: pd.DataFrame = quant.get_histogram(data, mask_array = mask_array)
+        hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array)
         
     else:
         

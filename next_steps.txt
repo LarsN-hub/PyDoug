@@ -25,6 +25,8 @@ proc/segment/thresh.py
 
 proc/segment/detect.py
 
+analysis/distrib.py
+
 analysis/quant.py
 - Finish surface area calculation function
 - Finish contact area calculation function
@@ -33,8 +35,8 @@ analysis/quant.py
 
 analysis/plots.py
 - Incorporate particle size distribution plotting in histogram function
-- Add total volume plot function
-- Add volume distribution plot function
+- Add total volume / area plot function
+- Add volume / area distribution plot function
 - Add surface area plot function
 - Add contact area plot function
 - Add thickness / position heat map plot function

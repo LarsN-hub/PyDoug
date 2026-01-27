@@ -6,6 +6,7 @@ Module for generating plots to analyze images
 
 import pandas as pd
 import numpy as np
+import distrib
 import quant
 
 from matplotlib import pyplot as plt
@@ -80,7 +81,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
     
     if isinstance(data, np.ndarray):
     
-        hist_df: pd.DataFrame = quant.get_histogram(data, mask_array = mask_array)
+        hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array)
         
     else:
         
@@ -121,7 +122,7 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: st
     
     if isinstance(data, np.ndarray):
     
-        cdf_df: pd.DataFrame = quant.get_cdf(data, mask_array = mask_array)
+        cdf_df: pd.DataFrame = distrib.get_cdf(data, mask_array = mask_array)
         
     else:
         
