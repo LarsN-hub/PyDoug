@@ -7,6 +7,8 @@ Module for quantified analysis of segmented images
 import pandas as pd
 import numpy as np
 import distrib
+import pixels
+import trans
 import util
 
 from filtering import denoising
@@ -358,13 +360,55 @@ def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int], *, pix
     
     return area_df
 
-def get_thick_map(im_array: np.ndarray, *, pixel_size: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
+def get_heat_map(im_array: np.ndarray, mode: str = "thick", *, mask_array: np.ndarray = None, pixel_size: float = 1.0, axis: int = 0, height_orientation: str = "near") -> np.ndarray:
     
-    pass
+    if im_array.dtype != np.bool:
+        
+        bool_array: np.ndarray = pixels.convert_im_type(im_array, "bool")
+        
+    else:
+        
+        bool_array: np.ndarray = np.copy(im_array)
+        
+    if np.any(mask_array):
+        
+        bool_array[np.logical_not(mask_array)] = False
+        
+    if mode == "thick":
+        
+        heat_array: np.ndarray = np.count_nonzero(bool_array, axis)
+    
+    elif mode == "height":
+        
+        if axis == 0:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[1], im_array.shape[2])) * (im_array.shape[0] - 1)
+            
+        elif axis == 1:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[0], im_array.shape[2])) * (im_array.shape[1] - 1)
+        
+        elif axis == 2:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1])) * (im_array.shape[2] - 1)
+        
+        if height_orientation == "near":
+            
+            heat_array: np.ndarray = max_height_array - np.argmax(bool_array, axis)
+        
+        elif height_orientation == "far":
+            
+            heat_array: np.ndarray = max_height_array - np.argmax(trans.mirror(bool_array, axis), axis)
+            
+    if axis == 1:
+        
+        heat_array = trans.mirror(heat_array, 0)
+        
+    elif axis == 2:
 
-def get_height_map(im_array: np.ndarray, *, pixels_size: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
-    
-    pass
+        heat_array = trans.rotate(heat_array, -90, resize = True, preserve_range = True)
+            
+    return heat_array * pixel_size
 
 
 # Main

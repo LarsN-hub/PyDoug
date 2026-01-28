@@ -29,8 +29,6 @@ proc/segment/detect.py
 analysis/distrib.py
 
 analysis/quant.py
-- Finish directional thickness calculation function
-- Finish directional position calculation function
 
 analysis/plots.py
 - Add volume / area distribution plot function

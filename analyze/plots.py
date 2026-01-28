@@ -386,7 +386,7 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
     fig.tight_layout()
     
     return fig
-        
+    
     
 # Main
 

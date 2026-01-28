@@ -12,81 +12,83 @@ from skimage import transform
 
 # Functions
 
-def rotate(im_array: np.ndarray, angle: float, direction: str = "CCW", *, resize: bool = False) -> np.ndarray:
+def rotate(im_array: np.ndarray, angle: float, direction: str = "CCW", *, resize: bool = False, preserve_range: bool = False) -> np.ndarray:
     
-    valid_directions: tuple[str] = ("CW", "CCW")
-    
-    if any(x == direction for x in valid_directions):
+    if direction == "CCW":
         
-        if direction == "CCW":
+        if im_array.ndim > 2:
             
-            rot_array: np.ndarray = pixels.convert_im_type(np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), angle, resize = resize), 2, 0), im_array.dtype)
+            rot_array: np.ndarray = np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), angle, resize = resize, preserve_range = preserve_range), 2, 0)
         
-        elif direction == "CW":
+        else:
             
-            rot_array: np.ndarray = pixels.convert_im_type(np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), -angle, resize = resize), 2, 0), im_array.dtype)
+            rot_array: np.ndarray = transform.rotate(im_array, angle, resize = resize, preserve_range = preserve_range)
+            
+    elif direction == "CW":
+        
+        if im_array.ndim > 2:
+            
+            rot_array: np.ndarray = np.moveaxis(transform.rotate(np.moveaxis(im_array, 0, 2), -angle, resize = resize, preserve_range = preserve_range), 2, 0)
+        
+        else:
+            
+            rot_array: np.ndarray = transform.rotate(im_array, -angle, resize = resize, preserve_range = preserve_range)
+        
+    if preserve_range:
         
         return rot_array
     
     else:
         
-        print("\nInvalid rotation direction!")
+        return pixels.convert_im_type(rot_array, im_array.dtype)
 
-def mirror(im_array: np.ndarray, direction: str = "vertical") -> np.ndarray:
+def mirror(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
     
-    valid_directions: tuple[str] = ("vertical", "horizontal", "through")
+    if axis == 0:
+        
+        if im_array.ndim > 2:
+        
+            return np.moveaxis(np.flip(np.moveaxis(im_array, 0, 2), 2), 2, 0)
+        
+        else:
+            
+            return np.flip(im_array, 0)
     
-    if any(x == direction for x in valid_directions):
-    
-        if direction == "vertical":
+    elif axis == 1:
+        
+        if im_array.ndim > 2:
             
-            mir_array: np.ndarray = np.moveaxis(np.flipud(np.moveaxis(im_array, 0, 2)), 2, 0)
+            return np.moveaxis(np.flipud(np.moveaxis(im_array, 0, 2)), 2, 0)
         
-        elif direction == "horizontal":
+        else:
             
-            mir_array: np.ndarray = np.moveaxis(np.fliplr(np.moveaxis(im_array, 0, 2)), 2, 0)
+            return np.flip(im_array, 1)
         
-        elif direction == "through":
+    elif axis == 2:
             
-            mir_array: np.ndarray = np.moveaxis(np.flip(np.moveaxis(im_array, 0, 2), 2), 2, 0)
-        
-        return mir_array
-        
-    else:
-        
-        print("\nInvalid mirror direction!")
+        return np.moveaxis(np.fliplr(np.moveaxis(im_array, 0, 2)), 2, 0)
 
 def reslice(im_array: np.ndarray, orientation: str = "top") -> np.ndarray:
     
-    valid_orientations: tuple[str] = ("left", "right", "top", "bottom", "back")
-    
-    if any(x == orientation for x in valid_orientations):
-    
-        if orientation == "left":
+    if orientation == "left":
             
-            res_array: np.ndarray = mirror(np.swapaxes(im_array, 0, 2), "horizontal")
+        return mirror(np.swapaxes(im_array, 0, 2), 2)
         
-        elif orientation == "right":
+    elif orientation == "right":
             
-            res_array: np.ndarray = mirror(np.swapaxes(im_array, 0, 2), "through")
+        return mirror(np.swapaxes(im_array, 0, 2), 0)
         
-        elif orientation == "top":
+    elif orientation == "top":
             
-            res_array: np.ndarray = mirror(np.swapaxes(im_array, 0, 1), "vertical")
+        return mirror(np.swapaxes(im_array, 0, 1), 1)
         
-        elif orientation == "bottom":
+    elif orientation == "bottom":
             
-            res_array: np.ndarray = mirror(np.swapaxes(im_array, 0, 1), "through")
+        return mirror(np.swapaxes(im_array, 0, 1), 0)
         
-        elif orientation == "back":
+    elif orientation == "back":
             
-            res_array: np.ndarray = mirror(mirror(im_array, "through"), "horizontal")
-        
-        return res_array
-        
-    else:
-        
-        print("\nInvalid reslice orientation!")
+        return mirror(mirror(im_array, 0), 2)
 
 def translate(im_array: np.ndarray, trans_vector: tuple[int], *, x_direction: str = "right", y_direction: str = "down") -> np.ndarray:
     
