@@ -5,8 +5,10 @@ Module for altering morphology of image features
 # Imports
 
 import numpy as np
+import pixels
 
 from skimage import morphology
+from segment import thresh
 
 
 # Classes
@@ -83,6 +85,54 @@ class Footprint:
 
 
 # Functions
+
+def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particles", *, mask_array: np.ndarray = None, background: float | int = 0, pixel_size: float | int = 1.0, connectivity: int = None) -> np.ndarray:
+    
+    if im_array.dtype != np.int64 and mode == "particles":
+        
+        rem_array: np.ndarray = thresh.label(im_array, connectivity = connectivity, mask_array = mask_array, background = background)
+        
+    elif im_array.dtype != np.bool and mode == "holes":
+        
+        rem_array: np.ndarray = pixels.convert_im_type(im_array, "bool")
+        
+    else:
+        
+        rem_array = np.copy(im_array)
+    
+    if not connectivity:
+        
+        if im_array.ndim > 2:
+            
+            connectivity = 3
+            
+        else:
+            
+            connectivity = 2
+            
+    if pixel_size != 1.0:
+        
+        size = round(size / pixel_size)
+        
+    if mode == "particles":
+            
+        rem_array = morphology.remove_small_objects(rem_array, connectivity = connectivity, max_size = size)
+    
+    elif mode == "holes":
+        
+        rem_array = morphology.remove_small_holes(rem_array, connectivity = connectivity, max_size = size)
+    
+    if im_array.dtype != np.int64 and mode == "particles":
+        
+        return thresh.threshold(rem_array, 0)
+    
+    elif mode == "holes":
+        
+        return pixels.convert_im_type(rem_array, "uint8")
+    
+    else:
+        
+        return rem_array
 
 def dilation(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     

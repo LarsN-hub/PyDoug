@@ -78,11 +78,11 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
-def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Axes:
+def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
-    
-        hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array)
+        
+        hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array, normalize = normalize)
         
     else:
         
@@ -98,7 +98,15 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
         
     hist_ax: plt.Axes = input_ax
     hist_ax.set_xlabel(x_label)
-    hist_ax.set_ylabel("Counts")
+    
+    if normalize:
+        
+        hist_ax.set_ylabel("Probability Density")
+    
+    else:
+        
+        hist_ax.set_ylabel("Counts")
+        
     hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"])
     
     if xlims:
@@ -115,29 +123,38 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
         
     return hist_ax
 
-def histogram(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def histogram(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
     
     return fig
 
-def size_distribution(data: np.ndarray | pd.DataFrame, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, connectivity: int = None, background: float | int = 0) -> plt.Axes:
     
     if units == "um":
         
-        pass
+        units = "μm"
     
-    if mode == "vol":
+    if isinstance(data, np.ndarray):
+        
+        psd_df: pd.DataFrame = distrib.get_size_distribution(data, mask_array = mask_array, mode = mode, units = units, connectivity = connectivity, background = background, normalize = normalize)
     
-        x_label: str = f"Particle size ({units}^3)"
+    else:
         
-    elif mode == "area":
+        psd_df: pd.DataFrame = data.copy()
+    
+    x_label = f"Domain Size ({psd_df.attrs["units"]})"
         
-        x_label: str = f"Particle size ({units}^2)"
-        
+    psd_ax = input_ax
+    psd_ax = histogram_axis(psd_df, psd_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+    
+    return psd_ax
+
+def size_distribution(data: np.ndarray | pd.DataFrame, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, connectivity: int = None, background: float | int = 0) -> plt.Figure:
+    
     fig, psd_ax = plt.subplots()
-    psd_ax = histogram_axis(data, psd_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+    psd_ax = size_distribution_ax(data, psd_ax, mode = mode, units = units, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize, connectivity = connectivity, background = background)
     
     return fig
 
@@ -178,13 +195,13 @@ def cdf(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: 
     
     return fig
 
-def hist_cdf(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False) -> plt.Figure:
+def hist_cdf(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
     cdf_ax: plt.Axes = hist_ax.twinx()
+    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom") 
     cdf_ax = cdf_axis(data, cdf_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
-    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
     
     return fig
 
@@ -321,7 +338,7 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
     
     return fig
 
-def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, quant_axes: tuple = (0, 1, 2)) -> plt.Figure:
+def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple = None, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, quant_axes: tuple = (0, 1, 2), mode: str = "vol", units: str = "pix", connectivity: int = None, background: float | int = 0) -> plt.Figure:
        
     if len(function_list) == 1:
         
@@ -341,7 +358,7 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         
         if function_list[index] == "hist":
             
-            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
         
         elif function_list[index] == "cdf":
             
@@ -349,10 +366,10 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         
         elif function_list[index] == "hist cdf":
             
-            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges)
+            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
             cdf_axs[index]: plt.Axes = axs[index].twinx()
-            cdf_axs[index] = cdf_axis(data, cdf_axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims)
             cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom")
+            cdf_axs[index] = cdf_axis(data, cdf_axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims)
             
         elif function_list[index] == "gray lvl":
             
@@ -361,6 +378,10 @@ def multi_plot(data_array: np.ndarray, function_list: list[str], layout: tuple =
         elif function_list[index] == "ssl":
             
             axs[index] = denoise_ssl_axis(data, axs[index])
+            
+        elif function_list[index] == "size":
+            
+            axs[index] = size_distribution_ax(data, axs[index], mask_array = mask_array, mode = mode, units = units, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize, connectivity = connectivity, background = background)
         
     fig.tight_layout()
     

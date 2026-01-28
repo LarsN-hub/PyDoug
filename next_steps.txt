@@ -34,9 +34,9 @@ analysis/quant.py
 - Finish directional position calculation function
 
 analysis/plots.py
-- Get histogram function to also output axis so psd can be included in multi_plot function
 - Add total volume / area plot function
 - Add volume / area distribution plot function
+- Add time series plot function (perhaps merged with vol/area distribution function)
 - Add surface area plot function
 - Add contact area plot function
 - Add thickness / position heat map plot function

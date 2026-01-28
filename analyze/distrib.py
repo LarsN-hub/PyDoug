@@ -149,7 +149,7 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
     return pos_df
 
-def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", background: float | int = 0) -> pd.DataFrame:
+def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
     
     if np.any(mask_array):
         
@@ -173,6 +173,10 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
     size_counts = np.astype(size_counts, np.int64)
     
+    if normalize:
+        
+        size_counts = size_counts / np.sum(size_counts)
+    
     if mode == "vol":
         
         sizes = sizes * (scale ** 3)
@@ -193,7 +197,7 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
     return size_df
 
-def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
+def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, normalize: bool = False, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
     
     if np.any(mask_array):
         
@@ -206,11 +210,11 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
         if im_array.dtype != np.int64:
             
             lab_array = thresh.label(im_array, connectivity = connectivity, background = background)
-            size_df: pd.DataFrame = __get_size_distribution(lab_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background)
+            size_df: pd.DataFrame = __get_size_distribution(lab_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
             
         else:
             
-            size_df: pd.DataFrame = __get_size_distribution(im_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background)
+            size_df: pd.DataFrame = __get_size_distribution(im_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
             
         return size_df
     
@@ -252,11 +256,11 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
             if np.any(mask_array):
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mask_array = mask_array[slice_index], mode = mode, scale = scale, units = units, background = background)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mask_array = mask_array[slice_index], mode = mode, scale = scale, units = units, background = background, normalize = normalize)
             
             else:
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, background = background)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
                 
             columns.append(str(pos_scale * slice_index))
             int_sizes: np.ndarray = np.squeeze(np.array([int_df["Bin Centers"]]))
