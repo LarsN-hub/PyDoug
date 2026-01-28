@@ -128,11 +128,11 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
         if temporal_scale:
             
-            pos_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}^3"}
+            pos_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
             
         else:
             
-            pos_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}^3"}
+            pos_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
         
     elif mode == "area":
         
@@ -141,11 +141,11 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
         if temporal_scale:
             
-            pos_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}^2"}
+            pos_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
             
         else:
             
-            pos_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}^2"}
+            pos_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
         
     return pos_df
 
@@ -189,11 +189,11 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
     
     if mode == "vol":
         
-        size_df.attrs = {"units": f"{units}^3"}
+        size_df.attrs = {"units": f"{units}\u00b3"}
         
     elif mode == "area":
         
-        size_df.attrs = {"units": f"{units}^2"}
+        size_df.attrs = {"units": f"{units}\u00b2"}
         
     return size_df
 
@@ -241,6 +241,10 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
         elif mode == "area":
             
             size_interval: float | int = scale ** 2
+            
+        elif mode == "diam":
+            
+            size_interval: float | int = scale
             
         columns = ["Size"]
             
@@ -305,21 +309,31 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
             if temporal_scale:
                 
-                size_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}^3"}
+                size_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
                 
             else:
                 
-                size_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}^3"}
+                size_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
             
         elif mode == "area":
 
             if temporal_scale:
                 
-                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}^2"}
+                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
                 
             else:
                 
-                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}^2"}
+                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
+                
+        elif mode == "diam":
+            
+            if temporal_scale:
+                
+                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}"}
+                
+            else:
+                
+                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}"}
             
         return size_df
 
@@ -338,3 +352,14 @@ def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.n
         time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, scale = scale, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background)
     
     return time_df
+
+
+# Main
+
+def main() -> None:
+    
+    pass
+
+if __name__ == "__main__":
+    
+    main()

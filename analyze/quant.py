@@ -250,7 +250,7 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
     count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
     count_array[:, 1] = count_array[:, 1] * (scale ** 3)
     vol_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Volume"])
-    vol_df.attrs = {"units": f"{units}^3"}
+    vol_df.attrs = {"units": f"{units}\u00b3"}
     
     return vol_df
 
@@ -259,23 +259,110 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
     count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
     count_array[:, 1] = count_array[:, 1] * (scale ** 2)
     area_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Area"])
-    area_df.attrs = {"units": f"{units}^2"}
+    area_df.attrs = {"units": f"{units}\u00b2"}
     
     return area_df
 
-def get_surface_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix") -> pd.DataFrame:
+def __contact_include(pix1: float | int, pix2: float | int, phase_ints: tuple[float, int]) -> bool:
+    
+    if not isinstance(phase_ints, tuple):
+    
+        if pix1 != pix2:
+            
+            return True
+        
+        else:
+            
+            return False
+        
+    else:
+        
+        if pix1 != pix2 and any(pix1 == x for x in phase_ints) and any(pix2 == x for x in phase_ints):
+            
+            return True
+        
+        else:
+            
+            return False
+
+def __get_contact_counts(im_array: np.ndarray, phase_ints: tuple[float, int], *, include_edges: bool = False) -> pd.DataFrame:
+    
+    counts: int = 0
+    
+    for c in range(0, im_array.shape[1]):
+        
+        for r in range(0, im_array.shape[0]):
+            
+            if r == 0:
+                
+                if include_edges and im_array[r, c] in phase_ints:
+                
+                    counts += 1
+                    
+            else:
+                
+                if __contact_include(im_array[r, c], im_array[(r - 1), c], phase_ints):
+                    
+                    counts += 1
+                    
+                if r == im_array.shape[0] - 1 and include_edges:
+                    
+                    if im_array[r, c] in phase_ints:
+                        
+                        counts += 1
+        
+    return counts
+
+def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int = None, *, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False) -> pd.DataFrame:
+    
+    if not phase_ints:
+        
+        phase_ints = np.max(im_array)
+        
+    counts: int = __get_contact_counts(im_array, phase_ints, include_edges = include_edges)
+    counts += __get_contact_counts(im_array.T, phase_ints, include_edges = include_edges)
+    per_df: pd.DataFrame = pd.DataFrame({"Gray Values": [str(phase_ints)], "Perimeter": [counts * pixel_size]})
+    per_df.attrs = {"units": f"{units}"}
+    
+    return per_df
+
+def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int], *, pixel_size: float | int = 1.0, units: str = "pix", total_surface_area: bool = False, include_edges: bool = False) -> pd.DataFrame:
+    
+    if not phase_ints:
+        
+        phase_ints = np.max(im_array)
+        
+    counts: int = 0
+        
+    for slice_index in range(0, im_array.shape[0]):
+        
+        counts += __get_contact_counts(im_array[slice_index], phase_ints, include_edges = include_edges)
+        
+    for row_index in range(0, im_array.shape[1]):
+        
+        counts += __get_contact_counts(im_array[:, row_index, :], phase_ints, include_edges = include_edges)
+        
+    for col_index in range(0, im_array.shape[2]):
+        
+        counts += __get_contact_counts(im_array[:, :, col_index], phase_ints, include_edges = include_edges)
+    
+    if not isinstance(phase_ints, tuple):
+        
+        area_df: pd.DataFrame = pd.DataFrame({"Gray Values": [str(phase_ints)], "Surface Area": [counts * (pixel_size ** 2)]})
+        
+    else:
+        
+        area_df: pd.DataFrame = pd.DataFrame({"Gray Values": [str(phase_ints)], "Contact Area": [counts * (pixel_size ** 2)]})
+        
+    area_df.attrs = {"units": f"{units}\u00b2"}
+    
+    return area_df
+
+def get_thick_map(im_array: np.ndarray, *, pixel_size: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
     
     pass
 
-def get_contact_area(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix") -> pd.DataFrame:
-    
-    pass
-
-def get_thick_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
-    
-    pass
-
-def get_height_map(im_array: np.ndarray, *, scale: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
+def get_height_map(im_array: np.ndarray, *, pixels_size: float = 1.0, units: str = "pix", axis: int = 0) -> np.ndarray:
     
     pass
 

@@ -4,6 +4,7 @@ io/readwrite.py
 - make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
+- Add plot pop-up window function
 
 ui/cli.py
 - Create file
@@ -28,17 +29,12 @@ proc/segment/detect.py
 analysis/distrib.py
 
 analysis/quant.py
-- Finish surface area calculation function
-- Finish contact area calculation function
 - Finish directional thickness calculation function
 - Finish directional position calculation function
 
 analysis/plots.py
-- Add total volume / area plot function
 - Add volume / area distribution plot function
 - Add time series plot function (perhaps merged with vol/area distribution function)
-- Add surface area plot function
-- Add contact area plot function
 - Add thickness / position heat map plot function
 
 batch/batchproc.py
