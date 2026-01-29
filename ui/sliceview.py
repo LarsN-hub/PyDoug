@@ -4,9 +4,12 @@ Module for rendering images
 
 # Imports
 
+import pandas as pd
 import numpy as np
 import napari
 import math
+
+from skimage import draw
 
 
 # Functions
@@ -37,9 +40,9 @@ def extract_im(im_layer: napari.layers.image) -> np.array:
     
     return im_layer.data
 
-def get_layer(viewer: napari.viewer.Viewer, layer_name: str = "Image") -> napari.layers:
+def get_layer(viewer: napari.viewer.Viewer, layer_name: str = "Image") -> napari.layers.Layer:
     
-    layers: napari.components.Layerlist = viewer.layers
+    layers: napari.components.LayerList = viewer.layers
     retrieved_layer = None
     
     for index, layer in enumerate(layers):
@@ -47,8 +50,22 @@ def get_layer(viewer: napari.viewer.Viewer, layer_name: str = "Image") -> napari
         if layer.name == layer_name:
             
             retrieved_layer = layers[index]
+            
+            break
     
     return retrieved_layer
+
+def get_top_im_layer(viewer: napari.viewer.Viewer) -> napari.layers.Image:
+    
+    layers: napari.components.LayerList = viewer.layers
+    
+    for layer in layers:
+        
+        if isinstance(layer, napari.layers.Image):
+            
+            top_im_layer = layer
+            
+    return top_im_layer
     
 def create_shape_layer(viewer: napari.viewer.Viewer) -> napari.layers.Shapes:
     
@@ -56,48 +73,40 @@ def create_shape_layer(viewer: napari.viewer.Viewer) -> napari.layers.Shapes:
 
 def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, base_layer_name: str = "Image") -> napari.layers.Shapes:
     
-    valid_shapes: tuple = ("rectangle", "ellipse", "line")
-    
-    if any(x == shape_type for x in valid_shapes):
+    im_array_shape: tuple[int] = get_layer(viewer, base_layer_name).data.shape
+    min_dim: int = min(im_array_shape[0:2])
         
-        im_array_shape: tuple[int] = get_layer(viewer, base_layer_name).data.shape
-        min_dim: int = min(im_array_shape[0:2])
+    if im_array_shape:
+            
+        initial_start: int = math.floor(min_dim * 0.25)
+        initial_end: int = math.ceil(min_dim * 0.75)     
         
-        if im_array_shape:
-            
-            initial_start: int = math.floor(min_dim * 0.25)
-            initial_end: int = math.ceil(min_dim * 0.75)     
-        
-        else:
-            
-            initial_start: int = 0
-            initial_end: int = 100
-            
-        if shape_type == "rectangle":
-            
-            shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_end, initial_end]])
-        
-        elif shape_type == "ellipse":
-            
-            shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_end, initial_start], [initial_end, initial_end], [initial_start, initial_end]])
-        
-        elif shape_type == "line":
-            
-            shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_start, initial_end]])
-        
-        shape_layer = get_layer(viewer, "Shapes")
-        
-        if not shape_layer:
-            
-            shape_layer = create_shape_layer(viewer)
-
-        shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", edge_width = max(im_array_shape) / 200, face_color = "#ff000000")
-        
-        return shape_layer
-            
     else:
+            
+        initial_start: int = 0
+        initial_end: int = 100
+            
+    if shape_type == "rectangle":
+            
+        shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_end, initial_end]])
         
-        print("\nInvalid shape type!")
+    elif shape_type == "ellipse":
+            
+        shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_end, initial_start], [initial_end, initial_end], [initial_start, initial_end]])
+    
+    elif shape_type == "line":
+            
+        shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_start, initial_end]])
+        
+    shape_layer = get_layer(viewer, "Shapes")
+        
+    if not shape_layer:
+            
+        shape_layer = create_shape_layer(viewer)
+
+    shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", edge_width = max(im_array_shape) / 200, face_color = "#ff000000")
+        
+    return shape_layer
         
 def extract_shapes(viewer: napari.viewer.Viewer) -> dict[str, np.ndarray]:
     
@@ -118,7 +127,56 @@ def extract_shapes(viewer: napari.viewer.Viewer) -> dict[str, np.ndarray]:
     else:
         
         print("\nNo shapes layer detected!")
-
+        
+def get_line_scan(viewer: napari.viewer.Viewer, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
+    
+    im_array: np.ndarray = get_top_im_layer(viewer).data
+    line_coords: np.ndarray = np.astype(np.round(extract_shapes(viewer)["line"]), np.int64)
+    
+    if not slice_range and line_coords.shape[1] == 3:
+        
+        slice_range = (line_coords[0, 0], (line_coords[0, 0] + 1))
+        
+    elif not slice_range and line_coords.shape[1] == 2:
+        
+        slice_range = (0, im_array.shape[0])
+        
+    elif slice_range == "all":
+        
+        slice_range = (0, im_array.shape[0])
+        
+    if line_coords.shape[1] == 3:
+        
+        r_start: int = int(line_coords[0, 1])
+        r_end: int = int(line_coords[1, 1])
+        c_start: int = int(line_coords[0, 2])
+        c_end: int = int(line_coords[1, 2])
+        
+    else:
+        
+        r_start: int = int(line_coords[0, 0])
+        r_end: int = int(line_coords[1, 0])
+        c_start: int = int(line_coords[0, 1])
+        c_end: int = int(line_coords[1, 1])
+        
+    rr, cc = draw.line(r_start, c_start, r_end, c_end)
+    ls_array: np.ndarray = np.expand_dims(np.arange(0, len(rr)), 1) * pixel_size
+    columns = ["Position"]
+        
+    for slice_index in range(slice_range[0], slice_range[1]):
+        
+        ls_array = np.hstack((ls_array, np.expand_dims(im_array[slice_index, rr, cc], 1)))
+        columns.append(str(slice_index))
+    
+    ls_df: pd.DataFrame = pd.DataFrame(ls_array, columns = columns)
+    ls_df.attrs = {"pos_units": units}
+    
+    return ls_df
+                 
 
 # Main
 

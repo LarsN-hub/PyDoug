@@ -249,6 +249,10 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
     
 def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
     
+    if units == "um":
+        
+        units = "\u00b5m"
+    
     count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
     count_array[:, 1] = count_array[:, 1] * (scale ** 3)
     vol_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Volume"])
@@ -257,6 +261,10 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
     return vol_df
 
 def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
     
     count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
     count_array[:, 1] = count_array[:, 1] * (scale ** 2)
@@ -317,6 +325,10 @@ def __get_contact_counts(im_array: np.ndarray, phase_ints: tuple[float, int], *,
 
 def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int = None, *, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False) -> pd.DataFrame:
     
+    if units == "um":
+        
+        units = "\u00b5m"
+    
     if not phase_ints:
         
         phase_ints = np.max(im_array)
@@ -329,6 +341,10 @@ def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | 
     return per_df
 
 def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int], *, pixel_size: float | int = 1.0, units: str = "pix", total_surface_area: bool = False, include_edges: bool = False) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
     
     if not phase_ints:
         

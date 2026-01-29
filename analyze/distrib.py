@@ -43,7 +43,11 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFr
         
     return pd.DataFrame(np.stack((bin_centers, im_cdf), 1), columns = ["Bin Centers", "Probability"])
 
-def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
     
     if temporal_scale:
         
@@ -52,7 +56,7 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
     else:
         
-        pos_scale = scale
+        pos_scale = pixel_size
         pos_units = units
     
     phases: np.ndarray = np.unique(im_array)
@@ -123,7 +127,7 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
             
     if mode == "vol":
         
-        pos_array[:, 1:] = pos_array[:, 1:] * (scale ** 3)
+        pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 3)
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
         
         if temporal_scale:
@@ -136,7 +140,7 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
     elif mode == "area":
         
-        pos_array[:, 1:] = pos_array[:, 1:] * (scale ** 2)
+        pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 2)
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
         
         if temporal_scale:
@@ -149,7 +153,11 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         
     return pos_df
 
-def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
     
     if np.any(mask_array):
         
@@ -179,11 +187,11 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
     
     if mode == "vol":
         
-        sizes = sizes * (scale ** 3)
+        sizes = sizes * (pixel_size ** 3)
         
     elif mode == "area":
         
-        sizes = sizes * (scale ** 2)
+        sizes = sizes * (pixel_size ** 2)
     
     size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
@@ -195,9 +203,17 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
         size_df.attrs = {"units": f"{units}\u00b2"}
         
+    elif mode == "diam":
+        
+        size_df.attrs = {"units": f"{units}"}
+        
     return size_df
 
-def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", scale: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, normalize: bool = False, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
+def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, normalize: bool = False, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
     
     if np.any(mask_array):
         
@@ -210,11 +226,11 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
         if im_array.dtype != np.int64:
             
             lab_array = thresh.label(im_array, connectivity = connectivity, background = background)
-            size_df: pd.DataFrame = __get_size_distribution(lab_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
+            size_df: pd.DataFrame = __get_size_distribution(lab_array, mask_array = mask_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
             
         else:
             
-            size_df: pd.DataFrame = __get_size_distribution(im_array, mask_array = mask_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
+            size_df: pd.DataFrame = __get_size_distribution(im_array, mask_array = mask_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
             
         return size_df
     
@@ -227,7 +243,7 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
         else:
             
-            pos_scale = scale
+            pos_scale = pixel_size
             pos_units = units
             
         if im_array.dtype != np.int64:
@@ -236,15 +252,15 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
         if mode == "vol":
             
-            size_interval: float | int = scale ** 3
+            size_interval: float | int = pixel_size ** 3
             
         elif mode == "area":
             
-            size_interval: float | int = scale ** 2
+            size_interval: float | int = pixel_size ** 2
             
         elif mode == "diam":
             
-            size_interval: float | int = scale
+            size_interval: float | int = pixel_size
             
         columns = ["Size"]
             
@@ -260,11 +276,11 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
             if np.any(mask_array):
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mask_array = mask_array[slice_index], mode = mode, scale = scale, units = units, background = background, normalize = normalize)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mask_array = mask_array[slice_index], mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
             
             else:
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, scale = scale, units = units, background = background, normalize = normalize)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
                 
             columns.append(str(pos_scale * slice_index))
             int_sizes: np.ndarray = np.squeeze(np.array([int_df["Bin Centers"]]))
@@ -329,28 +345,28 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
             if temporal_scale:
                 
-                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}"}
+                size_df.attrs = {"time_units": f"{pos_units}", "diam_units": f"{units}"}
                 
             else:
                 
-                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}"}
+                size_df.attrs = {"pos_units": f"{pos_units}", "diam_units": f"{units}"}
             
         return size_df
 
-def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.ndarray = None, size_mode: str = "area", scale: float | int = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.ndarray = None, size_mode: str = "area", pixel_size: float | int = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+    
+    if spatial_units == "um":
+        
+        spatial_units = "\u00b5m"
     
     if mode == "size":
         
-        time_df: pd.DataFrame = get_size_distribution(im_array, mask_array = mask_array, mode = size_mode, scale = scale, units = spatial_units, connectivity = connectivity, background = background, positional = True, temporal_scale = temporal_scale, temporal_units = temporal_units)
+        time_df: pd.DataFrame = get_size_distribution(im_array, mask_array = mask_array, mode = size_mode, pixel_size = pixel_size, units = spatial_units, connectivity = connectivity, background = background, positional = True, temporal_scale = temporal_scale, temporal_units = temporal_units, normalize = normalize)
     
-    elif mode == "vol":
+    else:
         
-        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, scale = scale, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background)
+        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, pixel_size = pixel_size, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background, normalize = normalize)
 
-    elif mode == "area":
-        
-        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, scale = scale, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background)
-    
     return time_df
 
 
