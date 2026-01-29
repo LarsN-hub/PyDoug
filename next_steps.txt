@@ -26,7 +26,6 @@ proc/segment/thresh.py
 proc/segment/detect.py
 
 analysis/distrib.py
-- Add normalization to positional distribution function
 
 analysis/quant.py
 

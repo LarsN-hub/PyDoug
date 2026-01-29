@@ -203,25 +203,27 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
         
         return feature.corner_orientations(im_array, corners, mask_array)
     
-def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = None, include_background: bool = False, background: float | int = 0) -> np.ndarray:
+def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = None, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> np.ndarray:
     
     if im_array.dtype == np.int64:
         
         if np.any(mask_array):
         
             count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array[mask_array] > 0)]), 0)
+            background_counts: int = np.count_nonzero(im_array[mask_array] == 0)
             
             if include_background:
                 
-                count_array = np.vstack((np.array([0, np.count_nonzero(im_array[mask_array] == 0)]), count_array))
+                count_array = np.vstack((np.array([0, background_counts]), count_array))
             
         else:
             
             count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array > 0)]), 0)
+            background_counts: int = np.count_nonzero(im_array == 0)
             
             if include_background:
                 
-                count_array = np.vstack((np.array([0, np.count_nonzero(im_array == 0)]), count_array))
+                count_array = np.vstack((np.array([0, background_counts]), count_array))
         
     else:
         
@@ -232,6 +234,14 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
             phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
         
         count_array: np.ndarray = np.empty(phase_array.shape)
+        
+        if np.any(mask_array):
+            
+            background_counts: int = np.count_nonzero(im_array[mask_array] == 0)
+            
+        else:
+            
+            background_counts: int = np.count_nonzero(im_array == 0)
         
         for index, phase in enumerate(phase_array):
             
@@ -244,32 +254,56 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
                 count_array[index] = np.count_nonzero(im_array == phase)
             
         count_array = np.stack((phase_array, count_array), 1)
+        
+    if normalize:
+        
+        if include_background:
+        
+            count_array[:, 1] = count_array[:, 1] / np.sum(count_array[:, 1])
             
+        else:
+            
+            count_array[:, 1] = count_array[:, 1] / (np.sum(count_array[:, 1]) + background_counts)
+    
     return count_array        
     
-def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
-    count_array[:, 1] = count_array[:, 1] * (scale ** 3)
+    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background, normalize = normalize)
+    
+    if not normalize:
+        
+        count_array[:, 1] = count_array[:, 1] * (scale ** 3)
+        
     vol_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Volume"])
-    vol_df.attrs = {"units": f"{units}\u00b3"}
+    
+    if not normalize:
+        
+        vol_df.attrs = {"units": f"{units}\u00b3"}
     
     return vol_df
 
-def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0) -> pd.DataFrame:
+def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background)
-    count_array[:, 1] = count_array[:, 1] * (scale ** 2)
+    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background, normalize = normalize)
+    
+    if not normalize:
+        
+        count_array[:, 1] = count_array[:, 1] * (scale ** 2)
+        
     area_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Area"])
-    area_df.attrs = {"units": f"{units}\u00b2"}
+    
+    if not normalize:
+        
+        area_df.attrs = {"units": f"{units}\u00b2"}
     
     return area_df
 

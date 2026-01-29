@@ -148,7 +148,7 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
-def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, ignore_edges: bool = False, connectivity: int = None, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
+def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, ignore_edges: bool = False, connectivity: int = None, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
     
     if not isinstance(data, pd.DataFrame):
         
@@ -166,48 +166,88 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
             
         elif mode == "time series":
             
-            line_df: pd.DataFrame = distrib.get_time_series(data, mode = distrib_mode, mask_array = mask_array, pixel_size = pixel_size, spatial_units = units, temporal_scale = temporal_scale, temporal_units = temporal_units, connectivity = connectivity, background = background, include_background = include_background, normalize = normalize)
+            line_df: pd.DataFrame = distrib.get_time_series(data, mode = distrib_mode, size_mode = size_mode, mask_array = mask_array, pixel_size = pixel_size, spatial_units = units, temporal_scale = temporal_scale, temporal_units = temporal_units, connectivity = connectivity, background = background, include_background = include_background, normalize = normalize)
             
     else:
         
         line_df: pd.DataFrame = data.copy()
         
-    if mode == "line scan":
+    if mode == "phase distrib" or mode == "psd distrib" or mode == "line scan":
         
         x_units: str = line_df.attrs["pos_units"]
         x_label: str = f"Position ({x_units})"
-        y_label: str = "Gray Value"
-    
-    elif mode == "phase distrib" or mode == "psd distrib":
         
-        x_units: str = line_df.attrs["pos_units"]
-        x_label: str = f"Position ({x_units})"
-
     elif mode == "time series":
         
         x_units: str = line_df.attrs["time_units"]
         x_label: str = f"Time ({x_units})"
         
-    if mode == "phase distrib" or mode == "psd distrib" or mode == "time series":
+    if normalize:
         
-        if distrib_mode == "vol":
-            
-            y_units: str = line_df.attrs["vol_units"]
-            y_label: str = f"Volume ({y_units})"
-            
-        elif distrib_mode == "area":
-            
-            y_units: str = line_df.attrs["area_units"]
-            y_label: str = f"Area ({y_units})"
-            
-        elif distrib_mode == "diam":
-            
-            y_units: str = line_df.attrs["diam_units"]
-            y_label: str = f"Diameter ({y_units})"
-            
-    if mode != "line scan" and normalize:
+        if mode == "phase distrib" or mode == "time series":
         
-        y_label = "Probability Density"
+            if distrib_mode == "vol":
+            
+                y_label = "Volumetric Probability Density"
+                
+            elif distrib_mode == "area":
+                
+                y_label = "Areal Probability Density"
+                
+            elif distrib_mode == "diam":
+                
+                y_label == "Size Probability Density"
+                
+            elif distrib_mode == "size":
+                
+                if size_mode == "vol":
+                    
+                    y_label = "Volumetric Size Probability Density"
+                    
+                elif size_mode == "area":
+                    
+                    y_label = "Areal Size Probability Density"
+                    
+                elif distrib_mode == "diam":
+                    
+                    y_label == "Diameter Size Probability Density"
+                
+        elif mode == "psd distrib":
+            
+            if size_mode == "vol":
+                
+                y_label = "Volumetric Size Probability Density"
+                
+            elif size_mode == "area":
+                
+                y_label = "Areal Size Probability Density"
+                
+            elif distrib_mode == "diam":
+                
+                y_label == "Diameter Size Probability Density"
+        
+    else:
+        
+        if mode == "line scan":
+            
+            y_label: str = "Gray Value"
+            
+        if mode == "phase distrib" or mode == "psd distrib" or mode == "time series":
+            
+            if distrib_mode == "vol":
+                
+                y_units: str = line_df.attrs["vol_units"]
+                y_label: str = f"Volume ({y_units})"
+                
+            elif distrib_mode == "area":
+                
+                y_units: str = line_df.attrs["area_units"]
+                y_label: str = f"Area ({y_units})"
+                
+            elif distrib_mode == "diam":
+                
+                y_units: str = line_df.attrs["diam_units"]
+                y_label: str = f"Diameter ({y_units})"
         
     if ignore_edges:
         
@@ -247,10 +287,10 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
         
     return line_ax
 
-def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, connectivity: int = None, ignore_edges: bool = False, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
+def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, connectivity: int = None, ignore_edges: bool = False, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
     
     fig, line_ax = plt.subplots()
-    line_ax = line_axis(data, line_ax, mode = mode, color_mode = color_mode, viewer = viewer, slice_range = slice_range, distrib_mode = distrib_mode, pixel_size = pixel_size, units = units, mask_array = mask_array, temporal_scale = temporal_scale, temporal_units = temporal_units, axis = axis, include_background = include_background, background = background, connectivity = connectivity, ignore_edges = ignore_edges, normalize = normalize, xlims = xlims, ylims = ylims)
+    line_ax = line_axis(data, line_ax, mode = mode, color_mode = color_mode, viewer = viewer, slice_range = slice_range, distrib_mode = distrib_mode, size_mode = size_mode, pixel_size = pixel_size, units = units, mask_array = mask_array, temporal_scale = temporal_scale, temporal_units = temporal_units, axis = axis, include_background = include_background, background = background, connectivity = connectivity, ignore_edges = ignore_edges, normalize = normalize, xlims = xlims, ylims = ylims)
     
     return fig
 

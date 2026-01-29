@@ -107,7 +107,7 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
                 
                 int_mask_array = None
             
-        int_array: np.ndarray = quant.__vol_area_precondition(int_im_array, mask_array = int_mask_array, include_background = include_background, background = background)
+        int_array: np.ndarray = quant.__vol_area_precondition(int_im_array, mask_array = int_mask_array, include_background = include_background, background = background, normalize = normalize)
         
         for index, gray_value in enumerate(int_array[:, 0]):
             
@@ -127,29 +127,43 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
             
     if mode == "vol":
         
-        pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 3)
+        if not normalize:
+            
+            pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 3)
+            
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
         
         if temporal_scale:
             
-            pos_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
+            pos_df.attrs = {"time_units": f"{pos_units}"}
             
         else:
             
-            pos_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
+            pos_df.attrs = {"pos_units": f"{pos_units}"}
+            
+        if not normalize:
+            
+            pos_df.attrs["vol_units"] = f"{units}\u00b3"
         
     elif mode == "area":
         
-        pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 2)
+        if not normalize:
+            
+            pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 2)
+            
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
         
         if temporal_scale:
             
-            pos_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
+            pos_df.attrs = {"time_units": f"{pos_units}"}
             
         else:
             
-            pos_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
+            pos_df.attrs = {"pos_units": f"{pos_units}"}
+            
+        if not normalize:
+            
+            pos_df.attrs["area_units"] = f"{units}\u00b2"
         
     return pos_df
 
