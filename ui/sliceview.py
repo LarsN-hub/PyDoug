@@ -2,6 +2,7 @@
 Module for rendering images
 """
 
+
 # Imports
 
 import pandas as pd
