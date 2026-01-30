@@ -450,13 +450,9 @@ def get_heat_map(im_array: np.ndarray, mode: str = "thick", *, mask_array: np.nd
             
             heat_array: np.ndarray = max_height_array - np.argmax(trans.mirror(bool_array, axis), axis)
             
-    if axis == 1:
-        
-        heat_array = trans.mirror(heat_array, 0)
-        
-    elif axis == 2:
+    if axis == 2:
 
-        heat_array = trans.rotate(heat_array, -90, resize = True, preserve_range = True)
+        heat_array = trans.mirror(trans.rotate(heat_array, -90, resize = True, preserve_range = True), 0)
             
     return heat_array * pixel_size
 

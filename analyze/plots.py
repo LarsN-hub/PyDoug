@@ -12,6 +12,7 @@ import napari
 import quant
 import util
 
+from matplotlib import colorbar as cbar
 from matplotlib import pyplot as plt
 from typing import Callable
 
@@ -529,6 +530,54 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
     fig, ssl_ax = plt.subplots()
     ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
                               stride = stride, approximate_loss = approximate_loss)
+    
+    return fig
+
+def heat_axis(data: np.ndarray, input_ax: plt.Axes, *, mode: str = "thick", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Axes:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
+    
+    if data.ndim > 2:
+        
+        heat_array: np.ndarray = quant.get_heat_map(data, mode = mode, mask_array = mask_array, pixel_size = pixel_size, axis = axis, height_orientation = height_orientation)
+    
+    else:
+        
+        heat_array: np.ndarray = np.copy(data)
+        
+    if not clim:
+        
+        vmin: float | int = np.min(heat_array)
+        vmax: float | int = np.max(heat_array)
+        
+    else:
+        
+        vmin: float | int = min(clim)
+        vmax: float | int = max(clim)
+        
+    heat_ax: plt.Axes = input_ax
+    ax_im = heat_ax.imshow(heat_array, cmap = cmap, vmin = vmin, vmax = vmax, origin = "lower", interpolation = "nearest")
+    heat_ax.set_xlabel(f"Position ({units})")
+    heat_ax.set_ylabel(f"Position ({units})")
+    
+    return heat_ax, ax_im
+
+def heat_map(data: np.ndarray, *, mode: str = "thick", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Figure:
+    
+    if mode == "thick":
+        
+        c_label: str = f"Thickness ({units})"
+        
+    elif mode == "height":
+        
+        c_label: str = f"Height ({units})"
+    
+    fig, heat_ax = plt.subplots()
+    heat_ax, ax_im = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation)
+    fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
+    fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
     
     return fig
 

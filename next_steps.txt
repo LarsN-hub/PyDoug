@@ -30,7 +30,8 @@ analysis/distrib.py
 analysis/quant.py
 
 analysis/plots.py
-- Add thickness / position heat map plot function
+- Add line plots to multi-plot function
+- Add heat map plots to multi-plot function
 - Add plot pop-up window function
 
 batch/batchproc.py
