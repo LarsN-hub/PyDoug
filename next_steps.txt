@@ -9,6 +9,10 @@ ui/cli.py
 - Create file
 - Add main function
 
+ui/gui.py
+- Create file
+- Add main function
+
 proc/trans.py
 
 proc/pixels.py
@@ -40,5 +44,4 @@ batch/batchproc.py
 
 proc/dic.py
 - Create file
-- Add registration function
 - Add digital image / volume correlation functions
