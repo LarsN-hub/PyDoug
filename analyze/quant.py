@@ -149,18 +149,18 @@ def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict[int, pd
     
     return axial_stats
 
-def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_dict: dict = None) -> tuple:
+def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_df: pd.DataFrame = None) -> tuple:
     
     if max(percentages) > 1:
         
         percentages = (percentages[0] / 100, percentages[1] / 100)
+    
+    if not np.any(cdf_df):
         
-    if not cdf_dict:
-        
-        cdf_dict: dict = distrib.get_cdf(im_array, mask_array = mask_array)
-        
-    im_cdf: np.ndarray = cdf_dict["cdf"]
-    bin_centers: np.ndarray = cdf_dict["bin centers"]
+        cdf_df: pd.DataFrame = distrib.get_cdf(im_array, mask_array = mask_array)
+    
+    im_cdf: pd.Series = np.squeeze(np.array([cdf_df["Probability"]]))
+    bin_centers: pd.Series = np.squeeze(np.array([cdf_df["Bin Centers"]]))
     low_index = util.quick_get_first_index(im_cdf, min(percentages), "greater or equal")
     high_index = len(im_cdf) - util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal") - 1
     low_bin = np.astype(bin_centers[low_index], im_array.dtype)

@@ -20,6 +20,7 @@ from qtpy.QtCore import Qt
 reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
 mirror_list: list[int] = [0, 1, 2]
 convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
+equalize_list: list[str] = ["Global", "Local", "Adaptive"]
 
 
 # Functions
@@ -105,36 +106,76 @@ def mirror_widget(
 def convert_type_widget(
         Image: napari.layers.Image,
         Normalize: bool = False,
+        Bounds: bool = False,
         Min: float = 0,
         Max: float = 0,
-        Type = "Uint8") -> napari.layers.Image:
+        Type: str = "Uint8") -> napari.layers.Image:
     
-    pass
+    if Bounds:
+        
+        return napari.layers.Image(pixels.convert_im_type(Image.data, Type.lower(), norm = Normalize), name = Type)
+    
+    else:
+        
+        return napari.layers.Image(pixels.convert_im_type(Image.data, Type.lower(), norm = Normalize, float_bounds = (Min, Max)), name = Type)
 
-@magicgui()
-def normalize_widget() -> napari.layers.Image:
+@magicgui(
+    call_button = "Normalize")
+def normalize_widget(
+        Image: napari.layers.Image,
+        Input_Range: bool = False,
+        Input_Min: float = 0,
+        Input_Max: float = 0,
+        Output_Range: bool = False,
+        Output_Min: float = 0,
+        Output_Max: float = 0,
+        ) -> napari.layers.Image:
     
-    pass
+    if Input_Range and Output_Range:
+        
+        return napari.layers.Image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max), out_range = (Output_Min, Output_Max)), name = "Normalize")
+    
+    elif Input_Range and not Output_Range:
+        
+        return napari.layers.Image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = "Normalize")
+    
+    elif Output_Range and not Input_Range:
+        
+        return napari.layers.Image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = "Normalize")
 
-@magicgui()
-def saturate_widget() -> napari.layers.Image:
+@magicgui(
+    call_button = "Saturate")
+def saturate_widget(
+        Image: napari.layers.Image,
+        Auto_Normalize: bool = False,
+        Bounds_as_Percentages: bool = True,
+        Min_Bound: float = 0,
+        Max_Bound: float = 100) -> napari.layers.Image:
     
-    pass
+    return napari.layers.Image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = "Saturate")
 
-@magicgui()
-def equalize_widget() -> napari.layers.Image:
+@magicgui(Method = {"choices": equalize_list},
+          call_button = "Equalize Histogram")
+def equalize_widget(
+        Image: napari.layers.Image,
+        Method: str = "Global") -> napari.layers.Image:
     
-    pass
+    return napari.layers.Image(pixels.equalize_histogram(Image.data, Method.lower()), name = "Equalize")
 
-@magicgui()
-def rescale_widget() -> napari.layers.Image:
+@magicgui(
+    call_button = "Rescale Resolution")
+def rescale_widget(
+        Image: napari.layers.Image,
+        Scale: float = 0.5) -> napari.layers.Image:
     
-    pass
+    return napari.layers.Image(pixels.rescale(Image.data, Scale), name = "Rescale")
 
-@magicgui()
-def invert_widget() -> napari.layers.Image:
+@magicgui(
+    call_button = "Invert Intensities")
+def invert_widget(
+        Image: napari.layers.Image) -> napari.layers.Image:
     
-    pass
+    return napari.layers.Image(pixels.invert(Image.data), name = "Invert")
 
 
 # Main

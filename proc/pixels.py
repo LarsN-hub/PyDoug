@@ -5,7 +5,9 @@ Module for altering and assessing pixel values and dimensions
 # Imports
 
 import cropclip as cc
+import pandas as pd
 import numpy as np
+import distrib
 import quant
 
 from skimage import util as skutil
@@ -39,11 +41,15 @@ def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: 
             
             return exposure.rescale_intensity(im_array, "image", "dtype")
 
-def saturate(im_array: np.ndarray, bounds: tuple, *, auto_normalize: bool = True, bounds_as_percents: bool = True, mask_array: np.ndarray = None, cdf_dict: dict = None, conserve_mem: bool = False) -> np.ndarray:
+def saturate(im_array: np.ndarray, bounds: tuple, *, auto_normalize: bool = True, bounds_as_percents: bool = True, mask_array: np.ndarray = None, cdf_df: pd.DataFrame = None, conserve_mem: bool = False) -> np.ndarray:
     
     if bounds_as_percents:
         
-        bounds = quant.get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_dict = cdf_dict)
+        if np.any(cdf_df):
+            
+            cdf_df: pd.DataFrame = distrib.get_cdf(im_array, mask_array = mask_array)
+        
+        bounds = quant.get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_df = cdf_df)
         
     if conserve_mem:
         
