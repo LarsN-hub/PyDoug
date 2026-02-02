@@ -130,24 +130,6 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = Fal
             
         print("\nInvalid convert type!")
         
-def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
-    
-    if scale == 1:
-        
-        return im_array
-    
-    elif 1 > scale > 0:
-        
-        return convert_im_type(transform.rescale(im_array, scale, anti_aliasing = True), im_array.dtype)
-    
-    elif scale > 1:
-        
-        return convert_im_type(transform.rescale(im_array, scale), im_array.dtype)
-    
-    else:
-        
-        print("\nInvalid rescaling factor!")
-        
 def invert(im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)

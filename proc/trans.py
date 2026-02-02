@@ -90,6 +90,24 @@ def reslice(im_array: np.ndarray, orientation: str = "top") -> np.ndarray:
     elif orientation == "back":
             
         return mirror(mirror(im_array, 0), 2)
+    
+def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
+    
+    if scale == 1:
+        
+        return im_array
+    
+    elif 1 > scale > 0:
+        
+        return pixels.convert_im_type(transform.rescale(im_array, scale, anti_aliasing = True), im_array.dtype)
+    
+    elif scale > 1:
+        
+        return pixels.convert_im_type(transform.rescale(im_array, scale), im_array.dtype)
+    
+    else:
+        
+        print("\nInvalid rescaling factor!")
 
 def translate(im_array: np.ndarray, trans_vector: tuple[int], *, x_direction: str = "right", y_direction: str = "down") -> np.ndarray:
     

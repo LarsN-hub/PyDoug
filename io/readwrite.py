@@ -148,14 +148,12 @@ def get_ext(file_path: str) -> str:
 
 def detect_valid_ext(file_path: str) -> bool:
     
-    global valid_exts
     ext: str = get_ext(file_path)
     
     return any(x == ext for x in valid_exts)
 
 def detect_valid_dir(dir_path: str) -> bool:
     
-    global valid_exts
     dir_contents: list[str] = os.listdir(dir_path)
     
     for file in dir_contents:
@@ -168,7 +166,6 @@ def detect_valid_dir(dir_path: str) -> bool:
 
 def detect_h5(file_path: str) -> bool:
     
-    global h5_exts
     ext: str = get_ext(file_path)
     
     return any(x == ext for x in h5_exts)
@@ -261,8 +258,6 @@ def read_im(file_path: str) -> np.ndarray:
 
 def get_dir_stack_info(dir_path: str) -> dict:
     
-    global valid_exts
-    global h5_exts
     dir_contents: list[str] = os.listdir(dir_path)
     index_list: list = [np.nan, np.nan]
     
@@ -434,8 +429,6 @@ def write_h5(im_array: np.ndarray, save_path: str) -> None:
     
 def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "tiff") -> None:
     
-    global write_exts
-    global h5_exts
     save_path: str = save_dir + "/" + file_name + "." + ext
     
     if any(ext == x for x in write_exts):
@@ -451,9 +444,6 @@ def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "ti
         print("\nInvalid image file extension!")
         
 def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
-    
-    global write_exts
-    global h5_exts
     
     if any(ext == x for x in write_exts):
         

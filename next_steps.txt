@@ -11,8 +11,6 @@ ui/cli.py
 
 ui/gui.py
 - Test pixels widgets
-- Implement scroll bars to access all widgets
-- Configure outputting / recording parameters for each call event
 - Add widgets for all desired functions
 
 proc/trans.py
