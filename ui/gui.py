@@ -6,11 +6,11 @@ Module for PyDoug GUI
 # Imports
 
 import magicclass.widgets as mcw
-import sliceview as sv
 import napari
 import pixels
 import trans
 
+from magicclass import magicclass
 from magicgui import magicgui
 from magicgui import widgets
 from qtpy.QtCore import Qt
@@ -25,7 +25,188 @@ convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", 
 equalize_list: list[str] = ["Global", "Local", "Adaptive"]
 
 
+# Classes
+
+@magicclass
+class ImageProcessor:
+    
+    def __init__(self, viewer: napari.viewer.Viewer) -> None:
+        
+        self.viewer: napari.viewer.Viewer = viewer
+        self.viewer.layers.events.inserted.connect(self._on_layer_added)
+        self.funcguis: dict[str, widgets.FunctionGui] = get_funcguis(ImageProcessor)
+        
+    def _on_layer_added(self, event):
+        
+        layer = event.value
+        
+        if isinstance(layer, napari.layers.Image):
+            
+            for func_name in self.funcguis:
+                
+                funcgui: widgets.FunctionGui = getattr(self, func_name)
+                funcgui.Image.reset_choices()
+                funcgui.Image.value = layer
+
+    @magicgui(
+        Orientation = {"choices": reslice_list},
+        call_button = "Reslice")
+    def reslice_widget(self,
+        Image: napari.layers.Image,
+        Orientation: str = "Top",
+        viewer: napari.viewer.Viewer = None) -> None:
+        
+        parameters_log.append(
+            {"Reslice": {"Orientation": Orientation}})
+        
+        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = "Reslice")
+        
+    @magicgui(
+        Angle = {"widget_type": "FloatSlider", "max": 360},
+        call_button = "Rotate")
+    def rotate_widget(self,
+        Image: napari.layers.Image,
+        Clockwise: bool = False,
+        Resize: bool = False,
+        Angle: float = 0) -> None:
+        
+        parameters_log.append(
+            {"Rotate": {"Clockwise": Clockwise,
+                        "Resize": Resize,
+                        "Angle": Angle}})
+        
+        if Clockwise:
+            
+            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = "Rotate")
+        
+        else:
+            
+            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotate")
+        
+    @magicgui(
+        Axis = {"choices": mirror_list},
+        call_button = "Mirror")
+    def mirror_widget(self,
+        Image: napari.layers.Image,
+        Axis: int = 1) -> None:
+        
+        parameters_log.append(
+            {"Mirror": {"Axis": Axis}})
+        
+        self.viewer.add_image(trans.mirror(Image.data, Axis), name = "Mirror")
+
+    @magicgui(
+        call_button = "Rescale Resolution")
+    def rescale_widget(self,
+            Image: napari.layers.Image,
+            Scale: float = 0.5) -> None:
+        
+        parameters_log.append(
+            {"Rescale": {"Scale": Scale}})
+        
+        self.viewer.add_image(trans.rescale(Image.data, Scale), name = "Rescale")
+
+    @magicgui(
+        Type = {"choices": convert_type_list},
+        call_button = "Convert Type")
+    def convert_type_widget(self,
+            Image: napari.layers.Image,
+            Type: str = "Uint8",
+            Auto_Normalize: bool = False,
+            Bounds: bool = False,
+            Min: float = 0,
+            Max: float = 0) -> None:
+        
+        parameters_log.append(
+            {"Convert Type": {"Type": Type,
+                              "Auto Normalize": Auto_Normalize,
+                              "Bounds": Bounds,
+                              "Min": Min,
+                              "Max": Max}})
+        
+        if Bounds:
+            
+            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize), name = Type)
+        
+        else:
+            
+            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize, float_bounds = (Min, Max)), name = Type)
+
+    @magicgui(
+        call_button = "Normalize")
+    def normalize_widget(self,
+            Image: napari.layers.Image,
+            Input_Range: bool = False,
+            Input_Min: float = 0,
+            Input_Max: float = 0,
+            Output_Range: bool = False,
+            Output_Min: float = 0,
+            Output_Max: float = 0) -> None:
+        
+        parameters_log.append(
+            {"Normalize": {"Input Range": Input_Range,
+                           "Output Range": Output_Range,
+                           "Input Min": Input_Min,
+                           "Input Max": Input_Max,
+                           "Output Min": Output_Min,
+                           "Output Max": Output_Max}})
+        
+        if Input_Range and Output_Range:
+            
+            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max), out_range = (Output_Min, Output_Max)), name = "Normalize")
+        
+        elif Input_Range and not Output_Range:
+            
+            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = "Normalize")
+        
+        elif Output_Range and not Input_Range:
+            
+            self.viewer.add_image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = "Normalize")
+
+    @magicgui(
+        call_button = "Saturate")
+    def saturate_widget(self,
+            Image: napari.layers.Image,
+            Auto_Normalize: bool = False,
+            Bounds_as_Percentages: bool = True,
+            Min_Bound: float = 0,
+            Max_Bound: float = 100) -> None:
+        
+        parameters_log.append(
+            {"Saturate": {"Auto Normalize": Auto_Normalize,
+                          "Bounds as Percentages": Bounds_as_Percentages,
+                          "Min Bound": Min_Bound,
+                          "Max Bound": Max_Bound}})
+        
+        self.viewer.add_image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = "Saturate")
+
+    @magicgui(Method = {"choices": equalize_list},
+              call_button = "Equalize Histogram")
+    def equalize_widget(self,
+            Image: napari.layers.Image,
+            Method: str = "Global") -> None:
+        
+        parameters_log.append(
+            {"Equalize": {"Method": Method}})
+        
+        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower()), name = "Equalize")
+
+    @magicgui(
+        call_button = "Invert Intensities")
+    def invert_widget(self,
+            Image: napari.layers.Image) -> None:
+        
+        parameters_log.append(
+            {"Invert": {}})
+        
+        self.viewer.add_image(pixels.invert(Image.data), name = "Invert")
+        
+        
 # Functions
+
+def get_funcguis(magic_class) -> dict[str, widgets.FunctionGui]:
+    
+    return {name: obj for name, obj in magic_class.__dict__.items() if isinstance(obj, widgets.FunctionGui)}
 
 def box_container(container: widgets.Container) -> widgets.Container:
     
@@ -70,189 +251,32 @@ def collapsible_container(container: widgets.Container, title: str) -> widgets.C
 def modify_funcgui(funcgui, title: str) -> widgets.Container:
     
     return collapsible_container(box_container(funcgui), title)
-
-@magicgui(
-    Orientation = {"choices": reslice_list},
-    call_button = "Reslice")
-def reslice_widget(
-    Image: napari.layers.Image,
-    Orientation: str = "Top") -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Reslice": {"Orientation": Orientation}})
-    
-    return napari.layers.Image(trans.reslice(Image.data, Orientation.lower()), name = "Reslice")
-
-@magicgui(
-    Angle = {"widget_type": "FloatSlider", "max": 360},
-    call_button = "Rotate")
-def rotate_widget(
-    Image: napari.layers.Image,
-    Clockwise: bool = False,
-    Resize: bool = False,
-    Angle: float = 0) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Rotate": {"Clockwise": Clockwise,
-                    "Resize": Resize,
-                    "Angle": Angle}})
-    
-    if Clockwise:
         
-        return napari.layers.Image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = "Rotate")
-    
-    else:
-        
-        return napari.layers.Image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotate")
-    
-@magicgui(
-    Axis = {"choices": mirror_list},
-    call_button = "Mirror")
-def mirror_widget(
-    Image: napari.layers.Image,
-    Axis: int = 1) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Mirror": {"Axis": Axis}})
-    
-    return napari.layers.Image(trans.mirror(Image.data, Axis), name = "Mirror")
-
-@magicgui(
-    call_button = "Rescale Resolution")
-def rescale_widget(
-        Image: napari.layers.Image,
-        Scale: float = 0.5) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Rescale": {"Scale": Scale}})
-    
-    return napari.layers.Image(trans.rescale(Image.data, Scale), name = "Rescale")
-
-@magicgui(
-    Type = {"choices": convert_type_list},
-    call_button = "Convert Type")
-def convert_type_widget(
-        Image: napari.layers.Image,
-        Type: str = "Uint8",
-        Auto_Normalize: bool = False,
-        Bounds: bool = False,
-        Min: float = 0,
-        Max: float = 0) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Convert Type": {"Type": Type,
-                          "Auto Normalize": Auto_Normalize,
-                          "Bounds": Bounds,
-                          "Min": Min,
-                          "Max": Max}})
-    
-    if Bounds:
-        
-        return napari.layers.Image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize), name = Type)
-    
-    else:
-        
-        return napari.layers.Image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize, float_bounds = (Min, Max)), name = Type)
-
-@magicgui(
-    call_button = "Normalize")
-def normalize_widget(
-        Image: napari.layers.Image,
-        Input_Range: bool = False,
-        Input_Min: float = 0,
-        Input_Max: float = 0,
-        Output_Range: bool = False,
-        Output_Min: float = 0,
-        Output_Max: float = 0,
-        ) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Normalize": {"Input Range": Input_Range,
-                       "Output Range": Output_Range,
-                       "Input Min": Input_Min,
-                       "Input Max": Input_Max,
-                       "Output Min": Output_Min,
-                       "Output Max": Output_Max}})
-    
-    if Input_Range and Output_Range:
-        
-        return napari.layers.Image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max), out_range = (Output_Min, Output_Max)), name = "Normalize")
-    
-    elif Input_Range and not Output_Range:
-        
-        return napari.layers.Image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = "Normalize")
-    
-    elif Output_Range and not Input_Range:
-        
-        return napari.layers.Image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = "Normalize")
-
-@magicgui(
-    call_button = "Saturate")
-def saturate_widget(
-        Image: napari.layers.Image,
-        Auto_Normalize: bool = False,
-        Bounds_as_Percentages: bool = True,
-        Min_Bound: float = 0,
-        Max_Bound: float = 100) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Saturate": {"Auto Normalize": Auto_Normalize,
-                      "Bounds as Percentages": Bounds_as_Percentages,
-                      "Min Bound": Min_Bound,
-                      "Max Bound": Max_Bound}})
-    
-    return napari.layers.Image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = "Saturate")
-
-@magicgui(Method = {"choices": equalize_list},
-          call_button = "Equalize Histogram")
-def equalize_widget(
-        Image: napari.layers.Image,
-        Method: str = "Global") -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Equalize": {"Method": Method}})
-    
-    return napari.layers.Image(pixels.equalize_histogram(Image.data, Method.lower()), name = "Equalize")
-
-@magicgui(
-    call_button = "Invert Intensities")
-def invert_widget(
-        Image: napari.layers.Image) -> napari.layers.Image:
-    
-    parameters_log.append(
-        {"Invert": {}})
-    
-    return napari.layers.Image(pixels.invert(Image.data), name = "Invert")
-
-
-# Main
 
 def main() -> None:
     
-    viewer = sv.create_viewer()
+    viewer: napari.viewer.Viewer = napari.Viewer()
+    ui: ImageProcessor = ImageProcessor(viewer)
     
-    mod_reslice: widgets.Container = modify_funcgui(reslice_widget, "Reslice")
-    mod_rotate: widgets.Container = modify_funcgui(rotate_widget, "Rotate")
-    mod_mirror: widgets.Container = modify_funcgui(mirror_widget, "Mirror")
-    mod_rescale: widgets.Container = modify_funcgui(rescale_widget, "Rescale")
+    mod_reslice_widget: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
+    mod_rotate_widget: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
+    mod_mirror_widget: widgets.Container = modify_funcgui(ui.mirror_widget, "Mirror")
+    mod_rescale_widget: widgets.Container = modify_funcgui(ui.rescale_widget, "Rescale")
     trans_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_reslice, mod_rotate, mod_mirror, mod_rescale],
-        labels = False,
-        layout = "vertical")
-    viewer.window.add_dock_widget(trans_container, tabify = True, name = "Transformations")
+        widgets = [mod_reslice_widget, mod_rotate_widget, mod_mirror_widget, mod_rescale_widget],
+        labels = False)
+    viewer.window.add_dock_widget(trans_container, tabify = True, name = "Transform")
     
-    mod_convert_type: widgets.Container = modify_funcgui(convert_type_widget, "Convert Type")
-    mod_normalize: widgets.Container = modify_funcgui(normalize_widget, "Normalize")
-    mod_saturate: widgets.Container = modify_funcgui(saturate_widget, "Saturate")
-    mod_equalize: widgets.Container = modify_funcgui(equalize_widget, "Equalize")
-    mod_invert: widgets.Container = modify_funcgui(invert_widget, "Invert")
+    mod_convert_type: widgets.Container = modify_funcgui(ui.convert_type_widget, "Convert Type")
+    mod_normalize: widgets.Container = modify_funcgui(ui.normalize_widget, "Normalize")
+    mod_saturate: widgets.Container = modify_funcgui(ui.saturate_widget, "Saturate")
+    mod_equalize: widgets.Container = modify_funcgui(ui.equalize_widget, "Equalize")
+    mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert],
-        labels = False,
-        layout = "vertical")
-    viewer.window.add_dock_widget(pixels_container, tabify = True, name = "Pixels")
+        labels = False)
+    viewer.window.add_dock_widget(pixels_container, tabify = True, name = "Histogram")
     
-
 if __name__ == "__main__":
     
     main()

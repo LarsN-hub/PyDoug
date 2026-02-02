@@ -10,7 +10,7 @@ ui/cli.py
 - Add main function
 
 ui/gui.py
-- Test pixels widgets
+- Add undo / parameter removal
 - Add widgets for all desired functions
 
 proc/trans.py
