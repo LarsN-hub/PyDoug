@@ -6,10 +6,13 @@ Module for PyDoug GUI
 # Imports
 
 import magicclass.widgets as mcw
+import readwrite as rw
+import pathlib
 import napari
 import pixels
 import trans
 
+from qtpy.QtWidgets import QTabWidget
 from magicclass import magicclass
 from magicgui import magicgui
 from magicgui import widgets
@@ -19,6 +22,7 @@ from qtpy.QtCore import Qt
 # Globals
 
 parameters_log: list[dict[str, dict]] = []
+export_list: list[str] = ["Tiff", "HDF5"]
 reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
 mirror_list: list[int] = [0, 1, 2]
 convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
@@ -45,8 +49,62 @@ class ImageProcessor:
             for func_name in self.funcguis:
                 
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                funcgui.Image.reset_choices()
-                funcgui.Image.value = layer
+                
+                if hasattr(funcgui, "Image"):
+                
+                    funcgui.Image.reset_choices()
+                    funcgui.Image.value = layer
+                
+                
+    # I/O Widgets
+    
+    @magicgui(
+        call_button = "Import Image")
+    def im_import_widget(self,
+        Multi_Page: bool = True,
+        File_Path: pathlib.Path = pathlib.Path("~")) -> None:
+        
+        if Multi_Page:
+            
+            self.viewer.add_image(rw.read_stack(str(File_Path)), name = "Image")
+            
+        else:
+            
+            self.viewer.add_image(rw.read_im(str(File_Path)), name = "Image")
+    
+    @magicgui(
+        Directory_Path = {"mode": "d"},
+        call_button = "Import Sequence")
+    def dir_import_widget(self,
+        Directory_Path: pathlib.Path = pathlib.Path("~")) -> None:
+        
+        self.viewer.add_image(rw.read_stack(str(Directory_Path)), name = "Image")
+    
+    @magicgui(
+        Method = {"choices": export_list},
+        Save_Folder = {"mode": "d"},
+        call_button = "Export Image(s)")
+    def export_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Tiff",
+        Multi_Page: bool = True,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        Save_Name: str = "Name") -> None:
+        
+        if Image.data.ndim == 3 and not Image.rgb:
+            
+            rw.write_stack(Image.data, str(Save_Folder), Save_Name, ext = Method.lower(), multi_page = Multi_Page)
+        
+        elif Image.data.ndim == 4:
+            
+            rw.write_stack(Image.data, str(Save_Folder), Save_Name, ext = Method.lower(), multi_page = Multi_Page)
+        
+        else:
+            
+            rw.write_im(Image.data, str(Save_Folder), Save_Name, Method.lower())
+
+
+    # Transform Widgets
 
     @magicgui(
         Orientation = {"choices": reslice_list},
@@ -105,6 +163,9 @@ class ImageProcessor:
             {"Rescale": {"Scale": Scale}})
         
         self.viewer.add_image(trans.rescale(Image.data, Scale), name = "Rescale")
+
+
+    # Histogram Widgets
 
     @magicgui(
         Type = {"choices": convert_type_list},
@@ -257,6 +318,15 @@ def main() -> None:
     
     viewer: napari.viewer.Viewer = napari.Viewer()
     ui: ImageProcessor = ImageProcessor(viewer)
+    tabs: QTabWidget = QTabWidget()
+    
+    mod_im_import_widget: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
+    mod_dir_import_widget: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
+    mod_export_widget: widgets.Container = modify_funcgui(ui.export_widget, "Export Image(s)")
+    io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_im_import_widget, mod_dir_import_widget, mod_export_widget],
+        labels = False)
+    tabs.addTab(io_container.native, "I/O")
     
     mod_reslice_widget: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
     mod_rotate_widget: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
@@ -265,7 +335,7 @@ def main() -> None:
     trans_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_reslice_widget, mod_rotate_widget, mod_mirror_widget, mod_rescale_widget],
         labels = False)
-    viewer.window.add_dock_widget(trans_container, tabify = True, name = "Transform")
+    tabs.addTab(trans_container.native, "Transform")
     
     mod_convert_type: widgets.Container = modify_funcgui(ui.convert_type_widget, "Convert Type")
     mod_normalize: widgets.Container = modify_funcgui(ui.normalize_widget, "Normalize")
@@ -275,7 +345,10 @@ def main() -> None:
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert],
         labels = False)
-    viewer.window.add_dock_widget(pixels_container, tabify = True, name = "Histogram")
+    tabs.addTab(pixels_container.native, "Histogram")
+    
+    tabs.setCurrentIndex(0)
+    viewer.window.add_dock_widget(tabs, name = "Image Processing Tools")
     
 if __name__ == "__main__":
     
