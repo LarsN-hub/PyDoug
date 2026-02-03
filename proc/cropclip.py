@@ -8,11 +8,76 @@ import sliceview as sv
 import numpy as np
 import napari
 import math
+import util
 
 from skimage import draw
 
 
 # Functions
+
+def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, conserve_mem: bool = False) -> np.ndarray:
+    
+    if im_array.ndim == 3:
+        
+        if im_array.shape[2] == 3:
+            
+            rgb: bool = True
+            dim: int = 2
+            
+        else:
+            
+            rgb: bool = False
+            dim: int = 3
+        
+    elif im_array.ndim == 4:
+        
+        rgb: bool = True
+        dim: int = 3
+        
+    elif im_array.ndim == 2:
+    
+        rgb: bool = False
+        dim: int = 2
+        
+    if bounds_dict:
+        
+        x_bounds = bounds_dict["X"]
+        y_bounds = bounds_dict["Y"]
+        z_bounds = bounds_dict["Z"]
+            
+    x_ax: int = util.convert_ax_str_to_int(im_array, rgb, "X")
+    y_ax: int = util.convert_ax_str_to_int(im_array, rgb, "Y")
+    x_bounds: list[int] = util.reformat_bounds(x_bounds, im_array.shape[x_ax], bounds_as_slices)
+    y_bounds: list[int] = util.reformat_bounds(y_bounds, im_array.shape[y_ax], bounds_as_slices)
+    bounds: dict[int, list] = {x_ax: x_bounds, y_ax: y_bounds}
+    
+    if dim == 3:
+        
+        z_ax: int = util.convert_ax_str_to_int(im_array, rgb, "Z")
+        z_bounds: list[int] = util.reformat_bounds(z_bounds, im_array.shape[z_ax], bounds_as_slices)
+        bounds[z_ax] = z_bounds
+    
+    if conserve_mem:
+        
+        if dim == 2:
+                
+            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
+                
+        else:
+                
+            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
+    
+    else:
+        
+        if dim == 2:
+                
+            trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
+                
+        else:
+                
+            trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
+        
+        return trim_array
 
 def remove_slice_coords(coords: np.ndarray) -> dict[str, np.ndarray]:
     
@@ -175,10 +240,6 @@ def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_color
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
     return crop(im_array, mask_array, mask_color = mask_color, conserve_mem = conserve_mem)
-
-def trim(im_array: np.ndarray, bounds: np.ndarray) -> np.ndarray:
-    
-    return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
 
 def pad(im_array: np.ndarray, bounds: np.ndarray, pad_method: str = "add", *, mode: str = "constant", constant: int | float = 0, dimensions_method: str = "split") -> np.ndarray:
     

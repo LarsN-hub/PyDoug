@@ -56,7 +56,7 @@ def get_layer(viewer: napari.viewer.Viewer, layer_name: str = "Image") -> napari
     
     return retrieved_layer
 
-def get_im_layers(viewer: napari.viewer.Viewer) -> list[str]:
+def get_im_layers(viewer: napari.viewer.Viewer) -> list[napari.layers.Image]:
     
     layers: napari.components.LayerList = viewer.layers
     layers_list = []
@@ -65,13 +65,13 @@ def get_im_layers(viewer: napari.viewer.Viewer) -> list[str]:
         
         if isinstance(layer, napari.layers.Image):
             
-            layers_list.append(layer.name)
+            layers_list.append(layer)
             
     return layers_list
 
 def get_top_im_layer(viewer: napari.viewer.Viewer) -> napari.layers.Image:
     
-    layers_list: list[str] = get_im_layers(viewer)
+    layers_list: list[napari.layers.Image] = get_im_layers(viewer)
     
     return layers_list[-1]
     

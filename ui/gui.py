@@ -6,11 +6,14 @@ Module for PyDoug GUI
 # Imports
 
 import magicclass.widgets as mcw
+import sliceview as sv
 import readwrite as rw
+import cropclip as cc
 import pathlib
 import napari
 import pixels
 import trans
+import util
 
 from qtpy.QtWidgets import QTabWidget
 from magicclass import magicclass
@@ -24,9 +27,11 @@ from qtpy.QtCore import Qt
 parameters_log: list[dict[str, dict]] = []
 export_list: list[str] = ["Tiff", "HDF5"]
 reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
-mirror_list: list[int] = [0, 1, 2]
+mirror_list: list[int] = ["X", "Y", "Z"]
 convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
 equalize_list: list[str] = ["Global", "Local", "Adaptive"]
+axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
+axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
 
 # Classes
@@ -38,7 +43,19 @@ class ImageProcessor:
         
         self.viewer: napari.viewer.Viewer = viewer
         self.viewer.layers.events.inserted.connect(self._on_layer_added)
+        self.viewer.layers.events.changed.connect(self._on_layer_changed)
         self.funcguis: dict[str, widgets.FunctionGui] = get_funcguis(ImageProcessor)
+        
+    def _on_layer_changed(self, event = None):
+        
+        for func_name in self.funcguis:
+            
+            funcgui: widgets.FunctionGui = getattr(self, func_name)
+            
+            if hasattr(funcgui, "Image"):
+            
+                funcgui.Image.reset_choices()
+                funcgui.Image.value = sv.get_top_im_layer(self.viewer)
         
     def _on_layer_added(self, event):
         
@@ -54,7 +71,6 @@ class ImageProcessor:
                 
                     funcgui.Image.reset_choices()
                     funcgui.Image.value = layer
-                
                 
     # I/O Widgets
     
@@ -102,6 +118,96 @@ class ImageProcessor:
         else:
             
             rw.write_im(Image.data, str(Save_Folder), Save_Name, Method.lower())
+            
+            
+    # Manipulate Widgets
+    
+    @magicgui(
+        call_button = "Trim")
+    def trim_widget(self,
+        Image: napari.layers.Image,
+        Bounds_as_Slices: bool = False,
+        X_Bounds: bool = True,
+        X_Min: int = 0,
+        X_Max: int = 0,
+        Y_Bounds: bool = True,
+        Y_Min: int = 0,
+        Y_Max: int = 0,
+        Z_Bounds: bool = True,
+        Z_Min: int = 0,
+        Z_Max: int = 0,
+        Conserve_RAM: bool = False) -> None:
+        
+        if X_Bounds:
+            
+            x_bounds = [X_Min, X_Max]
+            
+        else:
+            
+            x_bounds = None
+            
+        if Y_Bounds:
+            
+            y_bounds = [Y_Min, Y_Max]
+            
+        else:
+            
+            y_bounds = None
+            
+        if Z_Bounds:
+            
+            z_bounds = [Z_Min, Z_Max]
+            
+        else:
+            
+            z_bounds = None
+            
+        bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
+        parameters_log.append(
+            {"Trim": {"X Bounds": x_bounds,
+                      "Y Bounds": y_bounds,
+                      "Z Bounds": z_bounds,
+                      "Bounds as Slices": Bounds_as_Slices}})
+        
+        if Conserve_RAM:
+            
+            Image.data = cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, conserve_mem = True)
+            Image.name = "Trim"
+            self._on_layer_changed()
+        
+        else:
+            
+            self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = "Trim")
+    
+    @magicgui(
+        call_button = "Create Mask")
+    def create_mask_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Mask")
+    def mask_widget(self,
+        Image: napari.layers.Image,
+        Mask: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Crop")
+    def crop_widget(self,
+        Image: napari.layers.Image,
+        Mask: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Pad")
+    def pad_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
 
 
     # Transform Widgets
@@ -142,16 +248,17 @@ class ImageProcessor:
             self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotate")
         
     @magicgui(
-        Axis = {"choices": mirror_list},
+        Direction = {"choices": mirror_list},
         call_button = "Mirror")
     def mirror_widget(self,
         Image: napari.layers.Image,
-        Axis: int = 1) -> None:
+        Direction: str = "Y") -> None:
         
+        Direction = util.convert_ax_str_to_int(Image.data, Image.rgb, Direction)
         parameters_log.append(
-            {"Mirror": {"Axis": Axis}})
+            {"Mirror": {"Direction": Direction}})
         
-        self.viewer.add_image(trans.mirror(Image.data, Axis), name = "Mirror")
+        self.viewer.add_image(trans.mirror(Image.data, Direction), name = "Mirror")
 
     @magicgui(
         call_button = "Rescale Resolution")
@@ -165,7 +272,7 @@ class ImageProcessor:
         self.viewer.add_image(trans.rescale(Image.data, Scale), name = "Rescale")
 
 
-    # Histogram Widgets
+    # Pixel Values Widgets
 
     @magicgui(
         Type = {"choices": convert_type_list},
@@ -312,13 +419,21 @@ def collapsible_container(container: widgets.Container, title: str) -> widgets.C
 def modify_funcgui(funcgui, title: str) -> widgets.Container:
     
     return collapsible_container(box_container(funcgui), title)
-        
+
+
+# Main        
 
 def main() -> None:
+    
+    
+    # Initialize
     
     viewer: napari.viewer.Viewer = napari.Viewer()
     ui: ImageProcessor = ImageProcessor(viewer)
     tabs: QTabWidget = QTabWidget()
+    
+    
+    # I/O Widgets
     
     mod_im_import_widget: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
     mod_dir_import_widget: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
@@ -327,6 +442,22 @@ def main() -> None:
         widgets = [mod_im_import_widget, mod_dir_import_widget, mod_export_widget],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
+    
+    
+    # Manipulate Widgets
+    
+    mod_trim_widget: widgets.Container = modify_funcgui(ui.trim_widget, "Trim")
+    mod_create_mask_widget: widgets.Container = modify_funcgui(ui.create_mask_widget, "Create Mask")
+    mod_mask_widget: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
+    mod_crop_widget: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
+    mod_pad_widget: widgets.Container = modify_funcgui(ui.pad_widget, "Pad")
+    manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_trim_widget, mod_create_mask_widget, mod_mask_widget, mod_crop_widget, mod_pad_widget],
+        labels = False)
+    tabs.addTab(manipulate_container.native, "Manipulate")
+    
+    
+    # Transform Widgets
     
     mod_reslice_widget: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
     mod_rotate_widget: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
@@ -337,6 +468,9 @@ def main() -> None:
         labels = False)
     tabs.addTab(trans_container.native, "Transform")
     
+    
+    # Pixel Values Widgets
+    
     mod_convert_type: widgets.Container = modify_funcgui(ui.convert_type_widget, "Convert Type")
     mod_normalize: widgets.Container = modify_funcgui(ui.normalize_widget, "Normalize")
     mod_saturate: widgets.Container = modify_funcgui(ui.saturate_widget, "Saturate")
@@ -345,7 +479,10 @@ def main() -> None:
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert],
         labels = False)
-    tabs.addTab(pixels_container.native, "Histogram")
+    tabs.addTab(pixels_container.native, "Pixel Values")
+    
+    
+    # Launch
     
     tabs.setCurrentIndex(0)
     viewer.window.add_dock_widget(tabs, name = "Image Processing Tools")

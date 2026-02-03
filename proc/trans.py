@@ -43,9 +43,9 @@ def rotate(im_array: np.ndarray, angle: float, direction: str = "CCW", *, resize
         
         return pixels.convert_im_type(rot_array, im_array.dtype)
 
-def mirror(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
+def mirror(im_array: np.ndarray, direction: int = 0) -> np.ndarray:
     
-    if axis == 0:
+    if direction == 0:
         
         if im_array.ndim > 2:
         
@@ -55,7 +55,7 @@ def mirror(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
             
             return np.flip(im_array, 0)
     
-    elif axis == 1:
+    elif direction == 1:
         
         if im_array.ndim > 2:
             
@@ -65,7 +65,7 @@ def mirror(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
             
             return np.flip(im_array, 1)
         
-    elif axis == 2:
+    elif direction == 2:
             
         return np.moveaxis(np.fliplr(np.moveaxis(im_array, 0, 2)), 2, 0)
 
