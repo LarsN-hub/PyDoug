@@ -5,10 +5,6 @@ io/readwrite.py
 
 ui/sliceview.py
 
-ui/cli.py
-- Create file
-- Add main function
-
 ui/gui.py
 - Add undo / parameter removal
 - Add widgets for all desired functions
