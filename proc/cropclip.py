@@ -113,18 +113,17 @@ def get_rot_angle(shape_dict: dict[str: np.ndarray]) -> float:
     return rot_angle
 
 def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.ndarray:
+
+    mask_shape: tuple[int] = get_in_plane_dims(im_array)
+    mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
     
-    valid_shapes: tuple[str] = ("rectangle", "ellipse", "polygon")
-    shape_type: str = list(shape_dict.keys())[0]
-    shape_coords: np.ndarray = shape_dict[shape_type]
-    
-    if any(shape_type.find(x) != -1 for x in valid_shapes):
-    
-        mask_shape: tuple[int] = get_in_plane_dims(im_array)
-        mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
+    for shape in list(shape_dict.keys()):
+        
+        shape_coords: np.ndarray = shape_dict[shape]
+        shape_type: str = shape[:shape.find("-")]
         
         if shape_type == "ellipse":
-            
+                
             rot_angle: float = get_rot_angle(shape_dict)
             r_radius: float = math.sqrt(((shape_coords[3, 0] - shape_coords[0, 0])**2) + ((shape_coords[3, 1] - shape_coords[0, 1])**2)) / 2
             c_radius: float = math.sqrt(((shape_coords[1, 0] - shape_coords[0, 0])**2) + ((shape_coords[1, 1] - shape_coords[0, 1])**2)) / 2
@@ -132,19 +131,15 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
             c_center: float = shape_coords[0, 1] + ((shape_coords[2, 1] - shape_coords[0, 1]) / 2)
             rr, cc = draw.ellipse(r_center, c_center, r_radius, c_radius, shape = mask_shape, rotation = rot_angle)
             mask_array[rr, cc] = 1
-            
+                
         elif shape_type == "polygon" or shape_type == "rectangle":
-            
+                
             r_coords: np.ndarray = shape_coords[:, 0]
             c_coords: np.ndarray = shape_coords[:, 1]
             rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
             mask_array[rr, cc] = 1
             
-        return mask_array
-    
-    else:
-        
-        print("\nInvalid shape type!")
+    return mask_array
 
 def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
     
@@ -153,7 +148,11 @@ def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
 def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, convert_to_3d: bool = True) -> np.ndarray:
     
     shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer)
-    shape_dict[list(shape_dict.keys())[0]] = remove_slice_coords(shape_dict[list(shape_dict.keys())[0]])
+    
+    for shape in list(shape_dict.keys()):
+        
+        shape_dict[shape] = remove_slice_coords(shape_dict[shape])
+        
     mask_array: np.ndarray = shape_2_mask(im_array, shape_dict)
     
     if convert_to_3d:

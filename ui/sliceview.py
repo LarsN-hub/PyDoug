@@ -79,7 +79,20 @@ def create_shape_layer(viewer: napari.viewer.Viewer) -> napari.layers.Shapes:
     
     return viewer.add_shapes()
 
-def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, base_layer_name: str = "Image") -> napari.layers.Shapes:
+def polygon_auto_vertices(n_vertices: int = 3, initial_start: int = 0, initial_end: int = 100) -> np.ndarray:
+    
+    rr, cc = draw.ellipse_perimeter(round(initial_end - (initial_start / 2)), round(initial_end - (initial_start / 2)), round((initial_end - initial_start) / 2), round((initial_end - initial_start) / 2))
+    coord_interval: float = len(rr) / n_vertices
+    coord_array: np.ndarray = np.zeros((n_vertices, 2))
+    
+    for vert in range (0, n_vertices):
+        
+        coord_array[vert, 0] = rr[round(coord_interval * vert)]
+        coord_array[vert, 1] = cc[round(coord_interval * vert)]
+        
+    return coord_array
+
+def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_vertices: int = 3, base_layer_name: str = "Image") -> napari.layers.Shapes:
     
     im_array_shape: tuple[int] = get_layer(viewer, base_layer_name).data.shape
     min_dim: int = min(im_array_shape[0:2])
@@ -106,6 +119,12 @@ def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, ba
             
         shape_dimensions: np.ndarray = np.array([[initial_start, initial_start], [initial_start, initial_end]])
         
+    elif shape_type == "polygon":
+        
+        print(initial_start)
+        print(initial_end)
+        shape_dimensions: np.ndarray = polygon_auto_vertices(n_vertices, initial_start, initial_end)
+        
     shape_layer = get_layer(viewer, "Shapes")
         
     if not shape_layer:
@@ -119,22 +138,18 @@ def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, ba
 def extract_shapes(viewer: napari.viewer.Viewer) -> dict[str, np.ndarray]:
     
     shape_layer = get_layer(viewer, "Shapes")
-    
-    if shape_layer:
+    shape_coords: list[np.ndarray] = shape_layer.data
+    shape_types: list[str] = shape_layer.shape_type
+    shape_dict: dict = {}
+    shape_count: int = 0
         
-        shape_coords: list[np.ndarray] = shape_layer.data
-        shape_types: list[str] = shape_layer.shape_type
-        shape_dict: dict = {}
-        
-        for index, shape in enumerate(shape_types):
+    for index, shape in enumerate(shape_types):
             
-            shape_dict[shape] = shape_coords[index]
+        shape_count += 1
+        shape_name: str = str(shape) + "-" + str(shape_count)
+        shape_dict[shape_name] = shape_coords[index]
             
-        return shape_dict
-    
-    else:
-        
-        print("\nNo shapes layer detected!")
+    return shape_dict
         
 def get_line_scan(viewer: napari.viewer.Viewer, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
     

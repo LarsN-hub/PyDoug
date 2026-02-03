@@ -4,6 +4,7 @@ io/readwrite.py
 - make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
+- Fix polygon auto-vertices bullshit
 
 ui/gui.py
 - Add undo / parameter removal
