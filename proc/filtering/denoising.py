@@ -73,18 +73,6 @@ def non_local_means(im_array: np.ndarray, *,
     
     return pixels.convert_im_type(nl_array, im_array.dtype)
 
-def tv_bregman(im_array: np.ndarray, *,
-               weight: float = 5,
-               max_num_iter: int = 100,
-               eps: float = 0.001,
-               isotropic: bool = True,
-               channel_axis: int | None = None) -> np.ndarray:
-    
-    tv_array: np.ndarray = restoration.denoise_tv_bregman(im_array, weight, max_num_iter, eps, isotropic,
-                                                          channel_axis = channel_axis)
-    
-    return pixels.convert_im_type(tv_array, im_array.dtype)
-
 def remove_background(im_array: np.ndarray, *,
                       radius: int = 100,
                       kernel: np.ndarray = None,
@@ -101,6 +89,18 @@ def remove_background(im_array: np.ndarray, *,
     else:
         
         return im_array - back_array
+
+def tv_bregman(im_array: np.ndarray, *,
+               weight: float = 5,
+               max_num_iter: int = 100,
+               eps: float = 0.001,
+               isotropic: bool = True,
+               channel_axis: int | None = None) -> np.ndarray:
+    
+    tv_array: np.ndarray = restoration.denoise_tv_bregman(im_array, weight, max_num_iter, eps, isotropic,
+                                                          channel_axis = channel_axis)
+    
+    return pixels.convert_im_type(tv_array, im_array.dtype)
 
 def tv_chambolle(im_array: np.ndarray, *,
                  weight: float = 0.1,

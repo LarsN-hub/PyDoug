@@ -14,9 +14,11 @@ import napari
 import pixels
 import trans
 import util
+import pywt
 
 from qtpy.QtWidgets import QTabWidget
 from magicclass import magicclass
+from filtering import denoising
 from magicgui import magicgui
 from magicgui import widgets
 from qtpy.QtCore import Qt
@@ -34,6 +36,11 @@ reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
 mirror_list: list[int] = ["X", "Y", "Z"]
 convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
 equalize_list: list[str] = ["Global", "Local", "Adaptive"]
+bilateral_list: list[str] = ["Constant", "Edge", "Symmetric", "Reflect", "Wrap"]
+gaussian_list: list[str] = ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]
+wavelets_list: list[str] = pywt.wavelist()
+wave_modes_list: list[str] = ["Soft", "Hard"]
+wave_thresh_list: list[str] = ["BayesShrink", "VisuShrink"]
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
 axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
@@ -49,6 +56,14 @@ class ImageProcessor:
         self.viewer.layers.events.inserted.connect(self._on_layer_added)
         self.viewer.layers.events.changed.connect(self._on_layer_changed)
         self.funcguis: dict[str, widgets.FunctionGui] = get_funcguis(ImageProcessor)
+        Epsilon: float = 0.001
+        self.tv_bregman_widget.Epsilon.native.setDecimals(4)
+        self.tv_bregman_widget.Epsilon.step = 0.0001
+        self.tv_bregman_widget.Epsilon.value = Epsilon
+        Epsilon: float =0.0002
+        self.tv_chambolle_widget.Epsilon.native.setDecimals(4)
+        self.tv_chambolle_widget.Epsilon.step = 0.0001
+        self.tv_chambolle_widget.Epsilon.value = Epsilon
         
     def _on_layer_changed(self, event = None):
         
@@ -497,6 +512,131 @@ class ImageProcessor:
         
         self.viewer.add_image(pixels.invert(Image.data), name = "Inverted")
         
+    
+    # Denoising Widgets
+    
+    @magicgui(
+        Edges_Method = {"choices": bilateral_list},
+        call_button = "Bilateral Filter")
+    def bilateral_widget(self,
+            Image: napari.layers.Image,
+            Window_Size: int = 0,
+            Sigma_Color: float = 0.1,
+            Sigma_Spatial: float = 1,
+            Bins: int = 10000,
+            Edges_Method: str = "Edge",
+            Constant_Value: float = 0) -> None:
+        
+        if Window_Size == 0:
+            
+            Window_Size = None
+        
+        self.viewer.add_image(denoising.bilateral(Image.data,
+                                                  win_size = Window_Size,
+                                                  sigma_color = Sigma_Color,
+                                                  sigma_spatial = Sigma_Spatial,
+                                                  bins = Bins,
+                                                  mode = Edges_Method.lower(),
+                                                  cval = Constant_Value), name = "Bilateral Filter")
+        
+    @magicgui(
+        Edges_Method = {"choices": gaussian_list},
+        call_button = "Gaussian Blur")
+    def gaussian_widget(self,
+            Image: napari.layers.Image,
+            Sigma: float = 1.0,
+            Truncate: float = 4.0,
+            Edges_Method: str = "Nearest",
+            Constant_Value: float = 0) -> None:
+        
+        self.viewer.add_image(denoising.gaussian(Image.data,
+                                                 sigma = Sigma,
+                                                 truncate = Truncate,
+                                                 mode = Edges_Method.lower(),
+                                                 cval = Constant_Value), name = "Gaussian Blur")
+        
+    @magicgui(
+        call_button = "Non-Local Means Filter")
+    def nl_means_widget(self,
+            Image: napari.layers.Image,
+            Patch_Size: int = 7,
+            Patch_Distance: int = 11,
+            Cut_Off_Distance: float = 0.1,
+            Sigma: float = 0) -> None:
+        
+        self.viewer.add_image(denoising.non_local_means(Image.data,
+                                                        patch_size = Patch_Size,
+                                                        patch_distance = Patch_Distance,
+                                                        h = Cut_Off_Distance,
+                                                        sigma = Sigma), name = "Non-Local Means Filter")
+        
+    @magicgui(
+        call_button = "Remove Background")
+    def remove_background_widget(self,
+            Image: napari.layers.Image,
+            Radius: int = 5) -> None:
+        
+        self.viewer.add_image(denoising.remove_background(Image.data,
+                                                          radius = Radius), name = "Remove Background")
+        
+    @magicgui(
+        call_button = "TV Bregman Filter")
+    def tv_bregman_widget(self,
+            Image: napari.layers.Image,
+            Weight: float = 5.0,
+            Epsilon: float = 0.001,
+            Max_Iterations: int = 100,
+            Isotropic: bool = True) -> None:
+        
+        self.viewer.add_image(denoising.tv_bregman(Image.data,
+                                                   weight = Weight,
+                                                   max_num_iter = Max_Iterations,
+                                                   eps = Epsilon,
+                                                   isotropic = Isotropic), name = "TV Bregman Filter")
+    
+    @magicgui(
+        call_button = "TV Chambolle Filter")
+    def tv_chambolle_widget(self,
+            Image: napari.layers.Image,
+            Weight: float = 0.1,
+            Epsilon: float = 0.0002,
+            Max_Iterations: int = 200) -> None:
+        
+        self.viewer.add_image(denoising.tv_chambolle(Image.data,
+                                                     weight = Weight,
+                                                     max_num_iter = Max_Iterations,
+                                                     eps = Epsilon), name = "TV Chambolle Filter")
+        
+    @magicgui(
+        Wavelet = {"choices": wavelets_list},
+        Mode = {"choices": wave_modes_list},
+        Threshold_Method = {"choices": wave_thresh_list},
+        call_button = "Wavelet Filter")
+    def wavelet_widget(self,
+            Image: napari.layers.Image,
+            Wavelet: str = "db1",
+            Mode: str = "Soft",
+            Sigma: float = None,
+            Wavelet_Levels: int = None,
+            Threshold_Method: str = "BayesShrink",
+            Rescale_Sigma: bool = True) -> None:
+        
+        if Sigma == 0:
+            
+            Sigma = None
+            
+        if Wavelet_Levels == 0:
+            
+            Wavelet_Levels = None
+        
+        self.viewer.add_image(denoising.wavelet(Image.data,
+                                                wavelet = Wavelet,
+                                                mode = Mode.lower(),
+                                                sigma = Sigma,
+                                                wavelet_levels = Wavelet_Levels,
+                                                method = Threshold_Method,
+                                                rescale_sigma = Rescale_Sigma), name = "Wavelet Filter")
+        
         
 # Functions
 
@@ -563,36 +703,36 @@ def main() -> None:
     
     # I/O Widgets
     
-    mod_im_import_widget: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
-    mod_dir_import_widget: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
-    mod_export_widget: widgets.Container = modify_funcgui(ui.export_widget, "Export Image(s)")
+    mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
+    mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
+    mod_export: widgets.Container = modify_funcgui(ui.export_widget, "Export Image(s)")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import_widget, mod_dir_import_widget, mod_export_widget],
+        widgets = [mod_im_import, mod_dir_import, mod_export],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
     
     # Manipulate Widgets
     
-    mod_trim_pad_widget: widgets.Container = modify_funcgui(ui.trim_pad_widget, "Trim / Pad")
-    mod_add_mask_widget: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
-    mod_create_mask_widget: widgets.Container = modify_funcgui(ui.create_mask_widget, "Create Mask")
-    mod_mask_widget: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
-    mod_crop_widget: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
+    mod_trim_pad: widgets.Container = modify_funcgui(ui.trim_pad_widget, "Trim / Pad")
+    mod_add_mask: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
+    mod_create_mask: widgets.Container = modify_funcgui(ui.create_mask_widget, "Create Mask")
+    mod_mask: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
+    mod_crop: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad_widget, mod_add_mask_widget, mod_create_mask_widget, mod_mask_widget, mod_crop_widget],
+        widgets = [mod_trim_pad, mod_add_mask, mod_create_mask, mod_mask, mod_crop],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     
     
     # Transform Widgets
     
-    mod_reslice_widget: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
-    mod_rotate_widget: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
-    mod_mirror_widget: widgets.Container = modify_funcgui(ui.mirror_widget, "Mirror")
-    mod_rescale_widget: widgets.Container = modify_funcgui(ui.rescale_widget, "Rescale")
+    mod_reslice: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
+    mod_rotate: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
+    mod_mirror: widgets.Container = modify_funcgui(ui.mirror_widget, "Mirror")
+    mod_rescale: widgets.Container = modify_funcgui(ui.rescale_widget, "Rescale")
     trans_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_reslice_widget, mod_rotate_widget, mod_mirror_widget, mod_rescale_widget],
+        widgets = [mod_reslice, mod_rotate, mod_mirror, mod_rescale],
         labels = False)
     tabs.addTab(trans_container.native, "Transform")
     
@@ -608,6 +748,21 @@ def main() -> None:
         widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
+    
+    
+    # Denoising Widgets
+    
+    mod_bilateral: widgets.Container = modify_funcgui(ui.bilateral_widget, "Bilateral Filter")
+    mod_gaussian: widgets.Container = modify_funcgui(ui.gaussian_widget, "Gaussian Blur")
+    mod_nl_means: widgets.Container = modify_funcgui(ui.nl_means_widget, "Non-Local Means Filter")
+    mod_remove_background: widgets.Container = modify_funcgui(ui.remove_background_widget, "Remove Background")
+    mod_tv_bregman: widgets.Container = modify_funcgui(ui.tv_bregman_widget, "TV Bregman Filter")
+    mod_tv_chambolle: widgets.Container = modify_funcgui(ui.tv_chambolle_widget, "TV Chambolle Filter")
+    mod_wavelet: widgets.Container = modify_funcgui(ui.wavelet_widget, "Wavelet Filter")
+    denoising_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_bilateral, mod_gaussian, mod_nl_means, mod_remove_background, mod_tv_bregman, mod_tv_chambolle, mod_wavelet],
+        labels = False)
+    tabs.addTab(denoising_container.native, "Denoising")
     
     
     # Launch

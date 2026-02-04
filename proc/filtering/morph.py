@@ -166,37 +166,33 @@ def erosion(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: b
     
         return morphology.erosion(im_array, footprint)
 
-def opening(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def opening(im_array: np.ndarray, n_erosions: int = 1, n_dilations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
-    if along_axis:
+    open_array: np.ndarray = np.copy(im_array)
+    
+    for ero_index in range(0, n_erosions):
+                
+        open_array = erosion(open_array, footprint = footprint, along_axis = along_axis)
         
-        open_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
+    for dil_index in range(0, n_dilations):
         
-        for n in range(0, im_array.shape[0]):
-            
-            open_array[n] = morphology.opening(im_array[n], footprint)
-            
-        return open_array
-    
-    else:
-    
-        return morphology.opening(im_array, footprint)
+        open_array = dilation(open_array, footprint = footprint, along_axis = along_axis)
+        
+    return open_array
 
-def closing(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def closing(im_array: np.ndarray, n_dilations: int = 1, n_erosions: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
-    if along_axis:
+    close_array: np.ndarray = np.copy(im_array)
+    
+    for dil_index in range(0, n_dilations):
         
-        close_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
+        close_array = dilation(close_array, footprint = footprint, along_axis = along_axis)
+    
+    for ero_index in range(0, n_erosions):
+                
+        close_array = erosion(close_array, footprint = footprint, along_axis = along_axis)
         
-        for n in range(0, im_array.shape[0]):
-            
-            close_array[n] = morphology.closing(im_array[n], footprint)
-            
-        return close_array
-    
-    else:
-    
-        return morphology.closing(im_array, footprint)
+    return close_array
 
 def white_tophat(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
