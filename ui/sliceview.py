@@ -81,16 +81,18 @@ def create_shape_layer(viewer: napari.viewer.Viewer) -> napari.layers.Shapes:
 
 def polygon_auto_vertices(n_vertices: int = 3, initial_start: int = 0, initial_end: int = 100) -> np.ndarray:
     
-    rr, cc = draw.ellipse_perimeter(round(initial_end - (initial_start / 2)), round(initial_end - (initial_start / 2)), round((initial_end - initial_start) / 2), round((initial_end - initial_start) / 2))
-    coord_interval: float = len(rr) / n_vertices
-    coord_array: np.ndarray = np.zeros((n_vertices, 2))
+    radius = round((initial_end - initial_start) / 2)
+    center: np.ndarray = np.array([(initial_end - radius), (initial_end - radius)])
+    angle_inc: float = (2 * math.pi) / n_vertices
+    coords_array: np.ndarray = np.zeros((n_vertices, 2))
     
-    for vert in range (0, n_vertices):
+    for vert in range(0, n_vertices):
         
-        coord_array[vert, 0] = rr[round(coord_interval * vert)]
-        coord_array[vert, 1] = cc[round(coord_interval * vert)]
-        
-    return coord_array
+        angle: float = vert * angle_inc
+        coords_array[vert, 0] = center[0] + round(math.sin(angle) * radius)
+        coords_array[vert, 1] = center[0] + round(math.cos(angle) * radius)
+
+    return coords_array
 
 def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_vertices: int = 3, base_layer_name: str = "Image") -> napari.layers.Shapes:
     
@@ -121,8 +123,6 @@ def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_
         
     elif shape_type == "polygon":
         
-        print(initial_start)
-        print(initial_end)
         shape_dimensions: np.ndarray = polygon_auto_vertices(n_vertices, initial_start, initial_end)
         
     shape_layer = get_layer(viewer, "Shapes")
