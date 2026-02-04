@@ -6,8 +6,6 @@ io/readwrite.py
 ui/sliceview.py
 
 ui/gui.py
-- Add remove_layer listener function for parameter removal and for drop-down updating
-- Add undo / parameter removal
 - Add widgets for all desired functions
 
 proc/trans.py

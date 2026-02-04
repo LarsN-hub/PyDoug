@@ -53,14 +53,19 @@ class ImageProcessor:
     def __init__(self, viewer: napari.viewer.Viewer) -> None:
         
         self.viewer: napari.viewer.Viewer = viewer
+        
         self.viewer.layers.events.inserted.connect(self._on_layer_added)
         self.viewer.layers.events.changed.connect(self._on_layer_changed)
+        self.viewer.layers.events.removed.connect(self._on_layer_removed)
+        
         self.funcguis: dict[str, widgets.FunctionGui] = get_funcguis(ImageProcessor)
+        self.operation_count: int = 0
+        
         Epsilon: float = 0.001
         self.tv_bregman_widget.Epsilon.native.setDecimals(4)
         self.tv_bregman_widget.Epsilon.step = 0.0001
         self.tv_bregman_widget.Epsilon.value = Epsilon
-        Epsilon: float =0.0002
+        Epsilon: float = 0.0002
         self.tv_chambolle_widget.Epsilon.native.setDecimals(4)
         self.tv_chambolle_widget.Epsilon.step = 0.0001
         self.tv_chambolle_widget.Epsilon.value = Epsilon
@@ -80,6 +85,8 @@ class ImageProcessor:
             
                 funcgui.Mask.reset_choices()
                 funcgui.Mask.value = sv.get_top_im_layer(self.viewer)
+                
+        self.operation_count += 1
         
     def _on_layer_added(self, event):
         
@@ -111,6 +118,17 @@ class ImageProcessor:
                 
                     funcgui.Shapes.reset_choices()
                     funcgui.Shapes.value = layer
+                    
+        self.operation_count += 1
+        
+    def _on_layer_removed(self, event):
+        
+        layer = event.value
+        operations = [x["Name"] for x in parameters_log]
+        
+        if layer.name in operations:
+            
+            parameters_log.pop(operations.index(layer.name))
                 
     
     # I/O Widgets
@@ -213,21 +231,23 @@ class ImageProcessor:
         
         if Method == "Trim":
             
+            param_layer_name: str = get_param_layer_name("Trimmed", self.operation_count)
             parameters_log.append(
-                {"Trim": {"X Bounds": x_bounds,
-                          "Y Bounds": y_bounds,
-                          "Z Bounds": z_bounds,
-                          "Bounds as Slices": Bounds_as_Slices}})
+                {"Name": param_layer_name,
+                 "X Bounds": x_bounds,
+                 "Y Bounds": y_bounds,
+                 "Z Bounds": z_bounds,
+                 "Bounds as Slices": Bounds_as_Slices})
             
             if Conserve_RAM:
                 
                 Image.data = cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, conserve_mem = True)
-                Image.name = "Trimmed"
+                Image.name = param_layer_name
                 self._on_layer_changed()
             
             else:
                 
-                self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = "Trimmed")
+                self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = param_layer_name)
                 
         elif Method == "Pad":
             
@@ -245,22 +265,24 @@ class ImageProcessor:
                     
                     color_spec = Color_Value
             
+            param_layer_name: str = get_param_layer_name("Padded", self.operation_count)
             parameters_log.append(
-                {"Pad": {"X Bounds": x_bounds,
-                         "Y Bounds": y_bounds,
-                         "Z Bounds": z_bounds,
-                         "Bounds as Slices": Bounds_as_Slices,
-                         "Padded Color": color_spec}})
+                {"Name": param_layer_name,
+                 "X Bounds": x_bounds,
+                 "Y Bounds": y_bounds,
+                 "Z Bounds": z_bounds,
+                 "Bounds as Slices": Bounds_as_Slices,
+                 "Padded Color": color_spec})
             
             if Conserve_RAM:
                 
                 Image.data = cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec, conserve_mem = True)
-                Image.name = "Padded"
+                Image.name = param_layer_name
                 self._on_layer_changed()
             
             else:
                 
-                self.viewer.add_image(cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec), name = "Padded")
+                self.viewer.add_image(cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec), name = param_layer_name)
     
     @magicgui(
         Shape_Type = {"choices": shapes_list},
@@ -311,11 +333,13 @@ class ImageProcessor:
                 
                 color_spec = Color_Value
                 
+        param_layer_name = get_param_layer_name("Masked", self.operation_count)
         parameters_log.append(
-            {"Mask": {"Method": Mask_Method.lower(),
-                      "Masked Color": color_spec}})
+            {"Name": param_layer_name,
+             "Method": Mask_Method.lower(),
+             "Masked Color": color_spec})
                 
-        self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = "Masked")
+        self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
     
     @magicgui(
         Masked_Color = {"choices": out_of_mask_list},
@@ -341,16 +365,21 @@ class ImageProcessor:
             else:
                 
                 color_spec = Color_Value
+                
+        param_layer_name = get_param_layer_name("Cropped", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Masked Color": color_spec})
         
         if Conserve_RAM:
             
             Image.data = cc.crop(Image.data, Mask.data, mask_color = color_spec, conserve_mem = True)
-            Image.name = "Cropped"
+            Image.name = param_layer_name
             self._on_layer_changed()
         
         else:
             
-            self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = "Cropped")
+            self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = param_layer_name)
 
 
     # Transform Widgets
@@ -363,10 +392,12 @@ class ImageProcessor:
         Orientation: str = "Top",
         viewer: napari.viewer.Viewer = None) -> None:
         
+        param_layer_name = get_param_layer_name("Resliced", self.operation_count)
         parameters_log.append(
-            {"Reslice": {"Orientation": Orientation}})
+            {"Name": param_layer_name,
+             "Orientation": Orientation})
         
-        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = "Resliced")
+        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = param_layer_name)
         
     @magicgui(
         Angle = {"widget_type": "FloatSlider", "max": 360},
@@ -377,18 +408,20 @@ class ImageProcessor:
         Resize: bool = False,
         Angle: float = 0) -> None:
         
+        param_layer_name = get_param_layer_name("Rotated", self.operation_count)
         parameters_log.append(
-            {"Rotate": {"Clockwise": Clockwise,
-                        "Resize": Resize,
-                        "Angle": Angle}})
+            {"Name": param_layer_name,
+             "Clockwise": Clockwise,
+             "Resize": Resize,
+             "Angle": Angle})
         
         if Clockwise:
             
-            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = "Rotated")
+            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = param_layer_name)
         
         else:
             
-            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotated")
+            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = param_layer_name)
         
     @magicgui(
         Direction = {"choices": mirror_list},
@@ -398,10 +431,12 @@ class ImageProcessor:
         Direction: str = "Y") -> None:
         
         Direction = util.convert_ax_str_to_int(Image.data, Image.rgb, Direction)
+        param_layer_name = get_param_layer_name("Mirrored", self.operation_count)
         parameters_log.append(
-            {"Mirror": {"Direction": Direction}})
+            {"Name": param_layer_name,
+             "Direction": Direction})
         
-        self.viewer.add_image(trans.mirror(Image.data, Direction), name = "Mirrored")
+        self.viewer.add_image(trans.mirror(Image.data, Direction), name = param_layer_name)
 
     @magicgui(
         call_button = "Rescale Resolution")
@@ -409,6 +444,7 @@ class ImageProcessor:
             Image: napari.layers.Image,
             Scale: float = 0.5) -> None:
         
+        param_layer_name = get_param_layer_name("Rescaled", self.operation_count)
         parameters_log.append(
             {"Rescale": {"Scale": Scale}})
         
@@ -428,6 +464,7 @@ class ImageProcessor:
             Min: float = 0,
             Max: float = 0) -> None:
         
+        param_layer_name = get_param_layer_name("Converted", self.operation_count)
         parameters_log.append(
             {"Convert Type": {"Type": Type,
                               "Auto Normalize": Auto_Normalize,
@@ -454,6 +491,7 @@ class ImageProcessor:
             Output_Min: float = 0,
             Output_Max: float = 0) -> None:
         
+        param_layer_name = get_param_layer_name("Normalized", self.operation_count)
         parameters_log.append(
             {"Normalize": {"Input Range": Input_Range,
                            "Output Range": Output_Range,
@@ -483,6 +521,7 @@ class ImageProcessor:
             Min_Bound: float = 0,
             Max_Bound: float = 100) -> None:
         
+        param_layer_name = get_param_layer_name("Saturated", self.operation_count)
         parameters_log.append(
             {"Saturate": {"Auto Normalize": Auto_Normalize,
                           "Bounds as Percentages": Bounds_as_Percentages,
@@ -497,6 +536,7 @@ class ImageProcessor:
             Image: napari.layers.Image,
             Method: str = "Global") -> None:
         
+        param_layer_name = get_param_layer_name("Equalized", self.operation_count)
         parameters_log.append(
             {"Equalize": {"Method": Method}})
         
@@ -507,6 +547,7 @@ class ImageProcessor:
     def invert_widget(self,
             Image: napari.layers.Image) -> None:
         
+        param_layer_name = get_param_layer_name("Inverted", self.operation_count)
         parameters_log.append(
             {"Invert": {}})
         
@@ -530,6 +571,15 @@ class ImageProcessor:
         if Window_Size == 0:
             
             Window_Size = None
+            
+        param_layer_name = get_param_layer_name("Bilateral", self.operation_count)
+        parameters_log.append(
+            {"Bilateral": {"Window Size": Window_Size,
+                           "Sigma Color": Sigma_Color,
+                           "Sigma Spatial": Sigma_Spatial,
+                           "Bins": Bins,
+                           "Mode": Edges_Method.lower(),
+                           "CVal": Constant_Value}})
         
         self.viewer.add_image(denoising.bilateral(Image.data,
                                                   win_size = Window_Size,
@@ -549,6 +599,13 @@ class ImageProcessor:
             Edges_Method: str = "Nearest",
             Constant_Value: float = 0) -> None:
         
+        param_layer_name = get_param_layer_name("Gaussian", self.operation_count)
+        parameters_log.append(
+            {"Gaussian": {"Sigma": Sigma,
+                          "Truncate": Truncate,
+                          "Mode": Edges_Method.lower(),
+                          "CVal": Constant_Value}})
+        
         self.viewer.add_image(denoising.gaussian(Image.data,
                                                  sigma = Sigma,
                                                  truncate = Truncate,
@@ -564,6 +621,13 @@ class ImageProcessor:
             Cut_Off_Distance: float = 0.1,
             Sigma: float = 0) -> None:
         
+        param_layer_name = get_param_layer_name("Non-Local Means", self.operation_count)
+        parameters_log.append(
+            {"Non-Local Means": {"Patch Size": Patch_Size,
+                                 "Patch Distance": Patch_Distance,
+                                 "Cut Off Distance": Cut_Off_Distance,
+                                 "Sigma": Sigma}})
+        
         self.viewer.add_image(denoising.non_local_means(Image.data,
                                                         patch_size = Patch_Size,
                                                         patch_distance = Patch_Distance,
@@ -576,6 +640,10 @@ class ImageProcessor:
             Image: napari.layers.Image,
             Radius: int = 5) -> None:
         
+        param_layer_name = get_param_layer_name("Removed Background", self.operation_count)
+        parameters_log.append(
+            {"Remove Background": {"Radius": Radius}})
+        
         self.viewer.add_image(denoising.remove_background(Image.data,
                                                           radius = Radius), name = "Remove Background")
         
@@ -587,6 +655,13 @@ class ImageProcessor:
             Epsilon: float = 0.001,
             Max_Iterations: int = 100,
             Isotropic: bool = True) -> None:
+        
+        param_layer_name = get_param_layer_name("TV Bregman", self.operation_count)
+        parameters_log.append(
+            {"TV Bregman": {"Weight": Weight,
+                            "Epsilon": Epsilon,
+                            "Max Iterations": Max_Iterations,
+                            "Isotropic": Isotropic}})
         
         self.viewer.add_image(denoising.tv_bregman(Image.data,
                                                    weight = Weight,
@@ -601,6 +676,12 @@ class ImageProcessor:
             Weight: float = 0.1,
             Epsilon: float = 0.0002,
             Max_Iterations: int = 200) -> None:
+        
+        param_layer_name = get_param_layer_name("TV Chambolle", self.operation_count)
+        parameters_log.append(
+            {"TV Chambolle": {"Weight": Weight,
+                              "Epsion": Epsilon,
+                              "Max Iterations": Max_Iterations}})
         
         self.viewer.add_image(denoising.tv_chambolle(Image.data,
                                                      weight = Weight,
@@ -628,6 +709,15 @@ class ImageProcessor:
         if Wavelet_Levels == 0:
             
             Wavelet_Levels = None
+            
+        param_layer_name = get_param_layer_name("Wavelet", self.operation_count)
+        parameters_log.append(
+            {"Wavelet": {"Wavelet": Wavelet,
+                         "Mode": Mode.lower(),
+                         "Sigma": Sigma,
+                         "Wavelet Levels": Wavelet_Levels,
+                         "Threshold Method": Threshold_Method,
+                         "Rescale Sigma": Rescale_Sigma}})
         
         self.viewer.add_image(denoising.wavelet(Image.data,
                                                 wavelet = Wavelet,
@@ -639,6 +729,10 @@ class ImageProcessor:
         
         
 # Functions
+
+def get_param_layer_name(operation_name: str, operation_count: int) -> str:
+    
+    return f"{operation_name} [{operation_count}]"
 
 def get_funcguis(magic_class) -> dict[str, widgets.FunctionGui]:
     

@@ -483,6 +483,10 @@ def write_plot(fig: plt.Figure, file_name: str, save_dir: str) -> None:
     
     save_path: str = save_dir + "/" + file_name + ".png"
     fig.savefig(save_path)
+    
+def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: str) -> None:
+    
+    save_path: str = save_dir + "/" + file_name + ".csv"
 
 
 # Main

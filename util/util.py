@@ -51,15 +51,13 @@ def convert_color_to_intensity(im_array: np.ndarray, color: str, dtype_dict: dic
     
     elif color == "Gray":
         
-        mid_int: float | int = (dtype_dict["Max"] - dtype_dict["Min"]) / 2
-        
         if im_array.dtype in int_dtypes:
             
-            return round(mid_int)
+            return round((dtype_dict["Max"] - dtype_dict["Min"]) / 2)
         
         else:
             
-            return mid_int
+            return (dtype_dict["Max"] - dtype_dict["Min"]) / 2
 
 def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
     
