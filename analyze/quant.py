@@ -42,6 +42,11 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) ->
         im_stats["Min"] = np.min(im_array)
         im_stats["Max"] = np.max(im_array)
         im_stats["Std Dev"] = np.std(im_array)
+        
+    dtype_dict = util.get_dtype_info(im_array)
+        
+    im_stats["DType Min"] = dtype_dict["Min"]
+    im_stats["DType Max"] = dtype_dict["Max"]
     
     return pd.DataFrame([im_stats])
 

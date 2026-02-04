@@ -26,6 +26,10 @@ from qtpy.QtCore import Qt
 
 parameters_log: list[dict[str, dict]] = []
 export_list: list[str] = ["Tiff", "HDF5"]
+trim_pad_list: list[str] = ["Trim", "Pad"]
+shapes_list: list[str] = ["Ellipse", "Rectangle", "Polygon"]
+out_of_mask_list: list[str] = ["Black", "White", "Gray"]
+mask_method_list: list[str] = ["Out", "In"]
 reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
 mirror_list: list[int] = ["X", "Y", "Z"]
 convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
@@ -56,6 +60,11 @@ class ImageProcessor:
             
                 funcgui.Image.reset_choices()
                 funcgui.Image.value = sv.get_top_im_layer(self.viewer)
+                
+            if hasattr(funcgui, "Mask"):
+            
+                funcgui.Mask.reset_choices()
+                funcgui.Mask.value = sv.get_top_im_layer(self.viewer)
         
     def _on_layer_added(self, event):
         
@@ -71,7 +80,24 @@ class ImageProcessor:
                 
                     funcgui.Image.reset_choices()
                     funcgui.Image.value = layer
+                    
+                if hasattr(funcgui, "Mask"):
                 
+                    funcgui.Mask.reset_choices()
+                    funcgui.Mask.value = sv.get_top_im_layer(self.viewer)
+                    
+        elif isinstance(layer, napari.layers.Shapes):
+            
+            for func_name in self.funcguis:
+                
+                funcgui: widgets.FunctionGui = getattr(self, func_name)
+                
+                if hasattr(funcgui, "Shapes"):
+                
+                    funcgui.Shapes.reset_choices()
+                    funcgui.Shapes.value = layer
+                
+    
     # I/O Widgets
     
     @magicgui(
@@ -123,9 +149,12 @@ class ImageProcessor:
     # Manipulate Widgets
     
     @magicgui(
-        call_button = "Trim")
-    def trim_widget(self,
+        Method = {"choices": trim_pad_list},
+        Padded_Color = {"choices": out_of_mask_list},
+        call_button = "Trim / Pad")
+    def trim_pad_widget(self,
         Image: napari.layers.Image,
+        Method: str = "Trim",
         Bounds_as_Slices: bool = False,
         X_Bounds: bool = True,
         X_Min: int = 0,
@@ -136,6 +165,9 @@ class ImageProcessor:
         Z_Bounds: bool = True,
         Z_Min: int = 0,
         Z_Max: int = 0,
+        Padded_Color: str = "Black",
+        Specify_Color: bool = False,
+        Color_Value: float = 0,
         Conserve_RAM: bool = False) -> None:
         
         if X_Bounds:
@@ -163,51 +195,147 @@ class ImageProcessor:
             z_bounds = None
             
         bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
-        parameters_log.append(
-            {"Trim": {"X Bounds": x_bounds,
-                      "Y Bounds": y_bounds,
-                      "Z Bounds": z_bounds,
-                      "Bounds as Slices": Bounds_as_Slices}})
         
-        if Conserve_RAM:
+        if Method == "Trim":
             
-            Image.data = cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, conserve_mem = True)
-            Image.name = "Trim"
-            self._on_layer_changed()
+            parameters_log.append(
+                {"Trim": {"X Bounds": x_bounds,
+                          "Y Bounds": y_bounds,
+                          "Z Bounds": z_bounds,
+                          "Bounds as Slices": Bounds_as_Slices}})
+            
+            if Conserve_RAM:
+                
+                Image.data = cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, conserve_mem = True)
+                Image.name = "Trimmed"
+                self._on_layer_changed()
+            
+            else:
+                
+                self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = "Trimmed")
+                
+        elif Method == "Pad":
+            
+            if not Specify_Color:
+                
+                color_spec: float | int = util.convert_color_to_intensity(Image.data, Padded_Color)
+            
+            else:
+                
+                if Image.data.dtype in util.int_dtypes:
+                    
+                    color_spec: int = round(Color_Value)
+                    
+                else:
+                    
+                    color_spec = Color_Value
+            
+            parameters_log.append(
+                {"Pad": {"X Bounds": x_bounds,
+                         "Y Bounds": y_bounds,
+                         "Z Bounds": z_bounds,
+                         "Bounds as Slices": Bounds_as_Slices,
+                         "Padded Color": color_spec}})
+            
+            if Conserve_RAM:
+                
+                Image.data = cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec, conserve_mem = True)
+                Image.name = "Padded"
+                self._on_layer_changed()
+            
+            else:
+                
+                self.viewer.add_image(cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec), name = "Padded")
+    
+    @magicgui(
+        Shape_Type = {"choices": shapes_list},
+        call_button = "Add Shape")
+    def add_shape_widget(self,
+        Shape_Type: str = "Ellipse",
+        Polygon_Vertices: int = 3) -> None:
         
-        else:
-            
-            self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = "Trim")
+        sv.add_shape(self.viewer, Shape_Type.lower(), n_vertices = Polygon_Vertices)
     
     @magicgui(
         call_button = "Create Mask")
     def create_mask_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Shapes: napari.layers.Shapes) -> None:
         
-        pass
+        if util.is_3d_rgb(Image.data)["3D"]:
+            
+            self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes), name = "Mask", opacity = 0.5)
+            
+        else:
+            
+            self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes, convert_to_3d = False), name = "Mask", opacity = 0.5)
     
     @magicgui(
+        Mask_Method = {"choices": mask_method_list},
+        Masked_Color = {"choices": out_of_mask_list},
         call_button = "Mask")
     def mask_widget(self,
         Image: napari.layers.Image,
-        Mask: napari.layers.Image) -> None:
+        Mask: napari.layers.Image,
+        Mask_Method: str = "Out",
+        Masked_Color: str = "Black",
+        Specify_Color: bool = False,
+        Color_Value: float = 0) -> None:
         
-        pass
+        if not Specify_Color:
+            
+            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
+        
+        else:
+            
+            if Image.data.dtype in util.int_dtypes:
+                
+                color_spec: int = round(Color_Value)
+                
+            else:
+                
+                color_spec = Color_Value
+                
+        parameters_log.append(
+            {"Mask": {"Method": Mask_Method.lower(),
+                      "Masked Color": color_spec}})
+                
+        self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = "Masked")
     
     @magicgui(
+        Masked_Color = {"choices": out_of_mask_list},
         call_button = "Crop")
     def crop_widget(self,
         Image: napari.layers.Image,
-        Mask: napari.layers.Image) -> None:
+        Mask: napari.layers.Image,
+        Masked_Color: str = "Black",
+        Specify_Color: bool = False,
+        Color_Value: float = 0,
+        Conserve_RAM: bool = False) -> None:
         
-        pass
-    
-    @magicgui(
-        call_button = "Pad")
-    def pad_widget(self,
-        Image: napari.layers.Image) -> None:
+        if not Specify_Color:
+            
+            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
         
-        pass
+        else:
+            
+            if Image.data.dtype in util.int_dtypes:
+                
+                color_spec: int = round(Color_Value)
+                
+            else:
+                
+                color_spec = Color_Value
+        
+        if Conserve_RAM:
+            
+            Image.data = cc.crop(Image.data, Mask.data, mask_color = color_spec, conserve_mem = True)
+            Image.name = "Cropped"
+            self._on_layer_changed()
+        
+        else:
+            
+            self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = "Cropped")
 
 
     # Transform Widgets
@@ -223,7 +351,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Reslice": {"Orientation": Orientation}})
         
-        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = "Reslice")
+        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = "Resliced")
         
     @magicgui(
         Angle = {"widget_type": "FloatSlider", "max": 360},
@@ -241,11 +369,11 @@ class ImageProcessor:
         
         if Clockwise:
             
-            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = "Rotate")
+            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = "Rotated")
         
         else:
             
-            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotate")
+            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = "Rotated")
         
     @magicgui(
         Direction = {"choices": mirror_list},
@@ -258,7 +386,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Mirror": {"Direction": Direction}})
         
-        self.viewer.add_image(trans.mirror(Image.data, Direction), name = "Mirror")
+        self.viewer.add_image(trans.mirror(Image.data, Direction), name = "Mirrored")
 
     @magicgui(
         call_button = "Rescale Resolution")
@@ -269,7 +397,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Rescale": {"Scale": Scale}})
         
-        self.viewer.add_image(trans.rescale(Image.data, Scale), name = "Rescale")
+        self.viewer.add_image(trans.rescale(Image.data, Scale), name = "Rescaled")
 
 
     # Pixel Values Widgets
@@ -325,11 +453,11 @@ class ImageProcessor:
         
         elif Input_Range and not Output_Range:
             
-            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = "Normalize")
+            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = "Normalized")
         
         elif Output_Range and not Input_Range:
             
-            self.viewer.add_image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = "Normalize")
+            self.viewer.add_image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = "Normalized")
 
     @magicgui(
         call_button = "Saturate")
@@ -346,7 +474,7 @@ class ImageProcessor:
                           "Min Bound": Min_Bound,
                           "Max Bound": Max_Bound}})
         
-        self.viewer.add_image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = "Saturate")
+        self.viewer.add_image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = "Saturated")
 
     @magicgui(Method = {"choices": equalize_list},
               call_button = "Equalize Histogram")
@@ -357,7 +485,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Equalize": {"Method": Method}})
         
-        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower()), name = "Equalize")
+        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower()), name = "Equalized")
 
     @magicgui(
         call_button = "Invert Intensities")
@@ -367,7 +495,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Invert": {}})
         
-        self.viewer.add_image(pixels.invert(Image.data), name = "Invert")
+        self.viewer.add_image(pixels.invert(Image.data), name = "Inverted")
         
         
 # Functions
@@ -446,13 +574,13 @@ def main() -> None:
     
     # Manipulate Widgets
     
-    mod_trim_widget: widgets.Container = modify_funcgui(ui.trim_widget, "Trim")
+    mod_trim_pad_widget: widgets.Container = modify_funcgui(ui.trim_pad_widget, "Trim / Pad")
+    mod_add_mask_widget: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
     mod_create_mask_widget: widgets.Container = modify_funcgui(ui.create_mask_widget, "Create Mask")
     mod_mask_widget: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
     mod_crop_widget: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
-    mod_pad_widget: widgets.Container = modify_funcgui(ui.pad_widget, "Pad")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_widget, mod_create_mask_widget, mod_mask_widget, mod_crop_widget, mod_pad_widget],
+        widgets = [mod_trim_pad_widget, mod_add_mask_widget, mod_create_mask_widget, mod_mask_widget, mod_crop_widget],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     

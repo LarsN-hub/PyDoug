@@ -94,20 +94,10 @@ def polygon_auto_vertices(n_vertices: int = 3, initial_start: int = 0, initial_e
 
     return coords_array
 
-def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_vertices: int = 3, base_layer_name: str = "Image") -> napari.layers.Shapes:
+def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_vertices: int = 3) -> napari.layers.Shapes:
     
-    im_array_shape: tuple[int] = get_layer(viewer, base_layer_name).data.shape
-    min_dim: int = min(im_array_shape[0:2])
-        
-    if im_array_shape:
-            
-        initial_start: int = math.floor(min_dim * 0.25)
-        initial_end: int = math.ceil(min_dim * 0.75)     
-        
-    else:
-            
-        initial_start: int = 0
-        initial_end: int = 100
+    initial_start: int = 0
+    initial_end: int = 100
             
     if shape_type == "rectangle":
             
@@ -131,15 +121,18 @@ def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_
             
         shape_layer = create_shape_layer(viewer)
 
-    shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", edge_width = max(im_array_shape) / 200, face_color = "#ff000000")
+    shape_layer.add(shape_dimensions, shape_type = shape_type, edge_color = "red", edge_width = 5, face_color = "#ff000000")
         
     return shape_layer
         
-def extract_shapes(viewer: napari.viewer.Viewer) -> dict[str, np.ndarray]:
+def extract_shapes(viewer: napari.viewer.Viewer, shapes_layer: napari.layers.Shapes = None) -> dict[str, np.ndarray]:
     
-    shape_layer = get_layer(viewer, "Shapes")
-    shape_coords: list[np.ndarray] = shape_layer.data
-    shape_types: list[str] = shape_layer.shape_type
+    if not shapes_layer:
+        
+        shapes_layer = get_layer(viewer, "Shapes")
+        
+    shape_coords: list[np.ndarray] = shapes_layer.data
+    shape_types: list[str] = shapes_layer.shape_type
     shape_dict: dict = {}
     shape_count: int = 0
         

@@ -4,9 +4,9 @@ io/readwrite.py
 - make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
-- Fix polygon auto-vertices bullshit
 
 ui/gui.py
+- Add remove_layer listener function for parameter removal and for drop-down updating
 - Add undo / parameter removal
 - Add widgets for all desired functions
 

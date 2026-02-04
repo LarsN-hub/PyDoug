@@ -15,29 +15,9 @@ from skimage import draw
 
 # Functions
 
-def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, conserve_mem: bool = False) -> np.ndarray:
+def trim_pad_bounds(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, method: str = "trim") -> dict[int, list[int]]:
     
-    if im_array.ndim == 3:
-        
-        if im_array.shape[2] == 3:
-            
-            rgb: bool = True
-            dim: int = 2
-            
-        else:
-            
-            rgb: bool = False
-            dim: int = 3
-        
-    elif im_array.ndim == 4:
-        
-        rgb: bool = True
-        dim: int = 3
-        
-    elif im_array.ndim == 2:
-    
-        rgb: bool = False
-        dim: int = 2
+    is_3d_rgb_dict = util.is_3d_rgb(im_array)
         
     if bounds_dict:
         
@@ -45,21 +25,28 @@ def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int |
         y_bounds = bounds_dict["Y"]
         z_bounds = bounds_dict["Z"]
             
-    x_ax: int = util.convert_ax_str_to_int(im_array, rgb, "X")
-    y_ax: int = util.convert_ax_str_to_int(im_array, rgb, "Y")
-    x_bounds: list[int] = util.reformat_bounds(x_bounds, im_array.shape[x_ax], bounds_as_slices)
-    y_bounds: list[int] = util.reformat_bounds(y_bounds, im_array.shape[y_ax], bounds_as_slices)
+    x_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "X")
+    y_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "Y")
+    x_bounds: list[int] = util.reformat_bounds(x_bounds, im_array.shape[x_ax], bounds_as_slices, method)
+    y_bounds: list[int] = util.reformat_bounds(y_bounds, im_array.shape[y_ax], bounds_as_slices, method)
     bounds: dict[int, list] = {x_ax: x_bounds, y_ax: y_bounds}
     
-    if dim == 3:
+    if is_3d_rgb_dict["3D"]:
         
-        z_ax: int = util.convert_ax_str_to_int(im_array, rgb, "Z")
-        z_bounds: list[int] = util.reformat_bounds(z_bounds, im_array.shape[z_ax], bounds_as_slices)
+        z_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "Z")
+        z_bounds: list[int] = util.reformat_bounds(z_bounds, im_array.shape[z_ax], bounds_as_slices, method)
         bounds[z_ax] = z_bounds
+        
+    return bounds
+
+def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, conserve_mem: bool = False) -> np.ndarray:
+    
+    bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "trim")
+    is_3d_rgb_dict = util.is_3d_rgb(im_array)
     
     if conserve_mem:
         
-        if dim == 2:
+        if not is_3d_rgb_dict["3D"]:
                 
             return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
                 
@@ -69,7 +56,7 @@ def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int |
     
     else:
         
-        if dim == 2:
+        if not is_3d_rgb_dict["3D"]:
                 
             trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
                 
@@ -78,6 +65,52 @@ def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int |
             trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
         
         return trim_array
+    
+def pad_operation(im_array: np.ndarray, bounds: dict[int, list[int]], padded_color: float | int) -> np.ndarray:
+    
+    is_3d_rgb_dict = util.is_3d_rgb(im_array)
+    
+    if not is_3d_rgb_dict["3D"]:
+            
+        left_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0])) * padded_color
+        right_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1])) * padded_color
+        im_array = np.insert(im_array, 0, left_x_insert, axis = 1)
+        im_array = np.append(im_array, right_x_insert, axis = 1)
+        top_y_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1])) * padded_color
+        bot_y_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1])) * padded_color
+        im_array = np.insert(im_array, 0, top_y_insert, axis = 0)
+        im_array = np.append(im_array, bot_y_insert, axis = 0)
+            
+    else:
+        
+        left_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][0])) * padded_color
+        right_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][1])) * padded_color
+        im_array = np.insert(im_array, [0], left_x_insert, axis = 2)
+        im_array = np.append(im_array, right_x_insert, axis = 2)
+        top_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0], im_array.shape[2])) * padded_color
+        bot_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1], im_array.shape[2])) * padded_color
+        im_array = np.insert(im_array, [0], top_y_insert, axis = 1)
+        im_array = np.append(im_array, bot_y_insert, axis = 1)
+        front_z_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1], im_array.shape[2])) * padded_color
+        back_z_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1], im_array.shape[2])) * padded_color
+        im_array = np.insert(im_array, [0], front_z_insert, axis = 0)
+        im_array = np.append(im_array, back_z_insert, axis = 0)
+        
+    return im_array
+    
+def pad(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, padded_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+    
+    bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "pad")
+    
+    if conserve_mem:
+        
+        return pad_operation(im_array, bounds, padded_color)
+    
+    else:
+        
+        pad_array = np.copy(im_array)
+        
+        return pad_operation(pad_array, bounds, padded_color)
 
 def remove_slice_coords(coords: np.ndarray) -> dict[str, np.ndarray]:
     
@@ -145,9 +178,9 @@ def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
     
     return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
 
-def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, convert_to_3d: bool = True) -> np.ndarray:
+def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer: napari.layers.Shapes = None, convert_to_3d: bool = True) -> np.ndarray:
     
-    shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer)
+    shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer, shapes_layer)
     
     for shape in list(shape_dict.keys()):
         
@@ -239,40 +272,6 @@ def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_color
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
     return crop(im_array, mask_array, mask_color = mask_color, conserve_mem = conserve_mem)
-
-def pad(im_array: np.ndarray, bounds: np.ndarray, pad_method: str = "add", *, mode: str = "constant", constant: int | float = 0, dimensions_method: str = "split") -> np.ndarray:
-    
-    if pad_method == "dimensions":
-        
-        old_dims: tuple[int] = im_array.shape
-        new_bounds: np.array = np.empty(len(old_dims))
-        
-        for index, bound in enumerate(bounds):
-        
-            if dimensions_method == "split":
-                
-                fore_val: int = int(math.ceil((bound - old_dims[index]) / 2))
-                
-            elif dimensions_method == "front":
-                
-                fore_val: int = bound - old_dims[index]
-            
-            elif dimensions_method == "rear":
-                
-                fore_val: int = 0
-            
-            rear_val: int = bound - old_dims[index] - fore_val
-            new_bounds[index] = np.array([fore_val, rear_val])
-            
-        bounds = np.copy(new_bounds)
-        
-    if mode == "constant":
-        
-        return np.pad(im_array, bounds, mode = mode, constant_values = constant)
-    
-    else:
-        
-        return np.pad(im_array, bounds, mode = mode)
 
 
 # Main
