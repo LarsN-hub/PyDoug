@@ -28,69 +28,68 @@ def sort_double_bound_thresholds(thresholds: np.ndarray) -> np.ndarray:
         
     return new_thresholds
 
+def gui_threshold(im_array: np.ndarray, thresholds: tuple[float, int]) -> np.ndarray:
+    
+    thresh_array = np.zeros(im_array.shape, np.uint8)
+    thresh_array[(im_array >= min(thresholds)) & (im_array <= max(thresholds))] = 255
+    
+    return thresh_array
+
 def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusivity: str = "upper") -> np.ndarray:
     
-    valid_methods: tuple[str] = ("upper", "lower", "both", "neither")
-    
-    if any(x == inclusivity for x in valid_methods):
-        
-        if not isinstance(thresholds, np.ndarray):
+    if not isinstance(thresholds, np.ndarray):
             
-            thresholds = np.array(thresholds)
+        thresholds = np.array(thresholds)
     
-        thresh_array = np.zeros(im_array.shape, np.uint8)
+    thresh_array = np.zeros(im_array.shape, np.uint8)
         
-        if len(thresholds.shape) == 0:
+    if len(thresholds.shape) == 0:
             
+        if inclusivity == "lower":
+                
+            thresh_array[im_array >= thresholds] = 255
+                
+        else:
+                
+            thresh_array[im_array > thresholds] = 255
+    
+    if len(thresholds.shape) == 1:
+            
+        thresholds: np.ndarray = np.sort(thresholds)
+            
+        for index, thresh in enumerate(thresholds, start = 1):
+                
             if inclusivity == "lower":
-                
-                thresh_array[im_array >= thresholds] = 255
-                
+                    
+                thresh_array[im_array >= thresh] = round((255 / len(thresholds)) * index)
+                    
             else:
-                
-                thresh_array[im_array > thresholds] = 255
-    
-        if len(thresholds.shape) == 1:
-            
-            thresholds: np.ndarray = np.sort(thresholds)
-            
-            for index, thresh in enumerate(thresholds, start = 1):
-                
-                if inclusivity == "lower":
                     
-                    thresh_array[im_array >= thresh] = round((255 / len(thresholds)) * index)
-                    
-                else:
-                    
-                    thresh_array[im_array > thresh] = round((255 / len(thresholds)) * index)
+                thresh_array[im_array > thresh] = round((255 / len(thresholds)) * index)
         
-        elif thresholds.ndim == 2:
+    elif thresholds.ndim == 2:
             
-            thresholds = sort_double_bound_thresholds(thresholds)
+        thresholds = sort_double_bound_thresholds(thresholds)
             
-            for index, thresh in enumerate(thresholds, start = 1):
+        for index, thresh in enumerate(thresholds, start = 1):
                 
-                if inclusivity == "upper":
+            if inclusivity == "upper":
                 
-                    thresh_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
-                elif inclusivity == "lower":
+            elif inclusivity == "lower":
                     
-                    thresh_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
-                elif inclusivity == "both":
+            elif inclusivity == "both":
                     
-                    thresh_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
                     
-                elif inclusivity == "neither":
+            elif inclusivity == "neither":
                     
-                    thresh_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
                 
-        return thresh_array
-    
-    else:
-        
-        print("\nInvalid inclusivity method!")
+    return thresh_array
     
 def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", otsu_classes: int = 2, mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
     

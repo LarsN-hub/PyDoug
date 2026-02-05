@@ -9,6 +9,7 @@ import magicclass.widgets as mcw
 import sliceview as sv
 import readwrite as rw
 import cropclip as cc
+import numpy as np
 import pathlib
 import napari
 import pixels
@@ -82,7 +83,15 @@ class ImageProcessor:
         self.tv_chambolle_widget.Epsilon.step = 0.0001
         self.tv_chambolle_widget.Epsilon.value = Epsilon
         
-    def _on_layer_changed(self, event = None):
+        self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
+        self.manual_threshold_widget.Range.changed.connect(self._live_threshold)
+        self.manual_threshold_widget.Image.changed.connect(self._live_threshold)
+        self.manual_threshold_widget.Preview.changed.connect(self._on_live_toggled)
+        
+        
+    # Connector Methods
+        
+    def _on_layer_changed(self, event = None) -> None:
         
         for func_name in self.funcguis:
             
@@ -100,7 +109,7 @@ class ImageProcessor:
                 
         self.operation_count += 1
         
-    def _on_layer_added(self, event):
+    def _on_layer_added(self, event) -> None:
         
         layer = event.value
         
@@ -133,7 +142,7 @@ class ImageProcessor:
                     
         self.operation_count += 1
         
-    def _on_layer_removed(self, event):
+    def _on_layer_removed(self, event) -> None:
         
         layer = event.value
         operations = [x["Name"] for x in parameters_log]
@@ -155,6 +164,61 @@ class ImageProcessor:
                 if hasattr(funcgui, "Mask"):
                 
                     funcgui.Mask.reset_choices()
+                    
+    def _update_intensity_range(self, event = None) -> None:
+        
+        if self.manual_threshold_widget.Image.value == None:
+            
+            return
+        
+        if np.issubdtype(self.manual_threshold_widget.Image.value.data.dtype, np.integer):
+            
+            info = np.iinfo(self.manual_threshold_widget.Image.value.data.dtype)
+            
+        else:
+            
+            info = np.finfo(self.manual_threshold_widget.Image.value.data.dtype)
+            
+        self.manual_threshold_widget.Range.min = info.min
+        self.manual_threshold_widget.Range.max = info.max
+        self.manual_threshold_widget.Range.value = (info.min, info.max)
+        
+    def _live_threshold(self, event = None) -> None:
+        
+        if not self.manual_threshold_widget.Preview.value:
+            
+            return
+        
+        im_layer = self.manual_threshold_widget.Image.value
+        
+        if im_layer == None:
+            
+            return
+        
+        min_value, max_value = self.manual_threshold_widget.Range.value
+        threshold_mask: np.ndarray = thresh.gui_threshold(im_layer.data, (min_value, max_value))
+        
+        if hasattr(self, "_live_mask_layer") and self._live_mask_layer in self.viewer.layers:
+            
+            self._live_mask_layer.data = threshold_mask
+            
+        else:
+            
+            self._live_mask_layer = self.viewer.add_labels(threshold_mask, name = "Live Threshold")
+            
+    def _on_live_toggled(self, event = None) -> None:
+        
+        if not self.manual_threshold_widget.Preview.value:
+            
+            if hasattr(self, "_live_mask_layer") and self._live_mask_layer in self.viewer.layers:
+                
+                self.viewer.layers.remove(self._live_mask_layer)
+            
+                self._live_mask_layer = None
+            
+        else:
+            
+            self._live_threshold()
                 
     
     # I/O Widgets
@@ -793,11 +857,19 @@ class ImageProcessor:
     # Segmentation Widgets
     
     @magicgui(
+        Range = {"widget_type": "RangeSlider", "min": 0, "max": 255},
         call_button = "Segment")
     def manual_threshold_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Preview: bool = False,
+        Range = (0, 255)) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Manual Threshold", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Min": min(Range),
+             "Max": max(Range)})
+        self.viewer.add_image(thresh.gui_threshold(Image.data, Range), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": hist_thresh_list},
