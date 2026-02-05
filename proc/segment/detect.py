@@ -22,7 +22,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     if np.any(mask_array):
         
-        if len(mask_array.shape) < len(im_array.shape):
+        if mask_array.ndim < im_array.ndim:
             
             mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
     
@@ -118,7 +118,7 @@ def level_set(array_shape: tuple, method: str = "checkerboard", *, square_size: 
         
         return segmentation.disk_level_set(array_shape, radius = radius)
     
-def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *, init_levels_method: str = "checkerboard", square_size: int = 5, radius: float = 10, num_iter: int = 10, smoothing: int = 1, alpha: float = 100, sigma: float = 5) -> np.ndarray:
+def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *, square_size: int = 5, radius: float = 10, num_iter: int = 10, smoothing: int = 1, alpha: float = 100, sigma: float = 5) -> np.ndarray:
     
     init_levels: np.ndarray = level_set(im_array.shape, square_size = square_size, radius = radius)
     
@@ -141,15 +141,63 @@ def random_walk(im_array: np.ndarray, marker_percentiles: tuple, beta: float = 1
     
     return pixels.normalize(segmentation.random_walker(im_array, markers, beta))
 
-def watershed(im_array: np.ndarray, water_line: bool = False) -> np.ndarray:
+def watershed(im_array: np.ndarray, *, background: float | int = 0, mask_array: np.ndarray = None, water_line: bool = False, along_axis: bool = False, axis: int = 0) -> np.ndarray:
     
-    distance: np.ndarray = ndi.distance_transform_edt(im_array)
-    peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3, 3)), labels = im_array)
-    mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
-    mask_array[tuple(peak_coords.T)] = True
-    markers: np.ndarray = thresh.label(mask_array)
+    if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+            
+        im_array[np.logical_not(np.bool(mask_array))] = background
     
-    return segmentation.watershed(-distance, markers, mask = im_array)
+    if along_axis:
+        
+        water_array = np.empty(im_array.shape)
+        
+        for slice_index in range(0, im_array.shape[axis]):
+            
+            if axis == 0:
+                
+                int_im_array: np.ndarray = im_array[slice_index]
+            
+            elif axis == 1:
+                
+                int_im_array: np.ndarray = im_array[:, slice_index, :]
+            
+            elif axis == 2:
+                
+                int_im_array: np.ndarray = im_array[:, :, slice_index]
+                
+            distance: np.ndarray = ndi.distance_transform_edt(int_im_array)
+            peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3)), labels = int_im_array)
+            water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
+            water_mask_array[tuple(peak_coords.T)] = True
+            markers: np.ndarray = thresh.label(water_mask_array)
+            
+            if axis == 0:
+                
+                water_array[slice_index] = segmentation.watershed(-distance, markers, mask = int_im_array)
+            
+            elif axis == 1:
+                
+                water_array[:, slice_index, :] = segmentation.watershed(-distance, markers, mask = int_im_array)
+            
+            elif axis == 2:
+                
+                water_array[:, :, slice_index] = segmentation.watershed(-distance, markers, mask = int_im_array)
+            
+        return water_array
+    
+    else:
+        
+        distance: np.ndarray = ndi.distance_transform_edt(im_array)
+        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3, 3)), labels = im_array)
+        water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
+        water_mask_array[tuple(peak_coords.T)] = True
+        markers: np.ndarray = thresh.label(water_mask_array)
+        
+        return segmentation.watershed(-distance, markers, mask = im_array)
 
 def corners(im_array: np.ndarray, method = "fast", *, n: int = 12, threshold: float = 0.15, harris_method: str = "k", k: int = 0.05, eps: int = 0.000001, sigma: float = 1, window_size: int = 1, return_mode: str = "coords") -> np.ndarray:
     

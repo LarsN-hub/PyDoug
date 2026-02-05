@@ -24,6 +24,7 @@ from magicgui import magicgui
 from magicgui import widgets
 from qtpy.QtCore import Qt
 from segment import thresh
+from segment import detect
 
 
 # Globals
@@ -52,6 +53,8 @@ wave_thresh_list: list[str] = ["BayesShrink", "VisuShrink"]
 hist_thresh_list: list[str] = ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]
 local_thresh_list: list[str] = ["Adaptive", "Niblack", "Savoula"]
 connectivity_list: list[int] = [1, 2, 3]
+label_list: list[str] = ["Connectivity", "Watershed"]
+morph_snakes_list: list[str] = ["ACWE", "GAC"]
 
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
 axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
@@ -172,6 +175,10 @@ class ImageProcessor:
             return
         
         if np.issubdtype(self.manual_threshold_widget.Image.value.data.dtype, np.integer):
+            
+            if self.manual_threshold_widget.Image.value.data.dtype == np.int64:
+                
+                return
             
             info = np.iinfo(self.manual_threshold_widget.Image.value.data.dtype)
             
@@ -930,39 +937,178 @@ class ImageProcessor:
             self.viewer.add_image(thresh.local(Image.data, method = Method.lower(), block_size = Window_Size, window_size = Window_Size, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
     
     @magicgui(
+        Method = {"choices": label_list},
         Connectivity = {"choices": connectivity_list},
         Axis = {"choices": axis_list},
         call_button = "Label Segmentation")
     def label_widget(self,
         Image: napari.layers.Image,
-        Background: float = 0,
+        Method: str = "Connectivity",
+        Background: int = 0,
         Connectivity: int = 3,
         Along_Axis: bool = False,
         Axis: str = "Z",
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
         
-        if Connectivity > Image.data.ndim:
-            
-            Connectivity = Image.data.ndim
-            
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
-        param_layer_name = get_param_layer_name("Label", self.operation_count)
+        
+        if Method == "Connectivity":
+        
+            if Connectivity > Image.data.ndim:
+                
+                Connectivity = 2
+                
+            elif Connectivity > 2 and Along_Axis:
+                
+                Connectivity = 2
+                
+            param_layer_name = get_param_layer_name("Label", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Background": Background,
+                 "Connectivity": Connectivity,
+                 "Along Axis": Along_Axis,
+                 "Axis": Axis,
+                 "Apply Mask": Apply_Mask})
+            
+            if Apply_Mask:
+                
+                self.viewer.add_image(thresh.label(Image.data, mask_array = Mask.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+            
+            else:
+                
+                self.viewer.add_image(thresh.label(Image.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+                
+        elif Method == "Watershed":
+            
+            param_layer_name = get_param_layer_name("Watershed", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Background": Background,
+                 "Along Axis": Along_Axis,
+                 "Axis": Axis,
+                 "Apply Mask": Apply_Mask})
+            
+            if Apply_Mask:
+                
+                self.viewer.add_image(detect.watershed(Image.data, background = Background, mask_array = Mask.data, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+            
+            else:
+                
+                self.viewer.add_image(detect.watershed(Image.data, background = Background, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+            
+    @magicgui(
+        call_button = "Segment")
+    def rand_walk_widget(self,
+        Image: napari.layers.Image,
+        Beta: float = 130,
+        Lower_Percentile: float = 5,
+        Upper_Percentile: float = 95) -> None:
+        
+        param_layer_name = get_param_layer_name("Random Walk", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Background": Background,
-             "Connectivity": Connectivity,
-             "Along Axis": Along_Axis,
-             "Axis": Axis,
-             "Apply Mask": Apply_Mask})
+             "Beta": Beta,
+             "Lower Percentile": Lower_Percentile,
+             "Upper Percentile": Lower_Percentile})
         
-        if Apply_Mask:
-            
-            self.viewer.add_image(thresh.label(Image.data, mask_array = Mask.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+        self.viewer.add_image(detect.random_walk(Image.data, (Lower_Percentile, Upper_Percentile), Beta), name = param_layer_name)
+    
+    @magicgui(
+        Method = {"choices": morph_snakes_list},
+        call_button = "Segment")
+    def morph_snakes_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "ACWE",
+        Iterations: int = 10,
+        Square_Size: int = 5,
+        GAC_Alpha: float = 100,
+        GAC_Sigma: float = 5,
+        GAC_Smoothing: int = 1) -> None:
         
-        else:
-            
-            self.viewer.add_image(thresh.label(Image.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+        param_layer_name = get_param_layer_name("Morph Snakes", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method,
+             "Iterations": Iterations,
+             "Square Size": Square_Size,
+             "Alpha": GAC_Alpha,
+             "Sigma": GAC_Sigma,
+             "Smoothing": GAC_Smoothing})
+        
+        self.viewer.add_image(detect.morph_snakes(Image.data, Method,
+                                                  square_size = Square_Size,
+                                                  num_iter = Iterations,
+                                                  smoothing = GAC_Smoothing,
+                                                  alpha = GAC_Alpha,
+                                                  sigma = GAC_Sigma), name = param_layer_name)
+    
+    
+    # Filter Widgets
+    
+    @magicgui(
+        call_button = "Remove Objects")
+    def remove_objects_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Dilate")
+    def dilate_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Erode")
+    def erode_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Close")
+    def close_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Open")
+    def open_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Detect Edges")
+    def edge_detect_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Detect Corners")
+    def corner_detect_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "FFT")
+    def fft_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "IFFT")
+    def ifft_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
         
         
 # Functions
@@ -1098,14 +1244,34 @@ def main() -> None:
     
     
     # Segmentation Widgets
+    
     mod_manual_threshold: widgets.Container = modify_funcgui(ui.manual_threshold_widget, "Manual Threshold")
+    mod_label: widgets.Container = modify_funcgui(ui.label_widget, "Label")
     mod_hist_threshold: widgets.Container = modify_funcgui(ui.hist_threshold_widget, "Histogram Threshold")
     mod_local_threshold: widgets.Container = modify_funcgui(ui.local_threshold_widget, "Local Threshold")
-    mod_label: widgets.Container = modify_funcgui(ui.label_widget, "Label")
+    mod_rand_walk: widgets.Container = modify_funcgui(ui.rand_walk_widget, "Random Walk")
+    mod_morph_snakes: widgets.Container = modify_funcgui(ui.morph_snakes_widget, "Morphological Snakes")
     segmentation_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_manual_threshold, mod_hist_threshold, mod_local_threshold, mod_label],
+        widgets = [mod_manual_threshold, mod_label, mod_hist_threshold, mod_local_threshold, mod_rand_walk, mod_morph_snakes],
         labels = False)
     tabs.addTab(segmentation_container.native, "Segmentation")
+    
+    
+    # Filters
+    
+    mod_remove_objects: widgets.Container = modify_funcgui(ui.remove_objects_widget, "Remove Small Objects")
+    mod_dilate: widgets.Container = modify_funcgui(ui.dilate_widget, "Dilation")
+    mod_erode: widgets.Container = modify_funcgui(ui.erode_widget, "Erosion")
+    mod_close: widgets.Container = modify_funcgui(ui.close_widget, "Closing")
+    mod_open: widgets.Container = modify_funcgui(ui.open_widget, "Opening")
+    mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
+    mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
+    mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
+    mod_ifft: widgets.Container = modify_funcgui(ui.ifft_widget, "Inverse FFT")
+    filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_edge_detect, mod_corner_detect, mod_fft, mod_ifft],
+        labels = False)
+    tabs.addTab(filter_container.native, "Filters")
     
     
     # Launch
