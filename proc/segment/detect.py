@@ -18,7 +18,7 @@ from segment import thresh
 
 # Functions
 
-def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "sobel", sigma: float = 1.0, ksize: int = 3, alpha: float = 100, igg_sigma: float = 5, convert_type: bool = True) -> np.ndarray:
+def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "sobel", sigma: float = 1.0, ksize: int = 3, alpha: float = 100, igg_sigma: float = 5, convert_type: bool = True, axis: int = None) -> np.ndarray:
     
     if np.any(mask_array):
         
@@ -28,7 +28,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     if method == "sobel":
         
-        edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array)
+        edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array, axis = axis)
     
     elif method == "canny":
         
@@ -54,9 +54,9 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     elif method == "farid":
         
-        edge_array: np.ndarray = filters.farid(im_array, mask = mask_array)
+        edge_array: np.ndarray = filters.farid(im_array, mask = mask_array, axis = axis)
         
-    elif method == "IGG":
+    elif method == "igg":
         
         if np.any(mask_array):
             
@@ -72,7 +72,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     elif method == "prewitt":
         
-        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array)
+        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array, axis = axis)
     
     elif method == "roberts":
         
@@ -98,7 +98,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
     
     elif method == "scharr":
         
-        edge_array: np.ndarray = filters.scharr(im_array, mask = mask_array)
+        edge_array: np.ndarray = filters.scharr(im_array, mask = mask_array, axis = axis)
     
     if convert_type:
         
@@ -128,7 +128,7 @@ def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *, square_size: int
     
     elif method == "GAC":
         
-        morph_array: np.ndarray = segmentation.morphological_chan_vese(edge(im_array, method = "IGG", alpha = alpha, sigma_2 = sigma, convert_type = False), num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
+        morph_array: np.ndarray = segmentation.morphological_chan_vese(edge(im_array, method = "igg", alpha = alpha, sigma_2 = sigma, convert_type = False), num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
         
     return pixels.convert_im_type(morph_array, "uint8", norm = True)
 

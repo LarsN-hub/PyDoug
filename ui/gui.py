@@ -57,11 +57,14 @@ connectivity_list: list[int] = [1, 2, 3]
 label_list: list[str] = ["Connectivity", "Watershed"]
 morph_snakes_list: list[str] = ["ACWE", "GAC"]
 
-axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
-axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
-
 remove_objects_list: list[str] = ["Particles", "Holes"]
 tophat_list: list[str] = ["Black", "White"]
+edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]
+corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
+harris_method_list: list[str] = ["K", "Eps"]
+
+axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
+axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
 
 # Classes
@@ -89,6 +92,10 @@ class ImageProcessor:
         self.tv_chambolle_widget.Epsilon.native.setDecimals(4)
         self.tv_chambolle_widget.Epsilon.step = 0.0001
         self.tv_chambolle_widget.Epsilon.value = Epsilon
+        Epsilon: float = 0.000001
+        self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
+        self.corner_detect_widget.Harris_Epsilon.step = 0.000001
+        self.corner_detect_widget.Harris_Epsilon.value = Epsilon
         
         self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
         self.manual_threshold_widget.Range.changed.connect(self._live_threshold)
@@ -1140,18 +1147,70 @@ class ImageProcessor:
         self.viewer.add_image(morph.tophat(Image.data, Method, Dilations, Erosions, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
+        Method = {"choices": edge_detect_list},
+        Edges_Method = {"choices": gaussian_list},
+        Axis = {"choices": axis_list},
         call_button = "Detect Edges")
     def edge_detect_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Method: str = "Sobel",
+        Edges_Method: str = "Reflect",
+        Canny_or_IGG_Sigma: float = 1.0,
+        IGG_Alpha: float = 100,
+        Laplace_K_Size: int = 3,
+        Constant_Value: float = 0,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
-        pass
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        param_layer_name = get_param_layer_name("Edge Detection", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method.lower(),
+             "Edges Method": Edges_Method,
+             "Sigma": Canny_or_IGG_Sigma,
+             "Alpha": IGG_Alpha,
+             "K Size": Laplace_K_Size,
+             "CVal": Constant_Value,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
+        
+        if Along_Axis:
+            
+            self.viewer.add_image(detect.edge(Image.data, method = Method.lower(), sigma = Canny_or_IGG_Sigma, ksize = Laplace_K_Size, alpha = IGG_Alpha, igg_sigma = Canny_or_IGG_Sigma, axis = Axis), name = param_layer_name)
+            
+        else:
+            
+            self.viewer.add_image(detect.edge(Image.data, method = Method.lower(), sigma = Canny_or_IGG_Sigma, ksize = Laplace_K_Size, alpha = IGG_Alpha, igg_sigma = Canny_or_IGG_Sigma), name = param_layer_name)
     
     @magicgui(
+        Method = {"choices": corner_detect_list},
+        Harris_Method = {"choices": harris_method_list},
         call_button = "Detect Corners")
     def corner_detect_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Method: str = "Fast",
+        Fast_N: int = 12,
+        Fast_Threshold: float = 0.15,
+        Harris_Method: str = "K",
+        Harris_K: float = 0.05,
+        Harris_Epsilon: float = 0.000001,
+        Harris_or_Shi_Tomasi_Sigma: float = 1,
+        Moravec_Window_Size: int = 1) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Corner Detection", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method.lower(),
+             "Fast N": Fast_N,
+             "Fast_Threshold": Fast_Threshold,
+             "Harris Method": Harris_Method,
+             "Harris K": Harris_K,
+             "Harris Epsilon": Harris_Epsilon,
+             "Sigma": Harris_or_Shi_Tomasi_Sigma,
+             "Window_Size": Moravec_Window_Size})
+        
+        self.viewer.add_image(detect.corners(Image.data, method = Method.lower(), n = Fast_N, threshold = Fast_Threshold, harris_method = Harris_Method.lower(), k = Harris_K, eps = Harris_Epsilon, sigma = Harris_or_Shi_Tomasi_Sigma, window_size = Moravec_Window_Size, return_mode = "array"), name = param_layer_name)
     
     @magicgui(
         call_button = "FFT")
