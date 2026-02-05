@@ -120,7 +120,7 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
             
             return filters.threshold_multiotsu(classes = otsu_classes, hist = hist)
         
-    elif method == "iso":
+    elif method == "isodata":
         
         return filters.threshold_isodata(hist = hist)
     
@@ -132,11 +132,11 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
         
         return filters.threshold_mean(data)
     
-    elif method == "min":
+    elif method == "minimum":
         
         return filters.threhsold_minimum(hist = hist)
     
-    elif method == "tri":
+    elif method == "triangle":
         
         return filters.threshold_triangle(data)
     

@@ -6,6 +6,8 @@ io/readwrite.py
 ui/sliceview.py
 
 ui/gui.py
+- Fix Isodata, Minimum, and Triangle threshold methods
+- Fix thresholding mask usage
 - Add widgets for all desired functions
 
 proc/trans.py
