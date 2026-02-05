@@ -1,13 +1,10 @@
 io/readwrite.py
-- Add parameter import and export functions
 - fix persistent tkinter window
 - make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
 
 ui/gui.py
-- Fix Isodata, Minimum, and Triangle threshold methods
-- Fix thresholding mask usage
 - Add widgets for all desired functions
 
 proc/trans.py

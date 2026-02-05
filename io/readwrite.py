@@ -9,6 +9,8 @@ import tkfilebrowser as tkfb
 import numpy as np
 import platform
 import h5py
+import util
+import csv
 import os
 
 from timeit import default_timer as timer
@@ -486,8 +488,28 @@ def write_plot(fig: plt.Figure, file_name: str, save_dir: str) -> None:
     
 def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: str) -> None:
     
+    mod_parameters_list: list[list] = util.dict_list_to_list_list(parameters_log)
     save_path: str = save_dir + "/" + file_name + ".csv"
-
+    
+    with open(save_path, "w", newline = "") as csv_file:
+        
+        writer = csv.writer(csv_file)
+        writer.writerows(mod_parameters_list)
+    
+def read_parameters(parameters_path: str) -> list[dict]:
+    
+    mod_parameters_list: list[list] = []
+    
+    with open(parameters_path, mode = "r") as csv_file:
+        
+        reader = csv.reader(csv_file)
+        
+        for line in reader:
+            
+            mod_parameters_list.append(line)
+            
+    return util.list_list_to_dict_list(mod_parameters_list)
+            
 
 # Main
 

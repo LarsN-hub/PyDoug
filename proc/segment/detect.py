@@ -40,7 +40,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
             
                 for slice_index in range(0, im_array.shape[0]):
             
-                    edge_array[slice_index] = feature.canny(im_array[slice_index], sigma = sigma, mask = mask_array[slice_index], mode = "reflect")
+                    edge_array[slice_index] = feature.canny(im_array[slice_index], sigma = sigma, mask = np.bool(mask_array[slice_index]), mode = "reflect")
                     
             else:
                 
@@ -60,7 +60,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
         
         if np.any(mask_array):
             
-            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(cc.mask(im_array, mask_array), alpha, igg_sigma)
+            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(cc.mask(im_array, np.bool(mask_array)), alpha, igg_sigma)
         
         else:
         
@@ -84,7 +84,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "
             
                 for slice_index in range(0, im_array.shape[0]):
             
-                    edge_array[slice_index] = filters.roberts(im_array[slice_index], mask = mask_array[slice_index])
+                    edge_array[slice_index] = filters.roberts(im_array[slice_index], mask = np.bool(mask_array[slice_index]))
                     
             else:
                 

@@ -21,6 +21,39 @@ axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
 # Functions
 
+def dict_list_to_list_list(dict_list: list[dict]) -> list[list]:
+    
+    list_list: list[list] = []
+    
+    for row in dict_list:
+        
+        cur_list: list = []
+        
+        for item in list(row.keys()):
+            
+            cur_list.append(item)
+            cur_list.append(row[item])
+            
+        list_list.append(cur_list)
+    
+    return list_list
+
+def list_list_to_dict_list(list_list: list[list]) -> list[dict]:
+    
+    dict_list: list[dict] = []
+    
+    for row in list_list:
+        
+        cur_dict: dict = {}
+        
+        for index in range(0, len(row), 2):
+            
+            cur_dict[row[index]] = row[index + 1]
+            
+        dict_list.append(cur_dict)
+    
+    return dict_list
+
 def get_dtype_info(im_array: np.ndarray) -> dict[str, float, int]:
     
     if im_array.dtype in int_dtypes:

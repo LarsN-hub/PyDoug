@@ -134,7 +134,7 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
     
     elif method == "minimum":
         
-        return filters.threhsold_minimum(hist = hist)
+        return filters.threshold_minimum(hist = hist)
     
     elif method == "triangle":
         
@@ -202,7 +202,7 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
         
         if np.any(mask_array):
             
-            lab_array[mask_array] = 0
+            lab_array[np.bool(mask_array)] = 0
             
         return lab_array
 
@@ -231,7 +231,7 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
             
             if np.any(mask_array):
                 
-                lab_array[mask_array] = 0
+                lab_array[np.bool(mask_array)] = 0
         
         if return_num:
             

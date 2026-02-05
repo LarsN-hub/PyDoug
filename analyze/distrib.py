@@ -19,7 +19,7 @@ def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None, normal
     
     if np.any(mask_array):
     
-        counts, bin_centers = exposure.histogram(im_array[mask_array], normalize = normalize)
+        counts, bin_centers = exposure.histogram(im_array[np.bool(mask_array)], normalize = normalize)
         
     else:
         
@@ -33,7 +33,7 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFr
     
     if np.any(mask_array):
     
-        im_cdf, bin_centers = exposure.cumulative_distribution(im_array[mask_array])
+        im_cdf, bin_centers = exposure.cumulative_distribution(im_array[np.bool(mask_array)])
         
     else:
         
@@ -175,7 +175,7 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
     
     if np.any(mask_array):
         
-        counts, labels = exposure.histogram(im_array[mask_array])
+        counts, labels = exposure.histogram(im_array[np.bool(mask_array)])
         counts = np.delete(counts, np.argwhere(counts == 0))
         
     else:

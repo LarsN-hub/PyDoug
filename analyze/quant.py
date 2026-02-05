@@ -29,6 +29,7 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) ->
     
     if np.any(mask_array):
             
+        mask_array = np.bool(mask_array)
         im_stats["Mean"] = np.mean(im_array[mask_array])
         im_stats["Median"] = np.median(im_array[mask_array])
         im_stats["Min"] = np.min(im_array[mask_array])
@@ -55,6 +56,8 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.
     ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
     if np.any(mask_array):
+        
+        mask_array = np.bool(mask_array)
         
         if axis == 0:
         
@@ -214,8 +217,8 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
         if np.any(mask_array):
         
-            count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array[mask_array] > 0)]), 0)
-            background_counts: int = np.count_nonzero(im_array[mask_array] == 0)
+            count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array[np.bool(mask_array)] > 0)]), 0)
+            background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
             
             if include_background:
                 
@@ -242,7 +245,7 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
         
         if np.any(mask_array):
             
-            background_counts: int = np.count_nonzero(im_array[mask_array] == 0)
+            background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
             
         else:
             
@@ -252,7 +255,7 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
             
             if np.any(mask_array):
                 
-                count_array[index] = np.count_nonzero(im_array[mask_array] == phase)
+                count_array[index] = np.count_nonzero(im_array[np.bool(mask_array)] == phase)
             
             else:
             
@@ -427,7 +430,7 @@ def get_heat_map(im_array: np.ndarray, mode: str = "thick", *, mask_array: np.nd
         
     if np.any(mask_array):
         
-        bool_array[np.logical_not(mask_array)] = False
+        bool_array[np.logical_not(np.bool(mask_array))] = False
         
     if mode == "thick":
         

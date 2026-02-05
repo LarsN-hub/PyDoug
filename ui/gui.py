@@ -185,7 +185,7 @@ class ImageProcessor:
         Method = {"choices": export_list},
         Save_Folder = {"mode": "d"},
         call_button = "Export Image(s)")
-    def export_widget(self,
+    def im_export_widget(self,
         Image: napari.layers.Image,
         Method: str = "Tiff",
         Multi_Page: bool = True,
@@ -203,6 +203,15 @@ class ImageProcessor:
         else:
             
             rw.write_im(Image.data, str(Save_Folder), Save_Name, Method.lower())
+            
+    @magicgui(
+        Save_Folder = {"mode": "d"},
+        call_button = "Export Parameters")
+    def export_parameters_widget(self,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        File_Name: str = "Parameters") -> None:
+        
+        rw.write_parameters(parameters_log, str(File_Name), str(Save_Folder))
             
             
     # Manipulate Widgets
@@ -260,9 +269,15 @@ class ImageProcessor:
             param_layer_name: str = get_param_layer_name("Trimmed", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
-                 "X Bounds": x_bounds,
-                 "Y Bounds": y_bounds,
-                 "Z Bounds": z_bounds,
+                 "X Bounds": X_Bounds,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Bounds": X_Bounds,
+                 "Y Min": Y_Min,
+                 "Y Max": Y_Max,
+                 "Z Bounds": X_Bounds,
+                 "Z Min": Z_Min,
+                 "Z Max": Z_Max,
                  "Bounds as Slices": Bounds_as_Slices})
             
             if Conserve_RAM:
@@ -294,9 +309,15 @@ class ImageProcessor:
             param_layer_name: str = get_param_layer_name("Padded", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
-                 "X Bounds": x_bounds,
-                 "Y Bounds": y_bounds,
-                 "Z Bounds": z_bounds,
+                 "X Bounds": X_Bounds,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Bounds": X_Bounds,
+                 "Y Min": Y_Min,
+                 "Y Max": Y_Max,
+                 "Z Bounds": X_Bounds,
+                 "Z Min": Z_Min,
+                 "Z Max": Z_Max,
                  "Bounds as Slices": Bounds_as_Slices,
                  "Padded Color": color_spec})
             
@@ -943,9 +964,10 @@ def main() -> None:
     
     mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
     mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
-    mod_export: widgets.Container = modify_funcgui(ui.export_widget, "Export Image(s)")
+    mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
+    mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import, mod_dir_import, mod_export],
+        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_param_export],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
