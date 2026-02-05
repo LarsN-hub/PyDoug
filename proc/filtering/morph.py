@@ -134,65 +134,99 @@ def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particl
         
         return rem_array
 
-def dilation(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def dilation(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+    
+    dil_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
     
     if along_axis:
         
-        dil_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
+        for i in range(0, n_iterations):
+            
+            if i == 0:
         
-        for n in range(0, im_array.shape[0]):
-            
-            dil_array[n] = morphology.dilation(im_array[n], footprint)
-            
-        return dil_array
+                for n in range(0, im_array.shape[0]):
+                
+                    dil_array[n] = morphology.dilation(im_array[n], footprint)
+                    
+            else:
+                
+                for n in range(0, im_array.shape[0]):
+                
+                    dil_array[n] = morphology.dilation(dil_array[n], footprint)
     
     else:
+        
+        for i in range(0, n_iterations):
+            
+            if i == 0:
     
-        return morphology.dilation(im_array, footprint)
+                dil_array = morphology.dilation(im_array, footprint)
+                
+            else:
+                
+                dil_array = morphology.dilation(dil_array, footprint)
+                
+    return dil_array
 
-def erosion(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def erosion(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+    
+    ero_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
     
     if along_axis:
         
-        erod_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
+        for i in range(0, n_iterations):
+            
+            if i == 0:
         
-        for n in range(0, im_array.shape[0]):
-            
-            erod_array[n] = morphology.erosion(im_array[n], footprint)
-            
-        return erod_array
+                for n in range(0, im_array.shape[0]):
+                
+                    ero_array[n] = morphology.erosion(im_array[n], footprint)
+                    
+            else:
+                
+                for n in range(0, im_array.shape[0]):
+                
+                    ero_array[n] = morphology.erosion(ero_array[n], footprint)
     
     else:
+        
+        for i in range(0, n_iterations):
+            
+            if i == 0:
     
-        return morphology.erosion(im_array, footprint)
+                ero_array = morphology.erosion(im_array, footprint)
+                
+            else:
+                
+                ero_array = morphology.erosion(ero_array, footprint)
+                
+    return ero_array
 
 def opening(im_array: np.ndarray, n_erosions: int = 1, n_dilations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     open_array: np.ndarray = np.copy(im_array)
-    
-    for ero_index in range(0, n_erosions):
-                
-        open_array = erosion(open_array, footprint = footprint, along_axis = along_axis)
-        
-    for dil_index in range(0, n_dilations):
-        
-        open_array = dilation(open_array, footprint = footprint, along_axis = along_axis)
+    open_array = erosion(open_array, n_erosions, footprint = footprint, along_axis = along_axis)
+    open_array = dilation(open_array, n_dilations, footprint = footprint, along_axis = along_axis)
         
     return open_array
 
 def closing(im_array: np.ndarray, n_dilations: int = 1, n_erosions: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     
     close_array: np.ndarray = np.copy(im_array)
-    
-    for dil_index in range(0, n_dilations):
-        
-        close_array = dilation(close_array, footprint = footprint, along_axis = along_axis)
-    
-    for ero_index in range(0, n_erosions):
-                
-        close_array = erosion(close_array, footprint = footprint, along_axis = along_axis)
+    close_array = dilation(close_array, n_dilations, footprint = footprint, along_axis = along_axis)
+    close_array = erosion(close_array, n_erosions, footprint = footprint, along_axis = along_axis)
         
     return close_array
+
+def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_erosions: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+    
+    if method == "Black":
+        
+        return im_array - closing(im_array, n_dilations = n_dilations, n_erosions = n_erosions, footprint = footprint, along_axis = along_axis)
+    
+    elif method == "White":
+        
+        return im_array - opening(im_array, n_dilations = n_dilations, n_erosions = n_erosions, footprint = footprint, along_axis = along_axis)
 
 def white_tophat(im_array: np.ndarray, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
     

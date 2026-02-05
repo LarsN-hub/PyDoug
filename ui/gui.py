@@ -22,6 +22,7 @@ from magicclass import magicclass
 from filtering import denoising
 from magicgui import magicgui
 from magicgui import widgets
+from filtering import morph
 from qtpy.QtCore import Qt
 from segment import thresh
 from segment import detect
@@ -58,6 +59,9 @@ morph_snakes_list: list[str] = ["ACWE", "GAC"]
 
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
 axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
+
+remove_objects_list: list[str] = ["Particles", "Holes"]
+tophat_list: list[str] = ["Black", "White"]
 
 
 # Classes
@@ -459,7 +463,6 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Method": Mask_Method.lower(),
              "Masked Color": color_spec})
-                
         self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
     
     @magicgui(
@@ -517,7 +520,6 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Orientation": Orientation})
-        
         self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = param_layer_name)
         
     @magicgui(
@@ -556,7 +558,6 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Direction": Direction})
-        
         self.viewer.add_image(trans.mirror(Image.data, Direction), name = param_layer_name)
 
     @magicgui(
@@ -569,7 +570,6 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Scale": Scale})
-        
         self.viewer.add_image(trans.rescale(Image.data, Scale), name = param_layer_name)
 
 
@@ -652,7 +652,6 @@ class ImageProcessor:
              "Bounds as Percentages": Bounds_as_Percentages,
              "Min Bound": Min_Bound,
              "Max Bound": Max_Bound})
-        
         self.viewer.add_image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = param_layer_name)
 
     @magicgui(Method = {"choices": equalize_list},
@@ -665,7 +664,6 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method})
-        
         self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower()), name = param_layer_name)
 
     @magicgui(
@@ -676,7 +674,6 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Inverted", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name})
-        
         self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
     
@@ -707,7 +704,6 @@ class ImageProcessor:
              "Bins": Bins,
              "Mode": Edges_Method.lower(),
              "CVal": Constant_Value})
-        
         self.viewer.add_image(denoising.bilateral(Image.data,
                                                   win_size = Window_Size,
                                                   sigma_color = Sigma_Color,
@@ -733,7 +729,6 @@ class ImageProcessor:
              "Truncate": Truncate,
              "Mode": Edges_Method.lower(),
              "CVal": Constant_Value})
-        
         self.viewer.add_image(denoising.gaussian(Image.data,
                                                  sigma = Sigma,
                                                  truncate = Truncate,
@@ -756,7 +751,6 @@ class ImageProcessor:
              "Patch Distance": Patch_Distance,
              "Cut Off Distance": Cut_Off_Distance,
              "Sigma": Sigma})
-        
         self.viewer.add_image(denoising.non_local_means(Image.data,
                                                         patch_size = Patch_Size,
                                                         patch_distance = Patch_Distance,
@@ -773,7 +767,6 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Radius": Radius})
-        
         self.viewer.add_image(denoising.remove_background(Image.data,
                                                           radius = Radius), name = param_layer_name)
         
@@ -793,7 +786,6 @@ class ImageProcessor:
              "Epsilon": Epsilon,
              "Max Iterations": Max_Iterations,
              "Isotropic": Isotropic})
-        
         self.viewer.add_image(denoising.tv_bregman(Image.data,
                                                    weight = Weight,
                                                    max_num_iter = Max_Iterations,
@@ -814,7 +806,6 @@ class ImageProcessor:
              "Weight": Weight,
              "Epsion": Epsilon,
              "Max Iterations": Max_Iterations})
-        
         self.viewer.add_image(denoising.tv_chambolle(Image.data,
                                                      weight = Weight,
                                                      max_num_iter = Max_Iterations,
@@ -851,7 +842,6 @@ class ImageProcessor:
              "Wavelet Levels": Wavelet_Levels,
              "Threshold Method": Threshold_Method,
              "Rescale Sigma": Rescale_Sigma})
-        
         self.viewer.add_image(denoising.wavelet(Image.data,
                                                 wavelet = Wavelet,
                                                 mode = Mode.lower(),
@@ -1012,7 +1002,6 @@ class ImageProcessor:
              "Beta": Beta,
              "Lower Percentile": Lower_Percentile,
              "Upper Percentile": Lower_Percentile})
-        
         self.viewer.add_image(detect.random_walk(Image.data, (Lower_Percentile, Upper_Percentile), Beta), name = param_layer_name)
     
     @magicgui(
@@ -1036,7 +1025,6 @@ class ImageProcessor:
              "Alpha": GAC_Alpha,
              "Sigma": GAC_Sigma,
              "Smoothing": GAC_Smoothing})
-        
         self.viewer.add_image(detect.morph_snakes(Image.data, Method,
                                                   square_size = Square_Size,
                                                   num_iter = Iterations,
@@ -1048,39 +1036,108 @@ class ImageProcessor:
     # Filter Widgets
     
     @magicgui(
+        Method = {"choices": remove_objects_list},
         call_button = "Remove Objects")
     def remove_objects_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Method: str = "Particles",
+        Connectivity: int = 3,
+        Max_Size: float = 25,
+        Background: int = 0,
+        Pixel_Scale: int = 1) -> None:
         
-        pass
+        if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        param_layer_name = get_param_layer_name("Remove Objects", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method.lower(),
+             "Connectivity": Connectivity,
+             "Max Size": Max_Size,
+             "Background": Background,
+             "Pixel Size": Pixel_Scale})
+        self.viewer.add_image(morph.remove_objects(Image.data, Max_Size, Method.lower(), background = Background, pixel_size = Pixel_Scale, connectivity = Connectivity, ), name = param_layer_name)
     
     @magicgui(
         call_button = "Dilate")
     def dilate_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Iterations: int = 1,
+        Along_Z_Axis: bool = False) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Dilation", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Iterations": Iterations,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(morph.dilation(Image.data, Iterations, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Erode")
     def erode_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Iterations: int = 1,
+        Along_Z_Axis: bool = False) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Erosion", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Iterations": Iterations,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(morph.erosion(Image.data, Iterations, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Close")
     def close_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Dilations: int = 1,
+        Erosions: int = 1,
+        Along_Z_Axis: bool = False) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Closing", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Dilations": Dilations,
+             "Erosions": Erosions,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(morph.closing(Image.data, Dilations, Erosions, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Open")
     def open_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Erosions: int = 1,
+        Dilations: int = 1,
+        Along_Z_Axis: bool = False) -> None:
         
-        pass
+        param_layer_name = get_param_layer_name("Opening", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Erosions": Erosions,
+             "Dilations": Dilations,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(morph.opening(Image.data, Erosions, Dilations, along_axis = Along_Z_Axis), name = param_layer_name)
+    
+    @magicgui(
+        Method = {"choices": tophat_list},
+        call_button = "Top Hat")
+    def tophat_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Black",
+        Dilations: int = 1,
+        Erosions: int = 1,
+        Along_Z_Axis: bool = False) -> None:
+        
+        param_layer_name = get_param_layer_name("Top Hat", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method,
+             "Dilations": Dilations,
+             "Erosions": Erosions,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(morph.tophat(Image.data, Method, Dilations, Erosions, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Detect Edges")
@@ -1264,12 +1321,13 @@ def main() -> None:
     mod_erode: widgets.Container = modify_funcgui(ui.erode_widget, "Erosion")
     mod_close: widgets.Container = modify_funcgui(ui.close_widget, "Closing")
     mod_open: widgets.Container = modify_funcgui(ui.open_widget, "Opening")
+    mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
     mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
     mod_ifft: widgets.Container = modify_funcgui(ui.ifft_widget, "Inverse FFT")
     filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_edge_detect, mod_corner_detect, mod_fft, mod_ifft],
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_fft, mod_ifft],
         labels = False)
     tabs.addTab(filter_container.native, "Filters")
     
