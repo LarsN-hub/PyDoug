@@ -505,11 +505,11 @@ def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: 
         writer = csv.writer(csv_file)
         writer.writerows(mod_parameters_list)
     
-def read_parameters(parameters_path: str) -> list[dict]:
+def read_parameters_file(parameters_file_path: str) -> list[dict]:
     
     mod_parameters_list: list[list] = []
     
-    with open(parameters_path, mode = "r") as csv_file:
+    with open(parameters_file_path, mode = "r") as csv_file:
         
         reader = csv.reader(csv_file)
         
@@ -518,6 +518,19 @@ def read_parameters(parameters_path: str) -> list[dict]:
             mod_parameters_list.append(line)
             
     return util.list_list_to_dict_list(mod_parameters_list)
+
+def read_parameters_dir(parameters_dir_path: str) -> dict[str, list, np.ndarray]:
+    
+    parameters_dict: dict = {"Parameters": read_parameters_file(parameters_dir_path + "/Parameters.csv")}
+    dir_contents: list[str] = os.listdir(parameters_dir_path)
+    
+    for file in dir_contents:
+        
+        if get_ext(parameters_dir_path + "/" + file) == "tiff":
+            
+            parameters_dict[file[:-5]] = read_stack(parameters_dir_path + "/" + file)
+    
+    return parameters_dict
             
 
 # Main

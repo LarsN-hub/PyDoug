@@ -17,6 +17,7 @@ import plots
 import trans
 import util
 import pywt
+import os
 
 from qtpy.QtWidgets import QTabWidget
 from matplotlib import pyplot as plt
@@ -298,9 +299,26 @@ class ImageProcessor:
         call_button = "Export Parameters")
     def export_parameters_widget(self,
         Save_Folder: pathlib.Path = pathlib.Path("~"),
-        File_Name: str = "Parameters") -> None:
+        Folder_Name: str = "Parameters",
+        Compress_Masks: bool = True) -> None:
         
-        rw.write_parameters(parameters_log, str(File_Name), str(Save_Folder))
+        save_dir: str = str(Save_Folder) + "/" + str(Folder_Name)
+        os.makedirs(save_dir)
+        rw.write_parameters(parameters_log, "Parameters", save_dir)
+        
+        for row in parameters_log:
+            
+            if "Mask Used" in list(row.keys()):
+                
+                mask_layer: napari.layers.Image = sv.get_layer(self.viewer, row["Mask Used"])
+                
+                if Compress_Masks:
+                    
+                    rw.write_im(mask_layer.data[0], save_dir, row["Mask Used"])
+                
+                else:
+                    
+                    rw.write_stack(mask_layer.data, save_dir, row["Mask Used"], multi_page = True)
             
             
     # Manipulate Widgets
@@ -476,7 +494,8 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Mask_Method.lower(),
-             "Masked Color": color_spec})
+             "Masked Color": color_spec,
+             "Mask Used": Mask.name})
         self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
     
     @magicgui(
@@ -507,7 +526,8 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Cropped", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Masked Color": color_spec})
+             "Masked Color": color_spec,
+             "Mask Used": Mask.name})
         
         if Conserve_RAM:
             
@@ -897,7 +917,8 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Otsu Classes": Otsu_Classes,
-             "Apply Mask": Apply_Mask})
+             "Apply Mask": Apply_Mask,
+             "Mask Used": Mask.name})
         
         if Apply_Mask:
             
@@ -930,7 +951,8 @@ class ImageProcessor:
              "Window Size": Window_Size,
              "Sigma Weight": Niblack_or_Savoula_Sigma_Weight,
              "Sigma Range": Savoula_Sigma_Range,
-             "Apply Mask": Apply_Mask})
+             "Apply Mask": Apply_Mask,
+             "Mask Used": Mask.name})
         
         if Apply_Mask:
             
@@ -974,7 +996,8 @@ class ImageProcessor:
                  "Connectivity": Connectivity,
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
-                 "Apply Mask": Apply_Mask})
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
             
             if Apply_Mask:
                 
@@ -992,7 +1015,8 @@ class ImageProcessor:
                  "Background": Background,
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
-                 "Apply Mask": Apply_Mask})
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
             
             if Apply_Mask:
                 
@@ -1210,12 +1234,12 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Fast N": Fast_N,
-             "Fast_Threshold": Fast_Threshold,
+             "Fast Threshold": Fast_Threshold,
              "Harris Method": Harris_Method,
              "Harris K": Harris_K,
              "Harris Epsilon": Harris_Epsilon,
              "Sigma": Harris_or_Shi_Tomasi_Sigma,
-             "Window_Size": Moravec_Window_Size})
+             "Window Size": Moravec_Window_Size})
         
         self.viewer.add_image(detect.corners(Image.data, method = Method.lower(), n = Fast_N, threshold = Fast_Threshold, harris_method = Harris_Method.lower(), k = Harris_K, eps = Harris_Epsilon, sigma = Harris_or_Shi_Tomasi_Sigma, window_size = Moravec_Window_Size, return_mode = "array"), name = param_layer_name)
     
@@ -1259,7 +1283,8 @@ class ImageProcessor:
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Max": Y_Max,
-                 "Apply Mask": Apply_Mask})
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
             
         if X_Max == 0:
             
@@ -1314,7 +1339,8 @@ class ImageProcessor:
             param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
-                 "Apply Mask": Apply_Mask})
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
             
         if Apply_Mask:
             

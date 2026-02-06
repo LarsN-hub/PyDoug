@@ -1,17 +1,15 @@
 ui/gui.py
 - Add remaining plots
-- Export masks when parameters are exported
 - Add batch processing file(s) and widget
 - Add plot gathering and export function (drop-down for figures???)
-
-analysis/plots.py
-- Add line plots to multi-plot function
-- Add heat map plots to multi-plot function
-- Add plot pop-up window function
 
 batch/batchproc.py
 - Create file
 - Create batch processing function
+
+proc/dic.py
+- Create file
+- Add digital image / volume correlation functions
 
 io/readwrite.py
 
@@ -37,6 +35,5 @@ analysis/distrib.py
 
 analysis/quant.py
 
-proc/dic.py
-- Create file
-- Add digital image / volume correlation functions
+analysis/plots.py
+
