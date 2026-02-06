@@ -5,9 +5,9 @@ io/readwrite.py
 ui/sliceview.py
 
 ui/gui.py
-- Fix corner detection errors
-- Test along axis edge detection
-- Finish Fourier filters
+- Test FFT filter on real computer
+- Add plot widgets, figure out how to implement in parameters
+- Add batch processing
 - Add widgets for all desired functions
 
 proc/trans.py

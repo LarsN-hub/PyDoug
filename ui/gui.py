@@ -20,6 +20,7 @@ import pywt
 from qtpy.QtWidgets import QTabWidget
 from magicclass import magicclass
 from filtering import denoising
+from filtering import fourier
 from magicgui import magicgui
 from magicgui import widgets
 from filtering import morph
@@ -193,9 +194,13 @@ class ImageProcessor:
             
             info = np.iinfo(self.manual_threshold_widget.Image.value.data.dtype)
             
-        else:
+        elif np.issubdtype(self.manual_threshold_widget.Image.value.data.dtype, np.floating):
             
             info = np.finfo(self.manual_threshold_widget.Image.value.data.dtype)
+            
+        else:
+            
+            return
             
         self.manual_threshold_widget.Range.min = info.min
         self.manual_threshold_widget.Range.max = info.max
@@ -1215,16 +1220,14 @@ class ImageProcessor:
     @magicgui(
         call_button = "FFT")
     def fft_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Along_Z_Axis: bool = False) -> None:
         
-        pass
-    
-    @magicgui(
-        call_button = "IFFT")
-    def ifft_widget(self,
-        Image: napari.layers.Image) -> None:
-        
-        pass
+        param_layer_name = get_param_layer_name("FFT", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(np.real(fourier.ft(Image.data, Along_Z_Axis)), name = param_layer_name)
         
         
 # Functions
@@ -1384,9 +1387,8 @@ def main() -> None:
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
     mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
-    mod_ifft: widgets.Container = modify_funcgui(ui.ifft_widget, "Inverse FFT")
     filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_fft, mod_ifft],
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_fft],
         labels = False)
     tabs.addTab(filter_container.native, "Filters")
     
