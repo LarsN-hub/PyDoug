@@ -40,7 +40,7 @@ parameters_log: list[dict[str, dict]] = []
 export_list: list[str] = ["Tiff", "HDF5"]
 
 trim_pad_list: list[str] = ["Trim", "Pad"]
-shapes_list: list[str] = ["Ellipse", "Rectangle", "Polygon"]
+shapes_list: list[str] = ["Ellipse", "Rectangle", "Polygon", "Line"]
 out_of_mask_list: list[str] = ["Black", "White", "Gray"]
 mask_method_list: list[str] = ["Out", "In"]
 
@@ -1332,6 +1332,24 @@ class ImageProcessor:
         plt.show()
         
     @magicgui(
+        call_button = "Plot Line Scan")
+    def line_scan_widget(self,
+        Image: napari.layers.Image,
+        Shapes: napari.layers.Shapes) -> None:
+        
+        if util.is_3d_rgb(Image.data)["3D"]:
+            
+            im_array = Image.data[self.viewer.dims.current_step[0]]
+            
+        else:
+            
+            im_array = np.copy(Image.data)
+            
+        _ = plots.gui_line_scan(im_array, Shapes)
+            
+        plt.show()
+        
+    @magicgui(
         call_button = "Plot Gray Level")
     def gray_level_widget(self,
         Image: napari.layers.Image,
@@ -1501,7 +1519,7 @@ def modify_funcgui(funcgui, title: str) -> widgets.Container:
 
 # Main        
 
-def main() -> None:
+def main() -> napari.viewer.Viewer:
     
     
     # Initialize
@@ -1610,11 +1628,12 @@ def main() -> None:
     # Analysis Widgets
     
     mod_histogram: widgets.Container = modify_funcgui(ui.histogram_widget, "Histogram")
+    mod_line_scan: widgets.Container = modify_funcgui(ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(ui.gray_level_widget, "Gray Level")
     mod_distribution: widgets.Container = modify_funcgui(ui.distribution_widget, "Distributions")
     mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
     analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_histogram, mod_gray_level, mod_distribution, mod_heat_map],
+        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_distribution, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     
@@ -1626,6 +1645,8 @@ def main() -> None:
     
     tabs.setCurrentIndex(0)
     viewer.window.add_dock_widget(tabs, name = "Image Processing Tools")
+    
+    return viewer
     
 if __name__ == "__main__":
     

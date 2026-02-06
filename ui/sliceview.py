@@ -125,7 +125,7 @@ def add_shape(viewer: napari.viewer.Viewer, shape_type: str = "rectangle", *, n_
         
     return shape_layer
         
-def extract_shapes(viewer: napari.viewer.Viewer, shapes_layer: napari.layers.Shapes = None) -> dict[str, np.ndarray]:
+def extract_shapes(viewer: napari.viewer.Viewer = None, shapes_layer: napari.layers.Shapes = None) -> dict[str, np.ndarray]:
     
     if not shapes_layer:
         
@@ -144,14 +144,26 @@ def extract_shapes(viewer: napari.viewer.Viewer, shapes_layer: napari.layers.Sha
             
     return shape_dict
         
-def get_line_scan(viewer: napari.viewer.Viewer, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
+def quick_get_line_scan(viewer: napari.viewer.Viewer = None, im_array: np.ndarray = None, shapes_layer: napari.layers.Shapes = None, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
+        
+    if not shapes_layer and np.logical_not(im_array):
     
-    im_array: np.ndarray = get_top_im_layer(viewer).data
-    line_coords: np.ndarray = np.astype(np.round(extract_shapes(viewer)["line"]), np.int64)
+        im_array: np.ndarray = get_top_im_layer(viewer).data
+        shape_dict = extract_shapes(viewer)
+        
+    else:
+        
+        shape_dict = extract_shapes(shapes_layer = shapes_layer)
+        
+    for shape in list(shape_dict.keys()):
+        
+        if "line" in shape:
+            
+            line_coords = np.astype(np.round(shape_dict[shape]), np.int64)
     
     if not slice_range and line_coords.shape[1] == 3:
         
@@ -181,15 +193,25 @@ def get_line_scan(viewer: napari.viewer.Viewer, slice_range: tuple | str | None 
         
     rr, cc = draw.line(r_start, c_start, r_end, c_end)
     ls_array: np.ndarray = np.expand_dims(np.arange(0, len(rr)), 1) * pixel_size
-    columns = ["Position"]
-        
-    for slice_index in range(slice_range[0], slice_range[1]):
-        
-        ls_array = np.hstack((ls_array, np.expand_dims(im_array[slice_index, rr, cc], 1)))
-        columns.append(str(slice_index))
     
-    ls_df: pd.DataFrame = pd.DataFrame(ls_array, columns = columns)
-    ls_df.attrs = {"pos_units": units}
+    if not viewer:
+        
+        columns = ["Position", "Gray Value"]
+        ls_array = np.hstack((ls_array, np.expand_dims(im_array[rr, cc], 1)))
+        ls_df: pd.DataFrame = pd.DataFrame(ls_array, columns = columns)
+        ls_df.attrs = {"pos_units": units}
+    
+    else:
+        
+        columns = ["Position"]
+        
+        for slice_index in range(slice_range[0], slice_range[1]):
+            
+            ls_array = np.hstack((ls_array, np.expand_dims(im_array[slice_index, rr, cc], 1)))
+            columns.append(str(slice_index))
+        
+        ls_df: pd.DataFrame = pd.DataFrame(ls_array, columns = columns)
+        ls_df.attrs = {"pos_units": units}
     
     return ls_df
                  

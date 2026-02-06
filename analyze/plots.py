@@ -155,7 +155,7 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
         
         if mode == "line scan":
             
-            line_df: pd.DataFrame = sv.get_line_scan(viewer, slice_range, pixel_size = pixel_size, units = units)
+            line_df: pd.DataFrame = sv.quick_get_line_scan(viewer, slice_range, pixel_size = pixel_size, units = units)
         
         elif mode == "phase distrib":
             
@@ -292,6 +292,17 @@ def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode
     
     fig, line_ax = plt.subplots()
     line_ax = line_axis(data, line_ax, mode = mode, color_mode = color_mode, viewer = viewer, slice_range = slice_range, distrib_mode = distrib_mode, size_mode = size_mode, pixel_size = pixel_size, units = units, mask_array = mask_array, temporal_scale = temporal_scale, temporal_units = temporal_units, axis = axis, include_background = include_background, background = background, connectivity = connectivity, ignore_edges = ignore_edges, normalize = normalize, xlims = xlims, ylims = ylims)
+    
+    return fig
+
+def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> plt.Figure:
+    
+    line_scan_df: pd.DataFrame = sv.quick_get_line_scan(im_array = im_array, shapes_layer = shapes_layer)
+    fig, ls_ax = plt.subplots()
+    ls_ax.set_xlabel("Position [pix]")
+    ls_ax.set_ylabel("Gray Value")
+    ls_ax.plot(line_scan_df["Position"], line_scan_df["Gray Value"], "red")
+    ls_ax.set_xlim(0, line_scan_df["Position"][len(line_scan_df["Position"]) - 1])
     
     return fig
 
