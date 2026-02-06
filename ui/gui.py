@@ -68,6 +68,7 @@ edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "R
 corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
 harris_method_list: list[str] = ["K", "Eps"]
 
+domain_size_types_list: list[str] = ["Volume", "Area"]
 heat_method_list: list[str] = ["Thickness", "Height"]
 heat_colors_list: list[str] = list(colormaps)
 heat_direction_list: list[str] = ["Far", "Near"]
@@ -763,7 +764,7 @@ class ImageProcessor:
         
         param_layer_name = get_param_layer_name("Gaussian", self.operation_count)
         parameters_log.append(
-            {"name": param_layer_name,
+            {"Name": param_layer_name,
              "Sigma": Sigma,
              "Truncate": Truncate,
              "Mode": Edges_Method.lower(),
@@ -917,13 +918,21 @@ class ImageProcessor:
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
         
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
         param_layer_name = get_param_layer_name("Histogram Threshold", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Otsu Classes": Otsu_Classes,
              "Apply Mask": Apply_Mask,
-             "Mask Used": Mask.name})
+             "Mask Used": mask_name})
         
         if Apply_Mask:
             
@@ -945,6 +954,14 @@ class ImageProcessor:
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
         
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
         if Savoula_Sigma_Range == 0:
             
             Savoula_Sigma_Range = None
@@ -957,7 +974,7 @@ class ImageProcessor:
              "Sigma Weight": Niblack_or_Savoula_Sigma_Weight,
              "Sigma Range": Savoula_Sigma_Range,
              "Apply Mask": Apply_Mask,
-             "Mask Used": Mask.name})
+             "Mask Used": mask_name})
         
         if Apply_Mask:
             
@@ -975,12 +992,20 @@ class ImageProcessor:
     def label_widget(self,
         Image: napari.layers.Image,
         Method: str = "Connectivity",
-        Background: int = 0,
         Connectivity: int = 3,
+        Background: int = 0,
         Along_Axis: bool = False,
         Axis: str = "Z",
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
@@ -1002,7 +1027,7 @@ class ImageProcessor:
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
+                 "Mask Used": mask_name})
             
             if Apply_Mask:
                 
@@ -1080,6 +1105,7 @@ class ImageProcessor:
     
     @magicgui(
         Method = {"choices": remove_objects_list},
+        Connectivity = {"choices": connectivity_list},
         call_button = "Remove Objects")
     def remove_objects_widget(self,
         Image: napari.layers.Image,
@@ -1277,6 +1303,14 @@ class ImageProcessor:
         Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
         
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
         if Add_as_Parameter:
             
             param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
@@ -1289,7 +1323,7 @@ class ImageProcessor:
                  "X Max": X_Max,
                  "Y Max": Y_Max,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
+                 "Mask Used": mask_name})
             
         if X_Max == 0:
             
@@ -1357,13 +1391,21 @@ class ImageProcessor:
         Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
         
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
         if Add_as_Parameter:
             
             param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
+                 "Mask Used": mask_name})
             
         if Apply_Mask:
             
@@ -1376,30 +1418,204 @@ class ImageProcessor:
         plt.show()
             
     @magicgui(
+        Type = {"choices": domain_size_types_list},
+        Domain_Size_Connectivity = {"choices": connectivity_list},
+        Axis = {"choices": axis_list},
         call_button = "Plot Distribution")
-    def distribution_widget(self,
+    def axis_distribution_widget(self,
         Image: napari.layers.Image,
+        Type: str = "Volume",
+        Axis: str = "Z",
+        Domain_Size: bool = False,
+        Domain_Size_Connectivity: int = 2,
+        Include_Background: bool = False,
+        Background: float = 0,
+        Pixel_Scale: float = 1,
+        Pixel_Units: str = "pixels",
+        Normalize: bool = False,
+        Remove_Edges: bool = False,
+        X_Min: float = 0,
+        X_Max: float = 0,
+        Y_Max: float = 0,
+        Time_Series: bool = False,
+        Time_Units: str = "s",
+        Time_Scale: float = 1,
         Apply_Mask: bool = False,
         Mask: napari.layers.image = None,
         Add_as_Parameter: bool = False) -> None:
         
-        if Add_as_Parameter:
+        if Type == "Volume":
             
-            param_layer_name = get_param_layer_name("Distribution Plot", self.operation_count)
-            parameters_log.append(
-                {"Name": param_layer_name,
-                 "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
+            Type = "Vol"
             
-        fig, line_ax = plt.subplots()
+        elif Type == "Domain Size":
             
-        if Apply_Mask:
+            Type = "Psd"
             
-            pass
+        if Domain_Size_Connectivity > Image.data.ndim:
+            
+            Domain_Size_Connectivity = 2
+            
+        if X_Max == 0:
+            
+            x_lims = None
             
         else:
             
-            pass
+            x_lims = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            
+            y_lims = None
+            
+        else:
+            
+            y_lims = (0, Y_Max)
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+            
+        Axis: int = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Axis Distribution Plot", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Type": Type.lower(),
+                 "Axis": Axis,
+                 "Domain Size": Domain_Size,
+                 "Connectivity": Domain_Size_Connectivity,
+                 "Include Background": Include_Background,
+                 "Background": Background,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Pixel_Units,
+                 "Normalize": Normalize,
+                 "Remove Edges": Remove_Edges,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Max": Y_Max,
+                 "Time Series": Time_Series,
+                 "Time Units": Time_Units,
+                 "Time Scale": Time_Scale,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name})
+            
+        if not Domain_Size:
+            
+            mode: str = "phase distrib"
+            
+        else:
+            
+            mode: str = "psd distrib"
+            
+        distrib_mode: str = Type.lower()
+            
+        if Time_Series:
+            
+            mode: str = "time series"
+            
+            if Domain_Size:
+                
+                distrib_mode: str = "size"
+            
+        if not Time_Series:
+            
+            Time_Units = None
+            Time_Scale = None
+            
+        if Apply_Mask:
+            
+            _ = plots.line(Image.data, mode = mode, distrib_mode = distrib_mode, size_mode = Type.lower(), pixel_size = Pixel_Scale, units = Pixel_Units, mask_array = Mask.data, temporal_scale = Time_Scale, temporal_units = Time_Units, axis = Axis, include_background = Include_Background, background = Background, connectivity = Domain_Size_Connectivity, ignore_edges = Remove_Edges, normalize = Normalize, xlims = x_lims, ylims = y_lims)
+            
+        else:
+            
+            _ = plots.line(Image.data, mode = mode, distrib_mode = distrib_mode, size_mode = Type.lower(), pixel_size = Pixel_Scale, units = Pixel_Units, temporal_scale = Time_Scale, temporal_units = Time_Units, axis = Axis, include_background = Include_Background, background = Background, connectivity = Domain_Size_Connectivity, ignore_edges = Remove_Edges, normalize = Normalize, xlims = x_lims, ylims = y_lims)
+            
+        plt.show()
+        
+    @magicgui(
+        Type = {"choices": domain_size_types_list},
+        Connectivity = {"choices": connectivity_list},
+        call_button = "Plot Distribution")
+    def psd_widget(self,
+        Image: napari.layers.Image,
+        Type: str = "Volume",
+        Connectivity: int = 3,
+        Background: int = 0,
+        Pixel_Scale: float = 1,
+        Units: str = "pixels",
+        Normalize: bool = False,
+        Remove_Edges: bool = True,
+        X_Min: float = 0,
+        X_Max: float = 0,
+        Y_Max: float = 0,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.image = None,
+        Add_as_Parameter: bool = False) -> None:
+        
+        if Type == "Volume":
+            
+            Type = "Vol"
+            
+        if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        if X_Max == 0:
+            
+            x_lims = None
+            
+        else:
+            
+            x_lims = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            
+            y_lims = None
+            
+        else:
+            
+            y_lims = (0, Y_Max)
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Domain Size Distribution Plot", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Type": Type.lower(),
+                 "Connectivity": Connectivity,
+                 "Background": Background,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Normalize": Normalize,
+                 "Remove Edges": Remove_Edges,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Max": Y_Max,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name})
+            
+        if Apply_Mask:
+            
+            _ = plots.size_distribution(Image.data, mode = Type.lower(), units = Units, mask_array = Mask.data, xlims = x_lims, ylims = y_lims, normalize = Normalize, ignore_edges = Remove_Edges, connectivity = Connectivity, background = Background)
+            
+        else:
+            
+            _ = plots.size_distribution(Image.data, mode = Type.lower(), units = Units, xlims = x_lims, ylims = y_lims, normalize = Normalize, ignore_edges = Remove_Edges, connectivity = Connectivity, background = Background)
             
         plt.show()
     
@@ -1424,6 +1640,14 @@ class ImageProcessor:
         Mask: napari.layers.image = None,
         Add_as_Parameter: bool = False) -> None:
         
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+        
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
         if Add_as_Parameter:
@@ -1441,7 +1665,7 @@ class ImageProcessor:
                  "Min Value": Min_Value,
                  "Max Value": Max_Value,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
+                 "Mask Used": mask_name})
             
         if Define_Limits:
             
@@ -1630,10 +1854,11 @@ def main() -> napari.viewer.Viewer:
     mod_histogram: widgets.Container = modify_funcgui(ui.histogram_widget, "Histogram")
     mod_line_scan: widgets.Container = modify_funcgui(ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(ui.gray_level_widget, "Gray Level")
-    mod_distribution: widgets.Container = modify_funcgui(ui.distribution_widget, "Distributions")
+    mod_axis_distribution: widgets.Container = modify_funcgui(ui.axis_distribution_widget, "Axial Distributions")
+    mod_psd: widgets.Container = modify_funcgui(ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
     analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_distribution, mod_heat_map],
+        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_axis_distribution, mod_psd, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     

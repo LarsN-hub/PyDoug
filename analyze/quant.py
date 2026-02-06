@@ -2,13 +2,12 @@
 Module for quantified analysis of segmented images
 """
 
+
 # Imports
 
 import pandas as pd
 import numpy as np
 import distrib
-import pixels
-import trans
 import util
 
 from filtering import denoising

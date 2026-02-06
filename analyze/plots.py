@@ -2,6 +2,7 @@
 Module for generating plots to analyze images
 """
 
+
 # Imports
 
 import sliceview as sv
@@ -173,15 +174,52 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
         
         line_df: pd.DataFrame = data.copy()
         
-    if mode == "phase distrib" or mode == "psd distrib" or mode == "line scan":
+    if mode == "phase distrib" or mode == "line scan":
         
         x_units: str = line_df.attrs["pos_units"]
         x_label: str = f"Position ({x_units})"
         
+    elif mode == "psd distrib":
+        
+        if size_mode == "vol":
+            
+            x_units: str = line_df.attrs["vol_units"]
+            x_label = f"Volume ({x_units})"
+            
+        elif size_mode == "area":
+            
+            x_units: str = line_df.attrs["area_units"]
+            x_label = f"Area ({x_units})"
+            
+        elif size_mode == "diam":
+            
+            x_units: str = line_df.attrs["diam_units"]
+            x_label == f"Diameter ({x_units})"
+        
     elif mode == "time series":
         
-        x_units: str = line_df.attrs["time_units"]
-        x_label: str = f"Time ({x_units})"
+        
+        if distrib_mode != "size":
+            
+            x_units: str = line_df.attrs["time_units"]
+            x_label: str = f"Time ({x_units})"
+            
+        else:
+            
+            if size_mode == "vol":
+                
+                x_units: str = line_df.attrs["vol_units"]
+                x_label = f"Volume ({x_units})"
+                
+            elif size_mode == "area":
+                
+                x_units: str = line_df.attrs["area_units"]
+                x_label = f"Area ({x_units})"
+                
+            elif size_mode == "diam":
+                
+                x_units: str = line_df.attrs["diam_units"]
+                x_label == f"Diameter ({x_units})"
         
     if normalize:
         
@@ -189,43 +227,23 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
         
             if distrib_mode == "vol":
             
-                y_label = "Volumetric Probability Density"
+                y_label: str = "Volumetric Probability Density"
                 
             elif distrib_mode == "area":
                 
-                y_label = "Areal Probability Density"
+                y_label: str = "Areal Probability Density"
                 
             elif distrib_mode == "diam":
                 
-                y_label == "Size Probability Density"
+                y_label: str = "Size Probability Density"
                 
             elif distrib_mode == "size":
                 
-                if size_mode == "vol":
-                    
-                    y_label = "Volumetric Size Probability Density"
-                    
-                elif size_mode == "area":
-                    
-                    y_label = "Areal Size Probability Density"
-                    
-                elif distrib_mode == "diam":
-                    
-                    y_label == "Diameter Size Probability Density"
+                y_label: str = "Probability Density"
                 
         elif mode == "psd distrib":
             
-            if size_mode == "vol":
-                
-                y_label = "Volumetric Size Probability Density"
-                
-            elif size_mode == "area":
-                
-                y_label = "Areal Size Probability Density"
-                
-            elif distrib_mode == "diam":
-                
-                y_label == "Diameter Size Probability Density"
+            y_label: str = "Probability Density"
         
     else:
         
@@ -233,7 +251,7 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
             
             y_label: str = "Gray Value"
             
-        if mode == "phase distrib" or mode == "psd distrib" or mode == "time series":
+        elif mode == "phase distrib" or mode == "time series":
             
             if distrib_mode == "vol":
                 
@@ -249,6 +267,14 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
                 
                 y_units: str = line_df.attrs["diam_units"]
                 y_label: str = f"Diameter ({y_units})"
+                
+            elif distrib_mode == "size":
+                
+                y_label: str = "Counts"
+                
+        else:
+            
+            y_label: str = "Counts"
         
     if ignore_edges:
         
@@ -290,8 +316,18 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
 
 def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, connectivity: int = None, ignore_edges: bool = False, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
     
+    # if mode == "psd distrib":
+        
+    #     c_label: str = f"Thickness ({units})"
+        
+    # elif mode == "time series":
+        
+    #     c_label: str = f"Height ({units})"
+    
     fig, line_ax = plt.subplots()
     line_ax = line_axis(data, line_ax, mode = mode, color_mode = color_mode, viewer = viewer, slice_range = slice_range, distrib_mode = distrib_mode, size_mode = size_mode, pixel_size = pixel_size, units = units, mask_array = mask_array, temporal_scale = temporal_scale, temporal_units = temporal_units, axis = axis, include_background = include_background, background = background, connectivity = connectivity, ignore_edges = ignore_edges, normalize = normalize, xlims = xlims, ylims = ylims)
+    # fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
+    # fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
     
     return fig
 

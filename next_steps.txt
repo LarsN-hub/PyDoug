@@ -1,11 +1,14 @@
 ui/gui.py
-- Add remaining plots
+- Add single value / table generation
 - Add batch processing file(s) and widget
 - Add plot gathering and export function (drop-down for figures???)
 
 batch/batchproc.py
 - Create file
 - Create batch processing function
+
+analysis/plots.py
+- add colorbar to time series and positional psd plots
 
 proc/dic.py
 - Create file
@@ -34,6 +37,4 @@ proc/segment/detect.py
 analysis/distrib.py
 
 analysis/quant.py
-
-analysis/plots.py
 
