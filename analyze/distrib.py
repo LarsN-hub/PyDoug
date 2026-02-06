@@ -7,6 +7,8 @@ Module for obtaining distributions of image data
 import cropclip as cc
 import pandas as pd
 import numpy as np
+import pixels
+import trans
 import quant
 
 from skimage import exposure
@@ -382,6 +384,56 @@ def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.n
         time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, pixel_size = pixel_size, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background, normalize = normalize)
 
     return time_df
+
+def get_heat_map(im_array: np.ndarray, mode: str = "thickness", *, mask_array: np.ndarray = None, pixel_size: float = 1.0, axis: int = 0, height_orientation: str = "near") -> np.ndarray:
+    
+    if im_array.dtype != np.bool:
+        
+        bool_array: np.ndarray = pixels.convert_im_type(im_array, "bool")
+        
+    else:
+        
+        bool_array: np.ndarray = np.copy(im_array)
+        
+    if np.any(mask_array):
+        
+        bool_array[np.logical_not(np.bool(mask_array))] = False
+        
+    if mode == "thickness":
+        
+        heat_array: np.ndarray = np.count_nonzero(bool_array, axis)
+    
+    elif mode == "height":
+        
+        if axis == 0:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[1], im_array.shape[2])) * (im_array.shape[0] - 1)
+            
+        elif axis == 1:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[0], im_array.shape[2])) * (im_array.shape[1] - 1)
+        
+        elif axis == 2:
+            
+            max_height_array: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1])) * (im_array.shape[2] - 1)
+        
+        if height_orientation == "near":
+            
+            heat_array: np.ndarray = max_height_array - np.argmax(bool_array, axis)
+        
+        elif height_orientation == "far":
+            
+            heat_array: np.ndarray = max_height_array - np.argmax(trans.mirror(bool_array, axis), axis)
+            
+    if axis == 0:
+        
+        heat_array = trans.mirror(heat_array, 0)
+            
+    if axis == 2:
+
+        heat_array = trans.mirror(trans.mirror(trans.rotate(heat_array, -90, resize = True, preserve_range = True), 0), 1)
+            
+    return heat_array * pixel_size
 
 
 # Main

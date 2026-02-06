@@ -541,7 +541,7 @@ def heat_axis(data: np.ndarray, input_ax: plt.Axes, *, mode: str = "thick", cmap
     
     if data.ndim > 2:
         
-        heat_array: np.ndarray = quant.get_heat_map(data, mode = mode, mask_array = mask_array, pixel_size = pixel_size, axis = axis, height_orientation = height_orientation)
+        heat_array: np.ndarray = distrib.get_heat_map(data, mode = mode, mask_array = mask_array, pixel_size = pixel_size, axis = axis, height_orientation = height_orientation)
     
     else:
         
@@ -564,9 +564,9 @@ def heat_axis(data: np.ndarray, input_ax: plt.Axes, *, mode: str = "thick", cmap
     
     return heat_ax, ax_im
 
-def heat_map(data: np.ndarray, *, mode: str = "thick", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Figure:
+def heat_map(data: np.ndarray, *, mode: str = "thickness", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Figure:
     
-    if mode == "thick":
+    if mode == "thickness":
         
         c_label: str = f"Thickness ({units})"
         

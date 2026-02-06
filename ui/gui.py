@@ -22,6 +22,7 @@ import os
 from qtpy.QtWidgets import QTabWidget
 from matplotlib import pyplot as plt
 from magicclass import magicclass
+from matplotlib import colormaps
 from filtering import denoising
 from filtering import fourier
 from magicgui import magicgui
@@ -66,6 +67,10 @@ tophat_list: list[str] = ["Black", "White"]
 edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]
 corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
 harris_method_list: list[str] = ["K", "Eps"]
+
+heat_method_list: list[str] = ["Thickness", "Height"]
+heat_colors_list: list[str] = list(colormaps)
+heat_direction_list: list[str] = ["Far", "Near"]
 
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
 axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
@@ -250,7 +255,7 @@ class ImageProcessor:
     # I/O Widgets
     
     @magicgui(
-        call_button = "Import Image")
+        call_button = "Import File")
     def im_import_widget(self,
         Multi_Page: bool = True,
         File_Path: pathlib.Path = pathlib.Path("~")) -> None:
@@ -265,7 +270,7 @@ class ImageProcessor:
     
     @magicgui(
         Directory_Path = {"mode": "d"},
-        call_button = "Import Sequence")
+        call_button = "Import File Sequence")
     def dir_import_widget(self,
         Directory_Path: pathlib.Path = pathlib.Path("~")) -> None:
         
@@ -1082,7 +1087,7 @@ class ImageProcessor:
         Connectivity: int = 3,
         Max_Size: float = 25,
         Background: int = 0,
-        Pixel_Scale: int = 1) -> None:
+        Pixel_Scale: float = 1) -> None:
         
         if Connectivity > Image.data.ndim:
             
@@ -1259,7 +1264,7 @@ class ImageProcessor:
     # Analysis Widgets
     
     @magicgui(
-        call_button = "Histogram")
+        call_button = "Plot Histogram")
     def histogram_widget(self,
         Image: napari.layers.Image,
         Normalize: bool = False,
@@ -1327,7 +1332,7 @@ class ImageProcessor:
         plt.show()
         
     @magicgui(
-        call_button = "Gray Level")
+        call_button = "Plot Gray Level")
     def gray_level_widget(self,
         Image: napari.layers.Image,
         Apply_Mask: bool = False,
@@ -1344,27 +1349,99 @@ class ImageProcessor:
             
         if Apply_Mask:
             
-            _ = plots.gray_level(Image.data, mask_array = Mask.data, return_axes = True)
+            _ = plots.gray_level(Image.data, mask_array = Mask.data)
             
         else:
             
-            _ = plots.gray_level(Image.data, return_axes = True)
+            _ = plots.gray_level(Image.data)
             
         plt.show()
             
     @magicgui(
-        call_button = "Distribution")
+        call_button = "Plot Distribution")
     def distribution_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.image = None,
+        Add_as_Parameter: bool = False) -> None:
         
-        pass
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Distribution Plot", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
+            
+        fig, line_ax = plt.subplots()
+            
+        if Apply_Mask:
+            
+            pass
+            
+        else:
+            
+            pass
+            
+        plt.show()
     
     @magicgui(
-        call_button = "Heat Map")
+        Method = {"choices": heat_method_list},
+        Color_Map = {"choices": heat_colors_list},
+        Height_Direction = {"choices": heat_direction_list},
+        Axis = {"choices": axis_list},
+        call_button = "Plot Heat Map")
     def heat_map_widget(self,
-        Image: napari.layers.Image) -> None:
+        Image: napari.layers.Image,
+        Method: str = "Thickness",
+        Color_Map: str = "inferno",
+        Height_Direction: str = "Near",
+        Axis: str = "Z",
+        Pixel_Scale: float = 1,
+        Units: str = "pixels",
+        Define_Limits: bool = False,
+        Min_Value: float = 0,
+        Max_Value: float = 10,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.image = None,
+        Add_as_Parameter: bool = False) -> None:
         
-        pass
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Heat Map", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Method": Method.lower(),
+                 "Color Map": Color_Map,
+                 "Height Direction": Height_Direction,
+                 "Axis": Axis,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Define Limits": Define_Limits,
+                 "Min Value": Min_Value,
+                 "Max Value": Max_Value,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
+            
+        if Define_Limits:
+            
+            clim = (Min_Value, Max_Value)
+            
+        else:
+            
+            clim = None
+            
+        if Apply_Mask:
+            
+            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = Mask.data, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower())
+            
+        else:
+            
+            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower())
+            
+        plt.show()
         
         
 # Functions
@@ -1436,7 +1513,7 @@ def main() -> None:
     
     # I/O Widgets
     
-    mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import Single File")
+    mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import File")
     mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
     mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
     mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
@@ -1540,6 +1617,9 @@ def main() -> None:
         widgets = [mod_histogram, mod_gray_level, mod_distribution, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
+    
+    
+    # Batch Widgets
     
     
     # Launch

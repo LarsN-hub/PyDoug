@@ -120,13 +120,13 @@ def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
         
     return {"3D": is_3d, "RGB": is_rgb}
 
-def convert_ax_str_to_int(im_layer: np.ndarray, rgb: bool, axis: str) -> int:
+def convert_ax_str_to_int(im_array: np.ndarray, rgb: bool, axis: str) -> int:
     
-    if im_layer.data.ndim == 3 and not rgb:
+    if im_array.ndim == 3 and not rgb:
         
         return axes_dict_3d[axis]
         
-    elif im_layer.data.ndim == 4:
+    elif im_array.ndim == 4:
         
         return axes_dict_3d[axis]
         
