@@ -13,11 +13,13 @@ import numpy as np
 import pathlib
 import napari
 import pixels
+import plots
 import trans
 import util
 import pywt
 
 from qtpy.QtWidgets import QTabWidget
+from matplotlib import pyplot as plt
 from magicclass import magicclass
 from filtering import denoising
 from filtering import fourier
@@ -1230,6 +1232,111 @@ class ImageProcessor:
         self.viewer.add_image(np.real(fourier.ft(Image.data, Along_Z_Axis)), name = param_layer_name)
         
         
+    # Analysis Widgets
+    
+    @magicgui(
+        call_button = "Histogram")
+    def histogram_widget(self,
+        Image: napari.layers.Image,
+        Normalize: bool = False,
+        Add_CDF: bool = False,
+        Remove_Edges: bool = False,
+        X_Min: float = 0,
+        X_Max: float = 0,
+        Y_Max: float = 0,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None,
+        Add_as_Parameter: bool = False) -> None:
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Normalize": Normalize,
+                 "Add CDF": Add_CDF,
+                 "Remove Edges": Remove_Edges,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Max": Y_Max,
+                 "Apply Mask": Apply_Mask})
+            
+        if X_Max == 0:
+            
+            x_lims = None
+            
+        else:
+            
+            x_lims = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            
+            y_lims = None
+            
+        else:
+            
+            y_lims = (0, Y_Max)
+            
+        fig, hist_ax = plt.subplots()
+        
+        if Apply_Mask:
+            
+            hist_ax: plt.Axes = plots.histogram_axis(Image.data, hist_ax, x_label = "Gray Value", mask_array = Mask.data, xlims = x_lims, ylims = y_lims, ignore_edges = Remove_Edges, normalize = Normalize)
+            
+            if Add_CDF:
+                
+                cdf_ax: plt.Axes = hist_ax.twinx()
+                cdf_ax = plots.cdf_axis(Image.data, cdf_ax, x_label = "Gray Value", mask_array = Mask.data, xlims = x_lims)
+                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+            
+        else:
+            
+            hist_ax = plots.histogram_axis(Image.data, hist_ax, x_label = "Gray Value", xlims = x_lims, ylims = y_lims, ignore_edges = Remove_Edges, normalize = Normalize)
+            
+            if Add_CDF:
+            
+                cdf_ax: plt.Axes = hist_ax.twinx()
+                cdf_ax = plots.cdf_axis(Image.data, cdf_ax, x_label = "Gray Value", xlims = x_lims)
+                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+        
+    @magicgui(
+        call_button = "Gray Level")
+    def gray_level_widget(self,
+        Image: napari.layers.Image,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None,
+        Add_as_Parameter: bool = False) -> None:
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Apply Mask": Apply_Mask})
+            
+        if Apply_Mask:
+            
+            _ = plots.gray_level(Image.data, mask_array = Mask.data, return_axes = True)
+            
+        else:
+            
+            _ = plots.gray_level(Image.data, return_axes = True)
+            
+    @magicgui(
+        call_button = "Distribution")
+    def distribution_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+    
+    @magicgui(
+        call_button = "Heat Map")
+    def heat_map_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        pass
+        
+        
 # Functions
 
 def get_param_layer_name(operation_name: str, operation_count: int) -> str:
@@ -1376,7 +1483,7 @@ def main() -> None:
     tabs.addTab(segmentation_container.native, "Segmentation")
     
     
-    # Filters
+    # Filter Widgets
     
     mod_remove_objects: widgets.Container = modify_funcgui(ui.remove_objects_widget, "Remove Small Objects")
     mod_dilate: widgets.Container = modify_funcgui(ui.dilate_widget, "Dilation")
@@ -1391,6 +1498,18 @@ def main() -> None:
         widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_fft],
         labels = False)
     tabs.addTab(filter_container.native, "Filters")
+    
+    
+    # Analysis Widgets
+    
+    mod_histogram: widgets.Container = modify_funcgui(ui.histogram_widget, "Histogram")
+    mod_gray_level: widgets.Container = modify_funcgui(ui.gray_level_widget, "Gray Level")
+    mod_distribution: widgets.Container = modify_funcgui(ui.distribution_widget, "Distributions")
+    mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
+    analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_histogram, mod_gray_level, mod_distribution, mod_heat_map],
+        labels = False)
+    tabs.addTab(analysis_container.native, "Analysis")
     
     
     # Launch

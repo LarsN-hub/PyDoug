@@ -6,8 +6,8 @@ ui/sliceview.py
 
 ui/gui.py
 - Test FFT filter on real computer
-- Add plot widgets, figure out how to implement in parameters
-- Add batch processing
+- See if just returning figure will still show plots
+- Add batch processing file(s) and widget
 - Add widgets for all desired functions
 
 proc/trans.py

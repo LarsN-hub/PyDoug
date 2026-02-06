@@ -409,7 +409,7 @@ def hist_cdf(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
     cdf_ax: plt.Axes = hist_ax.twinx()
-    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom") 
+    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
     cdf_ax = cdf_axis(data, cdf_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
     
     return fig
@@ -438,9 +438,9 @@ def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_a
     
     return gray_ax
 
-def gray_level(data: np.ndarray | pd.DataFrame, *, mask_array: np.ndarray = None) -> plt.Figure:
+def gray_level(data: np.ndarray | pd.DataFrame, *, return_axes: bool = False, mask_array: np.ndarray = None) -> plt.Figure:
 
-    return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array)
+    return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array, return_axes = return_axes)
 
 def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
                      parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Axes:
@@ -581,7 +581,7 @@ def heat_map(data: np.ndarray, *, mode: str = "thick", cmap: str = "inferno", cl
     
     return fig
 
-def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, quant_axes: tuple = (0, 1, 2), mode: str = "vol", units: str = "pix", connectivity: int = None, background: float | int = 0) -> plt.Figure:
+def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *, return_axes: bool = False, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, quant_axes: tuple = (0, 1, 2), mode: str = "vol", units: str = "pix", connectivity: int = None, background: float | int = 0) -> plt.Figure:
        
     if len(function_list) == 1:
         
@@ -628,7 +628,19 @@ def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[st
         
     fig.tight_layout()
     
-    return fig
+    if return_axes:
+        
+        if any(x == "hist cdf" for x in function_list):
+            
+            return axs, cdf_axs
+        
+        else:
+            
+            return axs
+    
+    else:
+        
+        return fig
     
     
 # Main
