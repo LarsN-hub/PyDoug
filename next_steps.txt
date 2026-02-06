@@ -1,14 +1,21 @@
+ui/gui.py
+- Add remaining plots
+- Export masks when parameters are exported
+- Add batch processing file(s) and widget
+- Add plot gathering and export function (drop-down for figures???)
+
+analysis/plots.py
+- Add line plots to multi-plot function
+- Add heat map plots to multi-plot function
+- Add plot pop-up window function
+
+batch/batchproc.py
+- Create file
+- Create batch processing function
+
 io/readwrite.py
-- fix persistent tkinter window
-- make tkinterfilebrowser window pop up to front
 
 ui/sliceview.py
-
-ui/gui.py
-- Test FFT filter on real computer
-- See if just returning figure will still show plots
-- Add batch processing file(s) and widget
-- Add widgets for all desired functions
 
 proc/trans.py
 
@@ -29,15 +36,6 @@ proc/segment/detect.py
 analysis/distrib.py
 
 analysis/quant.py
-
-analysis/plots.py
-- Add line plots to multi-plot function
-- Add heat map plots to multi-plot function
-- Add plot pop-up window function
-
-batch/batchproc.py
-- Create file
-- Create batch processing function
 
 proc/dic.py
 - Create file

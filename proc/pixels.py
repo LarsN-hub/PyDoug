@@ -11,7 +11,6 @@ import distrib
 import quant
 
 from skimage import util as skutil
-from skimage import transform
 from skimage import exposure
 from skimage import filters
 from filtering import morph
@@ -84,7 +83,7 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = Fal
     
     if any(x == convert_type for x in valid_types):
         
-        if str(im_array.dtype).find("float") != -1 and (norm or (np.max(im_array) > 1 or np.min(im_array) < 0)):
+        if np.issubdtype(im_array.dtype, np.floating) and (norm or (np.max(im_array) > 1 or np.min(im_array) < 0)):
             
             if float_bounds:
                 

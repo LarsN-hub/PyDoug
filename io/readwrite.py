@@ -6,6 +6,7 @@ Module for import/export of images, parameters, and plots
 # Imports
 
 import tkfilebrowser as tkfb
+import tkinter as tk
 import numpy as np
 import platform
 import h5py
@@ -112,25 +113,33 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
 
 def get_path(directory = False) -> str:
     
+    root: tk.Tk = tk.Tk()
+    
     if directory:
         
-        path: str = tkfb.askopendirname(title = "Select folder")
+        path: str = tkfb.askopendirname(parent = root, title = "Select folder")
     
     else:
         
-        path: str = tkfb.askopenfilename(title = "Select file")
+        path: str = tkfb.askopenfilename(parent = root, title = "Select file")
+        
+    root.destroy()
     
     return universalize_paths(path)
 
 def get_paths(directory = False) -> list[str]:
     
+    root: tk.Tk = tk.Tk()
+    
     if directory:
         
-        paths: tuple[str] = tkfb.askopendirnames(title = "Select folder(s)")
+        paths: tuple[str] = tkfb.askopendirnames(parent = root, title = "Select folder(s)")
     
     else:
         
-        paths: tuple[str] = tkfb.askopenfilenames(title = "Select file(s)")   
+        paths: tuple[str] = tkfb.askopenfilenames(parent = root, title = "Select file(s)")   
+        
+    root.destroy()
          
     return universalize_paths(list(paths))
 

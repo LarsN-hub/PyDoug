@@ -198,7 +198,7 @@ class ImageProcessor:
             
         elif np.issubdtype(self.manual_threshold_widget.Image.value.data.dtype, np.floating):
             
-            info = np.finfo(self.manual_threshold_widget.Image.value.data.dtype)
+            return
             
         else:
             
@@ -1229,7 +1229,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Along Axis": Along_Z_Axis})
-        self.viewer.add_image(np.real(fourier.ft(Image.data, Along_Z_Axis)), name = param_layer_name)
+        self.viewer.add_image(pixels.convert_im_type(np.real(fourier.ft(Image.data, Along_Z_Axis)), "uint8", norm = True), name = param_layer_name)
         
         
     # Analysis Widgets
@@ -1298,6 +1298,8 @@ class ImageProcessor:
                 cdf_ax: plt.Axes = hist_ax.twinx()
                 cdf_ax = plots.cdf_axis(Image.data, cdf_ax, x_label = "Gray Value", xlims = x_lims)
                 cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+                
+        plt.show()
         
     @magicgui(
         call_button = "Gray Level")
@@ -1321,6 +1323,8 @@ class ImageProcessor:
         else:
             
             _ = plots.gray_level(Image.data, return_axes = True)
+            
+        plt.show()
             
     @magicgui(
         call_button = "Distribution")

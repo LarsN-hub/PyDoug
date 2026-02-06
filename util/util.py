@@ -13,8 +13,6 @@ from numba import jit
 
 # Globals
 
-int_dtypes: list[np.dtype] = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8, np.int16, np.int32, np.int64]
-float_dtypes: list[np.dtype] = [np.float16, np.float32, np.float64]
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
 axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
@@ -56,11 +54,11 @@ def list_list_to_dict_list(list_list: list[list]) -> list[dict]:
 
 def get_dtype_info(im_array: np.ndarray) -> dict[str, float, int]:
     
-    if im_array.dtype in int_dtypes:
+    if np.issubdtype(im_array.dtype, np.integer):
         
         return {"Min": np.iinfo(im_array.dtype).min, "Max": np.iinfo(im_array.dtype).max}
     
-    elif im_array.dtype in float_dtypes:
+    elif np.issubdtype(im_array.dtype, np.floating):
         
         return {"Min": np.finfo(im_array.dtype).min, "Max": np.finfo(im_array.dtype).max}
     
@@ -84,11 +82,11 @@ def convert_color_to_intensity(im_array: np.ndarray, color: str, dtype_dict: dic
     
     elif color == "Gray":
         
-        if im_array.dtype in int_dtypes:
+        if np.issubdtype(im_array.dtype, np.integer):
             
             return int(round((dtype_dict["Max"] - dtype_dict["Min"]) / 2))
         
-        elif im_array.dtype in float_dtypes:
+        elif np.issubdtype(im_array.dtype, np.floating):
             
             return (dtype_dict["Max"] - dtype_dict["Min"]) / 2
         
