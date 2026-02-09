@@ -6,6 +6,7 @@ Module for denoising images
 
 import numpy as np
 import pixels
+import util
 
 from skimage import restoration
 from skimage import filters
@@ -15,6 +16,7 @@ from typing import Callable
 # Functions
 
 def bilateral(im_array: np.ndarray, *,
+              axis: int = 0,
               win_size: int | None = None,
               sigma_color: float | None = 0.1,
               sigma_spatial: float = 1,
@@ -25,17 +27,20 @@ def bilateral(im_array: np.ndarray, *,
     
     if len(im_array.shape) > 2:
     
-        bilat_array: np.ndarray = np.empty(im_array.shape)
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        bilat_array: np.ndarray = np.empty(proc_array.shape)
         
-        for n in range(0, im_array.shape[0]):
+        for n in range(0, proc_array.shape[0]):
                 
-            bilat_array[n] = restoration.denoise_bilateral(im_array[n], win_size, sigma_color, sigma_spatial, bins, mode, cval,
+            bilat_array[n] = restoration.denoise_bilateral(proc_array[n], win_size, sigma_color, sigma_spatial, bins, mode, cval,
                                                            channel_axis = channel_axis)
+            
+        bilat_array = util.undo_axial_array(bilat_array, axis)
             
     else:
         
         bilat_array = restoration.denoise_bilateral(im_array, win_size, sigma_color, sigma_spatial, bins, mode, cval,
-                                                       channel_axis = channel_axis)
+                                                    channel_axis = channel_axis)
         
     return pixels.convert_im_type(bilat_array, im_array.dtype)
 
@@ -45,16 +50,37 @@ def gaussian(im_array: np.ndarray, *,
              cval: int | float = 0,
              preserve_range: bool = False,
              truncate: float = 4,
+             axial: bool = False,
+             axis: int = 0,
              channel_axis: int | None = None,
              out: np.ndarray | None = None) -> np.ndarray:
     
-    gaus_array: np.ndarray = filters.gaussian(im_array, sigma,
-                                              mode = mode,
-                                              cval = cval,
-                                              preserve_range = preserve_range,
-                                              truncate = truncate,
-                                              channel_axis = channel_axis,
-                                              out = out)
+    if axial:
+        
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        gaus_array: np.ndarray = np.empty(proc_array.shape)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            gaus_array[n] = filters.gaussian(proc_array[n], sigma,
+                                             mode = mode,
+                                             cval = cval,
+                                             preserve_range = preserve_range,
+                                             truncate = truncate,
+                                             channel_axis = channel_axis,
+                                             out = out)
+            
+        gaus_array = util.undo_axial_array(gaus_array, axis)
+        
+    else:
+    
+        gaus_array: np.ndarray = filters.gaussian(im_array, sigma,
+                                                  mode = mode,
+                                                  cval = cval,
+                                                  preserve_range = preserve_range,
+                                                  truncate = truncate,
+                                                  channel_axis = channel_axis,
+                                                  out = out)
     
     return pixels.convert_im_type(gaus_array, im_array.dtype)
 
@@ -65,11 +91,28 @@ def non_local_means(im_array: np.ndarray, *,
                     fast_mode: bool = True,
                     sigma: float = 0,
                     preserve_range: bool = False,
+                    axial: bool = False,
+                    axis: int = 0,
                     channel_axis: int | None = None) -> np.ndarray:
     
-    nl_array: np.ndarray =  restoration.denoise_nl_means(im_array, patch_size, patch_distance, h, fast_mode, sigma,
-                                                         preserve_range = preserve_range,
-                                                         channel_axis = channel_axis)
+    if axial:
+        
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        nl_array: np.ndarray = np.emtpy(proc_array.shape)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            nl_array[n] = restoration.denoise_nl_means(proc_array[n], patch_size, patch_distance, h, fast_mode, sigma,
+                                                       preserve_range = preserve_range,
+                                                       channel_axis = channel_axis)
+            
+        nl_array = util.undo_axial_array(nl_array, axis)
+        
+    else:
+    
+        nl_array: np.ndarray =  restoration.denoise_nl_means(im_array, patch_size, patch_distance, h, fast_mode, sigma,
+                                                             preserve_range = preserve_range,
+                                                             channel_axis = channel_axis)
     
     return pixels.convert_im_type(nl_array, im_array.dtype)
 
@@ -95,10 +138,26 @@ def tv_bregman(im_array: np.ndarray, *,
                max_num_iter: int = 100,
                eps: float = 0.001,
                isotropic: bool = True,
+               axial: bool = False,
+               axis: int = 0,
                channel_axis: int | None = None) -> np.ndarray:
     
-    tv_array: np.ndarray = restoration.denoise_tv_bregman(im_array, weight, max_num_iter, eps, isotropic,
-                                                          channel_axis = channel_axis)
+    if axial:
+        
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        tv_array: np.ndarray = np.emtpy(proc_array.shape)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            tv_array[n] = restoration.denoise_tv_bregman(proc_array[n], weight, max_num_iter, eps, isotropic,
+                                                         channel_axis = channel_axis)
+            
+        tv_array = util.undo_axial_array(tv_array, axis)
+        
+    else:
+    
+        tv_array: np.ndarray = restoration.denoise_tv_bregman(im_array, weight, max_num_iter, eps, isotropic,
+                                                              channel_axis = channel_axis)
     
     return pixels.convert_im_type(tv_array, im_array.dtype)
 
@@ -106,10 +165,26 @@ def tv_chambolle(im_array: np.ndarray, *,
                  weight: float = 0.1,
                  eps: float = 0.0002,
                  max_num_iter: int = 200,
+                 axial: bool = False,
+                 axis: int = 0,
                  channel_axis: int | None = None) -> np.ndarray:
     
-    tv_array: np.ndarray = restoration.denoise_tv_chambolle(im_array, weight, eps, max_num_iter,
-                                                            channel_axis = channel_axis)
+    if axial:
+        
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        tv_array: np.ndarray = np.emtpy(proc_array.shape)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            tv_array[n] = restoration.denoise_tv_chambolle(proc_array[n], weight, eps, max_num_iter,
+                                                           channel_axis = channel_axis)
+            
+        tv_array = util.undo_axial_array(tv_array, axis)
+        
+    else:
+    
+        tv_array: np.ndarray = restoration.denoise_tv_chambolle(im_array, weight, eps, max_num_iter,
+                                                                channel_axis = channel_axis)
     
     return pixels.convert_im_type(tv_array, im_array.dtype)
 
@@ -121,10 +196,24 @@ def wavelet(im_array: np.ndarray, *,
             convert2ycbcr: bool = False,
             method: str = "BayesShrink",
             rescale_sigma: bool = True,
+            axial: bool = False,
+            axis: int = 0,
             channel_axis: int | None = None) -> np.ndarray:
     
-    wave_array: np.ndarray = restoration.denoise_wavelet(im_array, sigma, wavelet, mode, wavelet_levels, convert2ycbcr, method, rescale_sigma,
-                                                         channel_axis = channel_axis)
+    if axial:
+        
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        wave_array: np.ndarray = np.emtpy(proc_array.shape)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            wave_array[n] = restoration.denoise_wavelet(proc_array[n], sigma, wavelet, mode, wavelet_levels, convert2ycbcr, method, rescale_sigma,
+                                                        channel_axis = channel_axis)
+        
+    else:
+    
+        wave_array: np.ndarray = restoration.denoise_wavelet(im_array, sigma, wavelet, mode, wavelet_levels, convert2ycbcr, method, rescale_sigma,
+                                                             channel_axis = channel_axis)
     
     return pixels.convert_im_type(wave_array, im_array.dtype)
 

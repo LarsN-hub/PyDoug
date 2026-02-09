@@ -106,6 +106,10 @@ class ImageProcessor:
         self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
         self.corner_detect_widget.Harris_Epsilon.step = 0.000001
         self.corner_detect_widget.Harris_Epsilon.value = Epsilon
+        Y_Max: float = 0
+        self.histogram_widget.Y_Max.native.setDecimals(3)
+        self.histogram_widget.Y_Max.step = 0.001
+        self.histogram_widget.Y_Max.value = Y_Max
         
         self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
         self.manual_threshold_widget.Range.changed.connect(self._live_threshold)
@@ -318,13 +322,15 @@ class ImageProcessor:
                 
                 mask_layer: napari.layers.Image = sv.get_layer(self.viewer, row["Mask Used"])
                 
-                if Compress_Masks:
-                    
-                    rw.write_im(mask_layer.data[0], save_dir, row["Mask Used"])
+                if mask_layer != None:
                 
-                else:
+                    if Compress_Masks:
                     
-                    rw.write_stack(mask_layer.data, save_dir, row["Mask Used"], multi_page = True)
+                        rw.write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
+                
+                    else:
+                    
+                        rw.write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
             
             
     # Manipulate Widgets
@@ -385,10 +391,10 @@ class ImageProcessor:
                  "X Bounds": X_Bounds,
                  "X Min": X_Min,
                  "X Max": X_Max,
-                 "Y Bounds": X_Bounds,
+                 "Y Bounds": Y_Bounds,
                  "Y Min": Y_Min,
                  "Y Max": Y_Max,
-                 "Z Bounds": X_Bounds,
+                 "Z Bounds": Z_Bounds,
                  "Z Min": Z_Min,
                  "Z Max": Z_Max,
                  "Bounds as Slices": Bounds_as_Slices})
@@ -425,10 +431,10 @@ class ImageProcessor:
                  "X Bounds": X_Bounds,
                  "X Min": X_Min,
                  "X Max": X_Max,
-                 "Y Bounds": X_Bounds,
+                 "Y Bounds": Y_Bounds,
                  "Y Min": Y_Min,
                  "Y Max": Y_Max,
-                 "Z Bounds": X_Bounds,
+                 "Z Bounds": Z_Bounds,
                  "Z Min": Z_Min,
                  "Z Max": Z_Max,
                  "Bounds as Slices": Bounds_as_Slices,
@@ -720,16 +726,20 @@ class ImageProcessor:
     # Denoising Widgets
     
     @magicgui(
+        Axis = {"choices": axis_list},
         Edges_Method = {"choices": bilateral_list},
         call_button = "Filter")
     def bilateral_widget(self,
         Image: napari.layers.Image,
+        Axis: str = "Z",
         Window_Size: int = 0,
         Sigma_Color: float = 0.1,
         Sigma_Spatial: float = 1,
         Bins: int = 10000,
         Edges_Method: str = "Edge",
         Constant_Value: float = 0) -> None:
+        
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
         if Window_Size == 0:
             
@@ -738,6 +748,7 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Bilateral", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
+             "Axis": Axis,
              "Window Size": Window_Size,
              "Sigma Color": Sigma_Color,
              "Sigma Spatial": Sigma_Spatial,
@@ -745,6 +756,7 @@ class ImageProcessor:
              "Mode": Edges_Method.lower(),
              "CVal": Constant_Value})
         self.viewer.add_image(denoising.bilateral(Image.data,
+                                                  axis = Axis,
                                                   win_size = Window_Size,
                                                   sigma_color = Sigma_Color,
                                                   sigma_spatial = Sigma_Spatial,
@@ -754,48 +766,64 @@ class ImageProcessor:
         
     @magicgui(
         Edges_Method = {"choices": gaussian_list},
+        Axis = {"choices": axis_list},
         call_button = "Filter")
     def gaussian_widget(self,
         Image: napari.layers.Image,
         Sigma: float = 1.0,
         Truncate: float = 4.0,
         Edges_Method: str = "Nearest",
+        Along_Axis: bool = False,
+        Axis: str = "Z",
         Constant_Value: float = 0) -> None:
         
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Gaussian", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Sigma": Sigma,
              "Truncate": Truncate,
              "Mode": Edges_Method.lower(),
+             "Along Axis": Along_Axis,
+             "Axis": Axis,
              "CVal": Constant_Value})
         self.viewer.add_image(denoising.gaussian(Image.data,
                                                  sigma = Sigma,
                                                  truncate = Truncate,
                                                  mode = Edges_Method.lower(),
-                                                 cval = Constant_Value), name = param_layer_name)
+                                                 cval = Constant_Value,
+                                                 axial = Along_Axis,
+                                                 axis = Axis), name = param_layer_name)
         
     @magicgui(
+        Axis = {"choices": axis_list},
         call_button = "Filter")
     def nl_means_widget(self,
         Image: napari.layers.Image,
         Patch_Size: int = 7,
         Patch_Distance: int = 11,
         Cut_Off_Distance: float = 0.1,
-        Sigma: float = 0) -> None:
+        Sigma: float = 0,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Non-Local Means", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Patch Size": Patch_Size,
              "Patch Distance": Patch_Distance,
              "Cut Off Distance": Cut_Off_Distance,
-             "Sigma": Sigma})
+             "Sigma": Sigma,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
         self.viewer.add_image(denoising.non_local_means(Image.data,
                                                         patch_size = Patch_Size,
                                                         patch_distance = Patch_Distance,
                                                         h = Cut_Off_Distance,
-                                                        sigma = Sigma), name = param_layer_name)
+                                                        sigma = Sigma,
+                                                        axial = Along_Axis,
+                                                        axis = Axis), name = param_layer_name)
         
     @magicgui(
         call_button = "Filter")
@@ -811,50 +839,67 @@ class ImageProcessor:
                                                           radius = Radius), name = param_layer_name)
         
     @magicgui(
+        Axis = {"choices": axis_list},
         call_button = "Filter")
     def tv_bregman_widget(self,
         Image: napari.layers.Image,
         Weight: float = 5.0,
         Epsilon: float = 0.001,
         Max_Iterations: int = 100,
-        Isotropic: bool = True) -> None:
+        Isotropic: bool = True,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("TV Bregman", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Weight": Weight,
              "Epsilon": Epsilon,
              "Max Iterations": Max_Iterations,
-             "Isotropic": Isotropic})
+             "Isotropic": Isotropic,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
         self.viewer.add_image(denoising.tv_bregman(Image.data,
                                                    weight = Weight,
                                                    max_num_iter = Max_Iterations,
                                                    eps = Epsilon,
-                                                   isotropic = Isotropic), name = param_layer_name)
+                                                   isotropic = Isotropic,
+                                                   axial = Along_Axis,
+                                                   axis = Axis), name = param_layer_name)
     
     @magicgui(
+        Axis = {"choices": axis_list},
         call_button = "Filter")
     def tv_chambolle_widget(self,
         Image: napari.layers.Image,
         Weight: float = 0.1,
         Epsilon: float = 0.0002,
-        Max_Iterations: int = 200) -> None:
+        Max_Iterations: int = 200,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("TV Chambolle", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Weight": Weight,
              "Epsion": Epsilon,
-             "Max Iterations": Max_Iterations})
+             "Max Iterations": Max_Iterations,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
         self.viewer.add_image(denoising.tv_chambolle(Image.data,
                                                      weight = Weight,
                                                      max_num_iter = Max_Iterations,
-                                                     eps = Epsilon), name = param_layer_name)
+                                                     eps = Epsilon,
+                                                     axial = Along_Axis,
+                                                     axis = Axis), name = param_layer_name)
         
     @magicgui(
         Wavelet = {"choices": wavelets_list},
         Mode = {"choices": wave_modes_list},
         Threshold_Method = {"choices": wave_thresh_list},
+        Axis = {"choices": axis_list},
         call_button = "Filter")
     def wavelet_widget(self,
         Image: napari.layers.Image,
@@ -863,7 +908,9 @@ class ImageProcessor:
         Sigma: float = None,
         Wavelet_Levels: int = None,
         Threshold_Method: str = "BayesShrink",
-        Rescale_Sigma: bool = True) -> None:
+        Rescale_Sigma: bool = True,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
         if Sigma == 0:
             
@@ -873,6 +920,7 @@ class ImageProcessor:
             
             Wavelet_Levels = None
             
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Wavelet", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
@@ -881,14 +929,18 @@ class ImageProcessor:
              "Sigma": Sigma,
              "Wavelet Levels": Wavelet_Levels,
              "Threshold Method": Threshold_Method,
-             "Rescale Sigma": Rescale_Sigma})
+             "Rescale Sigma": Rescale_Sigma,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
         self.viewer.add_image(denoising.wavelet(Image.data,
                                                 wavelet = Wavelet,
                                                 mode = Mode.lower(),
                                                 sigma = Sigma,
                                                 wavelet_levels = Wavelet_Levels,
                                                 method = Threshold_Method,
-                                                rescale_sigma = Rescale_Sigma), name = param_layer_name)
+                                                rescale_sigma = Rescale_Sigma,
+                                                axial = Along_Axis,
+                                                axis = Axis), name = param_layer_name)
         
     
     # Segmentation Widgets

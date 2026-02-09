@@ -6,6 +6,7 @@ Module containing miscellaneous utilities
 # Imports
 
 import numpy as np
+import trans
 import math
 
 from numba import jit
@@ -18,6 +19,34 @@ axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
 
 # Functions
+
+def get_along_axis_array(im_array: np.ndarray, axis: int) -> np.ndarray:
+    
+    if axis == 1:
+        
+        return trans.reslice(im_array, "top")
+        
+    elif axis == 2:
+        
+        return trans.reslice(im_array, "left")
+        
+    else:
+        
+        return im_array
+    
+def undo_axial_array(im_array: np.ndarray, axis: int) -> np.ndarray:
+    
+    if axis == 1:
+        
+        return trans.reslice(im_array, "bottom")
+        
+    elif axis == 2:
+        
+        return trans.reslice(im_array, "right")
+        
+    else:
+        
+        return im_array
 
 def dict_list_to_list_list(dict_list: list[dict]) -> list[list]:
     

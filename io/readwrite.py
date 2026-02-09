@@ -9,6 +9,7 @@ import tkfilebrowser as tkfb
 import tkinter as tk
 import numpy as np
 import platform
+import pixels
 import h5py
 import util
 import csv
@@ -257,7 +258,9 @@ def read_im(file_path: str) -> np.ndarray:
                 
             except OSError:
                 
-                im_array: np.ndarray = np.array(Image.open(file_path))
+                with Image.open(file_path) as im:
+                    
+                    im_array: np.ndarray = np.array(im)
         
         return im_array
             
@@ -359,8 +362,10 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.ndarray:
             
             for i in range(0, (im.n_frames + 1)):
                 
-               im.seek(i)
-               im_array[:, :, i] = np.array(im)   
+                im.seek(i)
+                im_array[:, :, i] = np.array(im)   
+               
+            im.close()
     
     return im_array
 
@@ -528,7 +533,15 @@ def read_parameters_dir(parameters_dir_path: str) -> dict[str, list, np.ndarray]
         
         if get_ext(parameters_dir_path + "/" + file) == "tiff":
             
-            parameters_dict[file[:-5]] = read_stack(parameters_dir_path + "/" + file)
+            with Image.open(parameters_dir_path + "/" + file) as im:
+            
+                if im.n_frames > 1:
+                    
+                    parameters_dict[file[:-5]] = pixels.convert_im_type(read_stack(parameters_dir_path + "/" + file), "bool")
+                    
+                else:
+                    
+                    parameters_dict[file[:-5]] = pixels.convert_im_type(read_im(parameters_dir_path + "/" + file), "bool")
     
     return parameters_dict
             
