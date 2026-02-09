@@ -15,6 +15,7 @@ import napari
 import pixels
 import plots
 import trans
+import quant
 import util
 import pywt
 import os
@@ -68,6 +69,7 @@ edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "R
 corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
 harris_method_list: list[str] = ["K", "Eps"]
 
+misc_calc_list: list[str] = ["Stats", "Percent Intensities", "Volume/Area", "Surface Perimeter/Area", "Contact Perimeter/Area"]
 domain_size_types_list: list[str] = ["Volume", "Area"]
 heat_method_list: list[str] = ["Thickness", "Height"]
 heat_colors_list: list[str] = list(colormaps)
@@ -117,7 +119,9 @@ class ImageProcessor:
         self.manual_threshold_widget.Preview.changed.connect(self._on_live_toggled)
         
         
-    # Connector Methods
+    #####################
+    # Connector Methods #
+    #####################
         
     def _on_layer_changed(self, event = None) -> None:
         
@@ -257,7 +261,9 @@ class ImageProcessor:
             self._live_threshold()
                 
     
-    # I/O Widgets
+    ###############
+    # I/O Widgets #
+    ###############
     
     @magicgui(
         call_button = "Import File")
@@ -333,7 +339,9 @@ class ImageProcessor:
                         rw.write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
             
             
-    # Manipulate Widgets
+    ######################
+    # Manipulate Widgets #
+    ######################
     
     @magicgui(
         Method = {"choices": trim_pad_list},
@@ -552,7 +560,9 @@ class ImageProcessor:
             self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = param_layer_name)
 
 
-    # Transform Widgets
+    #####################
+    # Transform Widgets #
+    #####################
 
     @magicgui(
         Orientation = {"choices": reslice_list},
@@ -619,7 +629,9 @@ class ImageProcessor:
         self.viewer.add_image(trans.rescale(Image.data, Scale), name = param_layer_name)
 
 
-    # Pixel Values Widgets
+    ########################
+    # Pixel Values Widgets #
+    ########################
 
     @magicgui(
         Type = {"choices": convert_type_list},
@@ -723,7 +735,9 @@ class ImageProcessor:
         self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
     
-    # Denoising Widgets
+    #####################
+    # Denoising Widgets #
+    #####################
     
     @magicgui(
         Axis = {"choices": axis_list},
@@ -943,7 +957,9 @@ class ImageProcessor:
                                                 axis = Axis), name = param_layer_name)
         
     
-    # Segmentation Widgets
+    ########################
+    # Segmentation Widgets #
+    ########################
     
     @magicgui(
         Range = {"widget_type": "RangeSlider", "min": 0, "max": 255},
@@ -1153,33 +1169,41 @@ class ImageProcessor:
                                                   sigma = GAC_Sigma), name = param_layer_name)
     
     
-    # Filter Widgets
+    ##################
+    # Filter Widgets #
+    ##################
     
     @magicgui(
         Method = {"choices": remove_objects_list},
         Connectivity = {"choices": connectivity_list},
+        Axis = {"choices": axis_list},
         call_button = "Remove Objects")
     def remove_objects_widget(self,
         Image: napari.layers.Image,
         Method: str = "Particles",
         Connectivity: int = 3,
-        Max_Size: float = 25,
+        Size_Threshold: float = 25,
         Background: int = 0,
-        Pixel_Scale: float = 1) -> None:
+        Pixel_Scale: float = 1,
+        Along_Axis: bool = False,
+        Axis: str = "Z") -> None:
         
         if Connectivity > Image.data.ndim:
             
             Connectivity = 2
             
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)            
         param_layer_name = get_param_layer_name("Remove Objects", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Connectivity": Connectivity,
-             "Max Size": Max_Size,
+             "Size Threshold": Size_Threshold,
              "Background": Background,
-             "Pixel Size": Pixel_Scale})
-        self.viewer.add_image(morph.remove_objects(Image.data, Max_Size, Method.lower(), background = Background, pixel_size = Pixel_Scale, connectivity = Connectivity, ), name = param_layer_name)
+             "Pixel Size": Pixel_Scale,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
+        self.viewer.add_image(morph.remove_objects(Image.data, Size_Threshold, Method.lower(), background = Background, pixel_size = Pixel_Scale, connectivity = Connectivity, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Dilate")
@@ -1339,7 +1363,9 @@ class ImageProcessor:
         self.viewer.add_image(pixels.convert_im_type(np.real(fourier.ft(Image.data, Along_Z_Axis)), "uint8", norm = True), name = param_layer_name)
         
         
-    # Analysis Widgets
+    ####################
+    # Analysis Widgets #
+    ####################
     
     @magicgui(
         call_button = "Plot Histogram")
@@ -1468,6 +1494,95 @@ class ImageProcessor:
             _ = plots.gray_level(Image.data)
             
         plt.show()
+        
+    @magicgui(
+        Method = {"choices": misc_calc_list},
+        call_button = "Calculate")
+    def misc_calc_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Stats",
+        Min_Percent: float = 0,
+        Max_Percent: float = 100,
+        Include_Background: bool = False,
+        Background: float = 0,
+        Surface_Phase: float = 255,
+        Contact_Phase_1: float = 0,
+        Contact_Phase_2: float = 255,
+        Include_Borders: bool = False,
+        Pixel_Scale: float = 1.0,
+        Units: str = "pixels",
+        Normalize: bool = False,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None,
+        Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+            
+        else:
+            
+            mask_array = None
+            mask_name = None
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Misc Calculations", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Method": Method,
+                 "Min Percent": Min_Percent,
+                 "Max Percent": Max_Percent,
+                 "Include Background": Include_Background,
+                 "Background": Background,
+                 "Surface Phase": Surface_Phase,
+                 "Contact Phase 1": Contact_Phase_1,
+                 "Contact Phase 2": Contact_Phase_2,
+                 "Include Edges": Include_Borders,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Normalize": Normalize,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name})
+        
+        if Method == "Stats":
+            
+            quant.global_statistics(Image.data, mask_array = mask_array)
+        
+        elif Method == "Percent Intensities":
+            
+            quant.get_percent_intensities(Image.data, (Min_Percent, Max_Percent), mask_array = mask_array)
+        
+        elif Method == "Volume/Area":
+            
+            if util.is_3d_rgb(Image.data)["3D"]:
+                
+                quant.get_volume(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)
+                
+            else:
+                
+                quant.get_area(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)          
+        
+        elif Method == "Surface Perimeter/Area":
+            
+            if util.is_3d_rgb(Image.data)["3D"]:
+                
+                quant.get_contact_area(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
+            
+            else:
+                
+                quant.get_contact_perimeter(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
+        
+        elif Method == "Contact Perimeter/Area":
+            
+            if util.is_3d_rgb(Image.data)["3D"]:
+                
+                quant.get_contact_area(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
+            
+            else:
+                
+                quant.get_contact_perimeter(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
             
     @magicgui(
         Type = {"choices": domain_size_types_list},
@@ -1906,11 +2021,12 @@ def main() -> napari.viewer.Viewer:
     mod_histogram: widgets.Container = modify_funcgui(ui.histogram_widget, "Histogram")
     mod_line_scan: widgets.Container = modify_funcgui(ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(ui.gray_level_widget, "Gray Level")
+    mod_misc_calc: widgets.Container = modify_funcgui(ui.misc_calc_widget, "Misc Calculations")
     mod_axis_distribution: widgets.Container = modify_funcgui(ui.axis_distribution_widget, "Axial Distributions")
     mod_psd: widgets.Container = modify_funcgui(ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
     analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_axis_distribution, mod_psd, mod_heat_map],
+        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_misc_calc, mod_axis_distribution, mod_psd, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     

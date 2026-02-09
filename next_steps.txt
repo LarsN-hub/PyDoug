@@ -1,5 +1,5 @@
 ui/gui.py
-- Add single value / table generation
+- Fix/test surface area and contact area algorithms
 - Add batch processing file(s) and widget
 - Add plot gathering and export function (drop-down for figures???)
 

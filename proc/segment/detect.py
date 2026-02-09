@@ -8,6 +8,7 @@ import cropclip as cc
 import numpy as np
 import pixels
 import quant
+import util
 
 from scipy import ndimage as ndi
 from skimage import segmentation
@@ -153,41 +154,20 @@ def watershed(im_array: np.ndarray, *, background: float | int = 0, mask_array: 
     
     if along_axis:
         
-        water_array = np.empty(im_array.shape)
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        water_array: np.ndarray = np.empty(proc_array.shape)
         
-        for slice_index in range(0, im_array.shape[axis]):
+        for slice_index in range(0, proc_array.shape[0]):
             
-            if axis == 0:
-                
-                int_im_array: np.ndarray = im_array[slice_index]
-            
-            elif axis == 1:
-                
-                int_im_array: np.ndarray = im_array[:, slice_index, :]
-            
-            elif axis == 2:
-                
-                int_im_array: np.ndarray = im_array[:, :, slice_index]
-                
+            int_im_array: np.ndarray = proc_array[slice_index]
             distance: np.ndarray = ndi.distance_transform_edt(int_im_array)
             peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3)), labels = int_im_array)
             water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
             water_mask_array[tuple(peak_coords.T)] = True
             markers: np.ndarray = thresh.label(water_mask_array)
+            water_array[slice_index] = segmentation.watershed(-distance, markers, mask = int_im_array)
             
-            if axis == 0:
-                
-                water_array[slice_index] = segmentation.watershed(-distance, markers, mask = int_im_array)
-            
-            elif axis == 1:
-                
-                water_array[:, slice_index, :] = segmentation.watershed(-distance, markers, mask = int_im_array)
-            
-            elif axis == 2:
-                
-                water_array[:, :, slice_index] = segmentation.watershed(-distance, markers, mask = int_im_array)
-            
-        return water_array
+        return util.undo_axial_array(water_array, axis)
     
     else:
         

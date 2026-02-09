@@ -6,6 +6,7 @@ Module for altering morphology of image features
 
 import numpy as np
 import pixels
+import util
 
 from skimage import morphology
 from segment import thresh
@@ -86,11 +87,11 @@ class Footprint:
 
 # Functions
 
-def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particles", *, mask_array: np.ndarray = None, background: float | int = 0, pixel_size: float | int = 1.0, connectivity: int = None) -> np.ndarray:
+def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particles", *, mask_array: np.ndarray = None, background: float | int = 0, pixel_size: float | int = 1.0, connectivity: int = None, along_axis: bool = False, axis: int = 0) -> np.ndarray:
     
     if im_array.dtype != np.int64 and mode == "particles":
         
-        rem_array: np.ndarray = thresh.label(im_array, connectivity = connectivity, mask_array = mask_array, background = background)
+        rem_array: np.ndarray = thresh.label(im_array, connectivity = connectivity, mask_array = mask_array, background = background, positional = along_axis, axis = axis)
         
     elif im_array.dtype != np.bool and mode == "holes":
         
@@ -102,7 +103,7 @@ def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particl
     
     if not connectivity:
         
-        if im_array.ndim > 2:
+        if im_array.ndim > 2 and not along_axis:
             
             connectivity = 3
             
@@ -114,13 +115,32 @@ def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particl
         
         size = round(size / pixel_size)
         
-    if mode == "particles":
-            
-        rem_array = morphology.remove_small_objects(rem_array, connectivity = connectivity, max_size = size)
-    
-    elif mode == "holes":
+    if along_axis:
         
-        rem_array = morphology.remove_small_holes(rem_array, connectivity = connectivity, max_size = size)
+        proc_array: np.ndarray = util.get_along_axis_array(rem_array, axis)
+        rem_array: np.ndarray = np.empty(proc_array.shape, proc_array.dtype)
+        
+        for n in range(0, proc_array.shape[0]):
+            
+            if mode == "particles":
+                
+                rem_array[n] = morphology.remove_small_objects(proc_array[n], connectivity = connectivity, max_size = size)
+            
+            elif mode == "holes":
+                
+                rem_array[n] = morphology.remove_small_holes(proc_array[n], connectivity = connectivity, max_size = size)
+                
+            rem_array = util.undo_axial_array(rem_array, axis)
+    
+    else:
+        
+        if mode == "particles":
+                
+            rem_array = morphology.remove_small_objects(rem_array, connectivity = connectivity, max_size = size)
+        
+        elif mode == "holes":
+            
+            rem_array = morphology.remove_small_holes(rem_array, connectivity = connectivity, max_size = size)
     
     if im_array.dtype != np.int64 and mode == "particles":
         

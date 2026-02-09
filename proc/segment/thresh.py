@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import distrib
 import pixels
+import util
 
 from skimage import filters
 from skimage import measure
@@ -179,11 +180,15 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
     
 def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
     
+    proc_array: np.ndarray = np.copy(im_array)
+    
     if np.any(mask_array):
         
         if mask_array.ndim > im_array.ndim:
             
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
+            
+        proc_array[np.logical_not(np.bool(mask_array))] = background
     
     if not positional:
     
@@ -197,13 +202,7 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
                 
                 connectivity = 2
                 
-        lab_array: np.ndarray = measure.label(im_array, background = background, return_num = return_num, connectivity = connectivity)
-        
-        if np.any(mask_array):
-            
-            lab_array[np.bool(mask_array)] = 0
-            
-        return lab_array
+        return measure.label(proc_array, background = background, return_num = return_num, connectivity = connectivity)
 
     else:
         
@@ -211,34 +210,21 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
             
             connectivity = 2
             
-        lab_array: np.ndarray = np.empty(im_array.shape, dtype = np.int64)
-        num_unique: np.ndarray = np.empty(im_array.shape[axis])
+        proc_array = util.get_along_axis_array(im_array, axis)
+        lab_array: np.ndarray = np.empty(proc_array.shape, dtype = np.int64)
+        num_unique: np.ndarray = np.empty(proc_array.shape[0])
         
-        for slice_index in range(0, im_array.shape[axis]):
+        for slice_index in range(0, proc_array.shape[0]):
             
-            if axis == 0:
-                
-                lab_array[slice_index], num_unique[slice_index] = measure.label(im_array[slice_index], background = background, connectivity = connectivity, return_num = True)
-                    
-            elif axis == 1:
-                
-                lab_array[:, slice_index, :], num_unique[slice_index] = measure.label(im_array[:, slice_index, :], background = background, connectivity = connectivity, return_num = True)
-            
-            elif axis == 2:
-                
-                lab_array[:, :, slice_index], num_unique[slice_index] = measure.label(im_array[:, :, slice_index], background = background, connectivity = connectivity, return_num = True)
-            
-            if np.any(mask_array):
-                
-                lab_array[np.bool(mask_array)] = 0
+            lab_array[slice_index], num_unique[slice_index] = measure.label(proc_array[slice_index], background = background, connectivity = connectivity, return_num = True)
         
         if return_num:
             
-            return lab_array, num_unique
+            return util.undo_axial_array(lab_array, axis), num_unique
         
         else:
             
-            return lab_array
+            return util.undo_axial_array(lab_array, axis)
         
 
 # Main
