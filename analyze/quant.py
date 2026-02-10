@@ -1,5 +1,5 @@
 """
-Module for quantified analysis of segmented images
+Module for single-value measurements of images
 """
 
 
@@ -435,7 +435,7 @@ def __get_contact_counts(im_array: np.ndarray, phase_ints: tuple[float, int] | f
         
         return counts
 
-def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int = None, *, mask_array: np.ndarray = None, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False, normalize: bool = False) -> pd.DataFrame:
+def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int | None = None, *, mask_array: np.ndarray = None, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False, normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -471,7 +471,7 @@ def get_contact_perimeter(im_array: np.ndarray, phase_ints: tuple[float, int] | 
     
     return per_df
 
-def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int | None, *, mask_array: np.ndarray = None, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False, normalize: bool = False) -> pd.DataFrame:
+def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int] | float | int | None = None, *, mask_array: np.ndarray = None, pixel_size: float | int = 1.0, units: str = "pix", include_edges: bool = False, normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -566,6 +566,61 @@ def get_contact_area(im_array: np.ndarray, phase_ints: tuple[float, int] | float
     print(area_df)
     
     return area_df
+
+def get_contact_count(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *, mask_array: np.ndarray = None) -> int:
+    
+    if not phase_ints:
+        
+        max_array: np.ndarray = im_array == np.max(im_array)
+        min_array: np.ndarray = im_array != np.max(im_array)
+        
+    elif not isinstance(phase_ints, tuple):
+        
+        max_array: np.ndarray = im_array == phase_ints
+        min_array: np.ndarray = im_array != phase_ints
+        
+    else:
+        
+        max_array: np.ndarray = im_array == max(phase_ints)
+        min_array: np.ndarray = im_array == min(phase_ints)
+        
+    if np.any(mask_array):
+        
+        max_array[np.logical_not(mask_array)] = False
+        min_array[np.logical_not(mask_array)] = False
+    
+    if im_array.ndim == 3:
+        
+        zer_insert: np.ndarray = np.zeros((1, im_array.shape[1], im_array.shape[2]), np.bool)
+        one_insert: np.ndarray = np.zeros((im_array.shape[0], 1, im_array.shape[2]), np.bool)
+        two_insert: np.ndarray = np.zeros((im_array.shape[0], im_array.shape[1], 1), np.bool)
+        offset_min_zer_beg: np.ndarray = np.delete(np.append(zer_insert, min_array, axis = 0), [-1], axis = 0)
+        offset_min_zer_end: np.ndarray = np.delete(np.append(min_array, zer_insert, axis = 0), [0], axis = 0)
+        offset_min_one_beg: np.ndarray = np.delete(np.append(one_insert, min_array, axis = 1), [-1], axis = 1)
+        offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
+        offset_min_two_beg: np.ndarray = np.delete(np.append(two_insert, min_array, axis = 2), [-1], axis = 2)
+        offset_min_two_end: np.ndarray = np.delete(np.append(min_array, two_insert, axis = 2), [0], axis = 2)
+        contact_count = np.count_nonzero(max_array & offset_min_zer_beg)
+        contact_count += np.count_nonzero(max_array & offset_min_zer_end)
+        contact_count += np.count_nonzero(max_array & offset_min_one_beg)
+        contact_count += np.count_nonzero(max_array & offset_min_one_end)
+        contact_count += np.count_nonzero(max_array & offset_min_two_beg)
+        contact_count += np.count_nonzero(max_array & offset_min_two_end)
+    
+    elif im_array.ndim == 2:
+        
+        zer_insert: np.ndarray = np.zeros((1, im_array.shape[1]), np.bool)
+        one_insert: np.ndarray = np.zeros((im_array.shape[0], 1), np.bool)
+        offset_min_zer_beg: np.ndarray = np.delete(np.append(zer_insert, min_array, axis = 0), [-1], axis = 0)
+        offset_min_zer_end: np.ndarray = np.delete(np.append(min_array, zer_insert, axis = 0), [0], axis = 0)
+        offset_min_one_beg: np.ndarray = np.delete(np.append(one_insert, min_array, axis = 1), [-1], axis = 1)
+        offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
+        contact_count = np.count_nonzero(max_array & offset_min_zer_beg)
+        contact_count += np.count_nonzero(max_array & offset_min_zer_end)
+        contact_count += np.count_nonzero(max_array & offset_min_one_beg)
+        contact_count += np.count_nonzero(max_array & offset_min_one_end)
+        
+    return contact_count
 
 
 # Main

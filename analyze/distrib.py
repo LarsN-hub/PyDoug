@@ -1,5 +1,5 @@
 """
-Module for obtaining distributions of image data
+Module for multi-value measurements of images
 """
 
 
