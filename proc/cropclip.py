@@ -178,7 +178,7 @@ def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
     
     return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
 
-def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer: napari.layers.Shapes = None, convert_to_3d: bool = True) -> np.ndarray:
+def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer: napari.layers.Shapes = None, slice_range: tuple = None, convert_to_3d: bool = True) -> np.ndarray:
     
     shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer, shapes_layer)
     
@@ -190,11 +190,28 @@ def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer
     
     if convert_to_3d:
         
-        return project_mask(mask_array, im_array.shape[0])
-    
-    else:
+        if slice_range:
+            
+            mask_array = project_mask(mask_array, max(slice_range) - min(slice_range))
+            zero_shape = (mask_array.shape[1], mask_array.shape[2])
+            
+            if min(slice_range) != 0:
+                
+                zero_insert: np.ndarray = project_mask(np.zeros(zero_shape, mask_array.dtype), min(slice_range))
+                mask_array = np.append(zero_insert, mask_array, axis = 0)
+                
+            if max(slice_range) != im_array.shape[0]:
+                
+                zero_insert: np.ndarray = project_mask(np.zeros(zero_shape, mask_array.dtype), (im_array.shape[0] - max(slice_range)))
+                mask_array = np.append(mask_array, zero_insert, axis = 0)
+            
+        else:
         
-        return mask_array
+            mask_array = project_mask(mask_array, im_array.shape[0])
+    
+    mask_array = np.bool(mask_array)
+        
+    return mask_array
     
 def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
@@ -272,6 +289,38 @@ def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_color
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
     return crop(im_array, mask_array, mask_color = mask_color, conserve_mem = conserve_mem)
+
+def mask_logic(mask_array1: np.ndarray, mask_array2: np.ndarray, method: str = "union") -> np.ndarray:
+    
+    if mask_array1.dtype != np.bool:
+        
+        proc_array1 = np.bool(mask_array1)
+        
+    else:
+        
+        proc_array1 = np.copy(mask_array1)
+        
+    if mask_array2.dtype != np.bool:
+        
+        proc_array2 = np.bool(mask_array2)
+        
+    else:
+        
+        proc_array2 = np.copy(mask_array2)
+    
+    if method == "union":
+        
+        return proc_array1 + proc_array2
+    
+    elif method == "subtract":
+        
+        proc_array1[proc_array2] = False
+        
+        return proc_array1
+    
+    elif method == "intersect":
+        
+        return proc_array1 & proc_array2
 
 
 # Main

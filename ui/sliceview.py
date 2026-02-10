@@ -143,6 +143,10 @@ def extract_shapes(viewer: napari.viewer.Viewer = None, shapes_layer: napari.lay
         shape_dict[shape_name] = shape_coords[index]
             
     return shape_dict
+
+def create_label_layer(im_array: np.ndarray, viewer: napari.viewer.Viewer) -> napari.layers.Labels:
+    
+    return viewer.add_labels(np.zeros(im_array.shape, np.uint8))
         
 def quick_get_line_scan(viewer: napari.viewer.Viewer = None, im_array: np.ndarray = None, shapes_layer: napari.layers.Shapes = None, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
     

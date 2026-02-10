@@ -44,6 +44,7 @@ trim_pad_list: list[str] = ["Trim", "Pad"]
 shapes_list: list[str] = ["Ellipse", "Rectangle", "Polygon", "Line"]
 out_of_mask_list: list[str] = ["Black", "White", "Gray"]
 mask_method_list: list[str] = ["Out", "In"]
+mask_logic_list: list[str] = ["Union", "Subtract", "Intersect"]
 
 reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
 axis_list: list[int] = ["X", "Y", "Z"]
@@ -159,7 +160,17 @@ class ImageProcessor:
                 if hasattr(funcgui, "Mask"):
                 
                     funcgui.Mask.reset_choices()
-                    funcgui.Mask.value = sv.get_top_im_layer(self.viewer)
+                    funcgui.Mask.value = layer
+                    
+                if hasattr(funcgui, "Mask_1"):
+                
+                    funcgui.Mask_1.reset_choices()
+                    funcgui.Mask_1.value = layer
+                    
+                if hasattr(funcgui, "Mask_2"):
+                
+                    funcgui.Mask_2.reset_choices()
+                    funcgui.Mask_2.value = layer
                     
         elif isinstance(layer, napari.layers.Shapes):
             
@@ -171,6 +182,17 @@ class ImageProcessor:
                 
                     funcgui.Shapes.reset_choices()
                     funcgui.Shapes.value = layer
+                    
+        elif isinstance(layer, napari.layers.Labels):
+            
+            for func_name in self.funcguis:
+                
+                funcgui: widgets.FunctionGui = getattr(self, func_name)
+                
+                if hasattr(funcgui, "Paint"):
+                
+                    funcgui.Paint.reset_choices()
+                    funcgui.Paint.value = layer
                     
         self.operation_count += 1
         
@@ -203,6 +225,26 @@ class ImageProcessor:
                 if hasattr(funcgui, "Mask"):
                 
                     funcgui.Mask.reset_choices()
+                    
+                    if last_image is not None:
+                        
+                        funcgui.Mask.value = last_image
+                    
+                if hasattr(funcgui, "Mask_1"):
+                
+                    funcgui.Mask_1.reset_choices()
+                    
+                    if last_image is not None:
+                        
+                        funcgui.Mask_1.value = last_image
+                        
+                if hasattr(funcgui, "Mask_2"):
+                
+                    funcgui.Mask_2.reset_choices()
+                    
+                    if last_image is not None:
+                        
+                        funcgui.Mask_2.value = last_image
                     
     def _update_intensity_range(self, event = None) -> None:
         
@@ -476,20 +518,59 @@ class ImageProcessor:
     
     @magicgui(
         call_button = "Create Mask")
-    def create_mask_widget(self,
+    def create_shape_mask_widget(self,
         Image: napari.layers.Image,
-        Shapes: napari.layers.Shapes) -> None:
+        Shapes: napari.layers.Shapes,
+        Specify_Slice_Range: bool = False,
+        Slice_Start: int = 0,
+        Slice_End: int = 0) -> None:
         
         self.mask_count += 1
         param_layer_name: str = get_param_layer_name("Mask", self.mask_count)
         
         if util.is_3d_rgb(Image.data)["3D"]:
             
-            self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes), name = param_layer_name, opacity = 0.5)
+            if Specify_Slice_Range:
+            
+                self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes, slice_range = (Slice_Start, Slice_End)), name = param_layer_name, opacity = 0.5)
+                
+            else:
+                
+                self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes), name = param_layer_name, opacity = 0.5)
             
         else:
             
             self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes, convert_to_3d = False), name = param_layer_name, opacity = 0.5)
+    
+    @magicgui(
+        call_button = "Paint")
+    def paint_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        sv.create_label_layer(Image.data, self.viewer)
+    
+    @magicgui(
+        call_button = "Create Mask")
+    def create_paint_mask_widget(self,
+        Paint: napari.layers.Labels) -> None:
+        
+        self.mask_count += 1
+        param_layer_name: str = get_param_layer_name("Mask", self.mask_count)
+        mask_array: np.ndarray = Paint.data
+        mask_array[mask_array != 0] = 1
+        mask_array = np.bool(mask_array)
+        self.viewer.add_image(mask_array, name = param_layer_name, opacity = 0.5)
+        
+    @magicgui(Method = {"choices": mask_logic_list},
+        call_button = "Perform Operation")
+    def mask_logic_widget(self,
+        Mask_1: napari.layers.Image,
+        Mask_2: napari.layers.Image,
+        Method: str = "Union") -> None:
+        
+        self.mask_count += 1
+        param_layer_name: str = get_param_layer_name("Mask", self.operation_count)
+        self.viewer.add_image(cc.mask_logic(Mask_1.data, Mask_2.data, Method.lower()), name = param_layer_name, opacity = 0.5)
     
     @magicgui(
         Mask_Method = {"choices": mask_method_list},
@@ -517,7 +598,7 @@ class ImageProcessor:
                 
                 color_spec = Color_Value
                 
-        param_layer_name = get_param_layer_name("Masked", self.operation_count)
+        param_layer_name: str = get_param_layer_name("Masked", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Mask_Method.lower(),
@@ -1930,12 +2011,15 @@ def main() -> napari.viewer.Viewer:
     # Manipulate Widgets
     
     mod_trim_pad: widgets.Container = modify_funcgui(ui.trim_pad_widget, "Trim / Pad")
-    mod_add_mask: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
-    mod_create_mask: widgets.Container = modify_funcgui(ui.create_mask_widget, "Create Mask")
+    mod_add_shape: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
+    mod_create_shape_mask: widgets.Container = modify_funcgui(ui.create_shape_mask_widget, "Create Mask from Shapes")
+    mod_paint: widgets.Container = modify_funcgui(ui.paint_widget, "Paint")
+    mod_create_paint_mask: widgets.Container = modify_funcgui(ui.create_paint_mask_widget, "Create Mask from Paint")
+    mod_mask_logic: widgets.Container = modify_funcgui(ui.mask_logic_widget, "Mask Logic Operations")
     mod_mask: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
     mod_crop: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad, mod_add_mask, mod_create_mask, mod_mask, mod_crop],
+        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     
