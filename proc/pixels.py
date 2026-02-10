@@ -133,45 +133,37 @@ def invert(im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)
 
-def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, kernel_size: int | np.ndarray = None, clip_limit: float = 0.01, radius: int = 5) -> np.ndarray:
+def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, clip_limit: float = 0.01, radius: int = 3) -> np.ndarray:
     
-    valid_methods: tuple[str] = ("global", "local", "adaptive")
-    
-    if any(x == method for x in valid_methods):
-        
-        if np.any(mask_array):
+    if np.any(mask_array):
                 
-            if mask_array.shape != im_array.shape:
+        if mask_array.shape != im_array.shape:
                     
-                mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+            mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
                 
-        if method == "global":
+    if method == "global":
             
-            return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
+        return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
         
-        elif method == "local":
+    elif method == "local":
             
-            if len(im_array.shape) == 2:
+        if im_array.ndim == 2:
                 
-                disk = morph.Footprint("disk")
-                disk.radius = radius
-                footprint = disk.get_footprint()
+            disk = morph.Footprint("disk")
+            disk.radius = radius
+            footprint = disk.get_footprint()
                 
-            else:
+        else:
                 
-                ball = morph.Footprint("ball")
-                ball.radius = radius
-                footprint = ball.get_footprint()
+            ball = morph.Footprint("ball")
+            ball.radius = radius
+            footprint = ball.get_footprint()
             
-            return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
+        return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
         
-        elif method == "adaptive":
+    elif method == "adaptive":
             
-            return convert_im_type(exposure.equalize_adapthist(im_array, kernel_size, clip_limit), im_array.dtype)
-    
-    else:
-        
-        print("\nInvalid histogram equalization method!")
+        return convert_im_type(exposure.equalize_adapthist(im_array, radius, clip_limit), im_array.dtype)
         
 def histogram_matching(im_array: np.ndarray, ref_array: np.ndarray) -> np.ndarray:
     

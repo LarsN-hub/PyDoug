@@ -59,7 +59,7 @@ wave_modes_list: list[str] = ["Soft", "Hard"]
 wave_thresh_list: list[str] = ["BayesShrink", "VisuShrink"]
 
 hist_thresh_list: list[str] = ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]
-local_thresh_list: list[str] = ["Adaptive", "Niblack", "Savoula"]
+local_thresh_list: list[str] = ["Adaptive", "Niblack", "Savoula", "Rank"]
 connectivity_list: list[int] = [1, 2, 3]
 label_list: list[str] = ["Connectivity", "Watershed"]
 morph_snakes_list: list[str] = ["ACWE", "GAC"]
@@ -804,13 +804,29 @@ class ImageProcessor:
         call_button = "Equalize Histogram")
     def equalize_widget(self,
         Image: napari.layers.Image,
-        Method: str = "Global") -> None:
+        Method: str = "Global",
+        Local_Radius: int = 3,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None) -> None:
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            mask_array = None
+            
+        else:
+            
+            mask_name = Mask.name
+            mask_array = Mask.data
         
         param_layer_name = get_param_layer_name("Equalized", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Method": Method})
-        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower()), name = param_layer_name)
+             "Method": Method,
+             "Local Radius": Local_Radius,
+             "Apply Mask": Apply_Mask,
+             "Mask Used": mask_name})
+        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower(), mask_array = mask_array, radius = Local_Radius), name = param_layer_name)
 
     @magicgui(
         call_button = "Invert")
@@ -1104,7 +1120,7 @@ class ImageProcessor:
     def local_threshold_widget(self,
         Image: napari.layers.Image,
         Method: str = "Adaptive",
-        Window_Size: int = 3,
+        Radius: int = 3,
         Niblack_or_Savoula_Sigma_Weight: float = 0.2,
         Savoula_Sigma_Range: float = 0,
         Apply_Mask: bool = False,
@@ -1126,7 +1142,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
-             "Window Size": Window_Size,
+             "Radius": Radius,
              "Sigma Weight": Niblack_or_Savoula_Sigma_Weight,
              "Sigma Range": Savoula_Sigma_Range,
              "Apply Mask": Apply_Mask,
@@ -1134,11 +1150,11 @@ class ImageProcessor:
         
         if Apply_Mask:
             
-            self.viewer.add_image(thresh.local(Image.data, mask_array = Mask.data, method = Method.lower(), block_size = Window_Size, window_size = Window_Size, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
+            self.viewer.add_image(thresh.local(Image.data, mask_array = Mask.data, method = Method.lower(), radius = Radius, window_size = Radius, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
             
         else:
             
-            self.viewer.add_image(thresh.local(Image.data, method = Method.lower(), block_size = Window_Size, window_size = Window_Size, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
+            self.viewer.add_image(thresh.local(Image.data, method = Method.lower(), radius = Radius, window_size = Radius, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": label_list},

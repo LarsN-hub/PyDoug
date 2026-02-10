@@ -11,6 +11,7 @@ import distrib
 import pixels
 import util
 
+from filtering import morph
 from skimage import filters
 from skimage import measure
 
@@ -156,11 +157,11 @@ def hist(im_array: np.ndarray, *, method: str = "otsu", otsu_classes: int = 2, m
     
         return threshold(im_array, thresholds)
     
-def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", block_size: int = 3, window_size: int = 15, k: float = 0.2, r: float = None) -> np.ndarray:
+def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", radius: int = 3, window_size: int = 15, k: float = 0.2, r: float = None) -> np.ndarray:
     
-    if block_size % 2 == 0:
+    if radius % 2 == 0:
         
-        block_size -= 1
+        radius -= 1
         
     if window_size % 2 == 0:
         
@@ -168,7 +169,7 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
     
     if method == "adaptive":
         
-        return pixels.convert_im_type((im_array > filters.threshold_local(im_array, block_size = block_size)), "uint8")
+        return pixels.convert_im_type((im_array > filters.threshold_local(im_array, block_size = radius)), "uint8")
     
     elif method == "niblack":
         
@@ -177,6 +178,22 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
     elif method == "sauvola":
         
         return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
+    
+    elif method == "rank":
+        
+        if im_array.ndim == 2:
+                
+            disk = morph.Footprint("disk")
+            disk.radius = radius
+            footprint = disk.get_footprint()
+                
+        else:
+                
+            ball = morph.Footprint("ball")
+            ball.radius = radius
+            footprint = ball.get_footprint()
+        
+        return pixels.convert_im_type(pixels.normalize(filters.rank.threshold(im_array, footprint, mask = mask_array)), "uint8")
     
 def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
     

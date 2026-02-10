@@ -172,8 +172,8 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_ar
     high_index = len(im_cdf) - util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal") - 1
     low_bin = np.astype(bin_centers[low_index], im_array.dtype)
     high_bin = np.astype(bin_centers[high_index], im_array.dtype)
-    low_str: str = str(min(percentages) * 100) + ":"
-    high_str: str = str(max(percentages) * 100) + ":"
+    low_str: str = str(min(percentages) * 100) + "%:"
+    high_str: str = str(max(percentages) * 100) + "%:"
     print(f"\n{low_str:<16} {low_bin}")
     print(f"{high_str:<16} {high_bin}")
     
