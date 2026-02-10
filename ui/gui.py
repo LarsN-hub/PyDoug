@@ -185,6 +185,9 @@ class ImageProcessor:
             
         if isinstance(layer, napari.layers.Image):
             
+            image_layers = [lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Image)]
+            last_image = image_layers[-1] if image_layers else None
+            
             for func_name in self.funcguis:
                 
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
@@ -192,6 +195,10 @@ class ImageProcessor:
                 if hasattr(funcgui, "Image"):
                 
                     funcgui.Image.reset_choices()
+                    
+                    if last_image is not None:
+                        
+                        funcgui.Image.value = last_image
                     
                 if hasattr(funcgui, "Mask"):
                 
@@ -1176,6 +1183,7 @@ class ImageProcessor:
     @magicgui(
         Method = {"choices": remove_objects_list},
         Connectivity = {"choices": connectivity_list},
+        Size_Threshold = {"max": 1000000000},
         Axis = {"choices": axis_list},
         call_button = "Remove Objects")
     def remove_objects_widget(self,
@@ -1368,6 +1376,7 @@ class ImageProcessor:
     ####################
     
     @magicgui(
+        Y_Max = {"max": 1000000000},
         call_button = "Plot Histogram")
     def histogram_widget(self,
         Image: napari.layers.Image,
@@ -1505,13 +1514,12 @@ class ImageProcessor:
         Max_Percent: float = 100,
         Include_Background: bool = False,
         Background: float = 0,
+        Normalize: bool = False,
         Surface_Phase: float = 255,
         Contact_Phase_1: float = 0,
         Contact_Phase_2: float = 255,
-        Include_Borders: bool = False,
         Pixel_Scale: float = 1.0,
         Units: str = "pixels",
-        Normalize: bool = False,
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
@@ -1536,54 +1544,41 @@ class ImageProcessor:
                  "Max Percent": Max_Percent,
                  "Include Background": Include_Background,
                  "Background": Background,
+                 "Normalize": Normalize,
                  "Surface Phase": Surface_Phase,
                  "Contact Phase 1": Contact_Phase_1,
                  "Contact Phase 2": Contact_Phase_2,
-                 "Include Edges": Include_Borders,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
-                 "Normalize": Normalize,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
         
         if Method == "Stats":
             
-            quant.global_statistics(Image.data, mask_array = mask_array)
+            _ = quant.global_statistics(Image.data, mask_array = mask_array)
         
         elif Method == "Percent Intensities":
             
-            quant.get_percent_intensities(Image.data, (Min_Percent, Max_Percent), mask_array = mask_array)
+            _ = quant.get_percent_intensities(Image.data, (Min_Percent, Max_Percent), mask_array = mask_array)
         
         elif Method == "Volume/Area":
             
             if util.is_3d_rgb(Image.data)["3D"]:
                 
-                quant.get_volume(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)
+                _ = quant.get_volume(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)
                 
             else:
                 
-                quant.get_area(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)          
+                _ = quant.get_area(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)          
         
         elif Method == "Surface Perimeter/Area":
             
-            if util.is_3d_rgb(Image.data)["3D"]:
-                
-                quant.get_contact_area(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
-            
-            else:
-                
-                quant.get_contact_perimeter(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
-        
+            _ = quant.get_surface_contact(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units)
+
         elif Method == "Contact Perimeter/Area":
             
-            if util.is_3d_rgb(Image.data)["3D"]:
-                
-                quant.get_contact_area(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
-            
-            else:
-                
-                quant.get_contact_perimeter(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, include_edges = Include_Borders, normalize = Normalize)
-            
+            _ = quant.get_surface_contact(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units)
+
     @magicgui(
         Type = {"choices": domain_size_types_list},
         Domain_Size_Connectivity = {"choices": connectivity_list},
@@ -1608,7 +1603,7 @@ class ImageProcessor:
         Time_Units: str = "s",
         Time_Scale: float = 1,
         Apply_Mask: bool = False,
-        Mask: napari.layers.image = None,
+        Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
         
         if Type == "Volume":

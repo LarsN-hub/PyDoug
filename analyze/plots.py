@@ -71,7 +71,14 @@ def remove_edges(data_df: pd.DataFrame) -> pd.DataFrame:
     for col_index in range(0, eval_array.shape[1]):
         
         cur_start: int = util.quick_get_first_index(eval_array[:, col_index])
-        cur_end: int = eval_array.shape[0] - util.quick_get_first_index(np.flip(eval_array[:, col_index]))
+        
+        if cur_start == None:
+            
+            continue
+        
+        else:
+            
+            cur_end: int = eval_array.shape[0] - util.quick_get_first_index(np.flip(eval_array[:, col_index]))
         
         if col_index == 0:
             
