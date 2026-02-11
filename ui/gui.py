@@ -69,6 +69,7 @@ tophat_list: list[str] = ["Black", "White"]
 edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]
 corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
 harris_method_list: list[str] = ["K", "Eps"]
+rr_list: list[str] = ["FFT", "Wavelet"]
 
 misc_calc_list: list[str] = ["Stats", "Percent Intensities", "Volume/Area", "Surface Perimeter/Area", "Contact Perimeter/Area"]
 domain_size_types_list: list[str] = ["Volume", "Area"]
@@ -156,6 +157,16 @@ class ImageProcessor:
                 
                     funcgui.Image.reset_choices()
                     funcgui.Image.value = layer
+                    
+                if hasattr(funcgui, "Image_1"):
+                
+                    funcgui.Image_1.reset_choices()
+                    funcgui.Image_1.value = layer
+                    
+                if hasattr(funcgui, "Image_2"):
+                
+                    funcgui.Image_2.reset_choices()
+                    funcgui.Image_2.value = layer
                     
                 if hasattr(funcgui, "Mask"):
                 
@@ -646,6 +657,39 @@ class ImageProcessor:
         else:
             
             self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = param_layer_name)
+            
+    @magicgui(
+        Axis = {"choices": axis_list},
+        call_button = "Split")
+    def split_widget(self,
+        Image: napari.layers.Image,
+        Split_Index: int = 0,
+        Axis: str = "Z") -> None:
+        
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        param_layer_name = get_param_layer_name("Split", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Split Index": Split_Index,
+             "Axis": Axis})
+        split_arrays: list[np.ndarray] = cc.split(Image.data, Split_Index, Axis)
+        self.viewer.add_image(split_arrays[0], name = f"{param_layer_name} - 1")
+        self.viewer.add_image(split_arrays[1], name = f"{param_layer_name} - 2")
+        
+    @magicgui(
+        Axis = {"choices": axis_list},
+        call_button = "Join")
+    def join_widget(self,
+        Image_1: napari.layers.Image,
+        Image_2: napari.layers.Image,
+        Axis: str = "Z") -> None:
+        
+        Axis = util.convert_ax_str_to_int(Image_1.data, Image_1.rgb, Axis)
+        param_layer_name = get_param_layer_name("Join", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Axis": Axis})
+        self.viewer.add_image(cc.join([Image_1.data, Image_2.data], Axis), name = param_layer_name)
 
 
     #####################
@@ -806,6 +850,8 @@ class ImageProcessor:
         Image: napari.layers.Image,
         Method: str = "Global",
         Local_Radius: int = 3,
+        Along_Axis: bool = False,
+        Axis: str = "Z",
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
         
@@ -819,14 +865,17 @@ class ImageProcessor:
             mask_name = Mask.name
             mask_array = Mask.data
         
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Equalized", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Local Radius": Local_Radius,
+             "Along Axis": Along_Axis,
+             "Axis": Axis,
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
-        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower(), mask_array = mask_array, radius = Local_Radius), name = param_layer_name)
+        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower(), mask_array = mask_array, radius = Local_Radius, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
 
     @magicgui(
         call_button = "Invert")
@@ -1458,6 +1507,45 @@ class ImageProcessor:
              "Window Size": Moravec_Window_Size})
         
         self.viewer.add_image(detect.corners(Image.data, method = Method.lower(), n = Fast_N, threshold = Fast_Threshold, harris_method = Harris_Method.lower(), k = Harris_K, eps = Harris_Epsilon, sigma = Harris_or_Shi_Tomasi_Sigma, window_size = Moravec_Window_Size, return_mode = "array"), name = param_layer_name)
+        
+    @magicgui(
+        Method = {"choices": rr_list},
+        Wavelet = {"choices": wavelets_list},
+        Square_Axis = {"choices": axis_list},
+        call_button = "Remove Rings")
+    def ring_removal_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "FFT",
+        FFT_Freq_Cutoff: int = 20,
+        FFT_Filter_Order: int = 8,
+        FFT_Rows: int = 1,
+        Wavelet: str = "db9",
+        Wavelet_Level: int = 5,
+        Wavelet_Damping_Size: int = 1,
+        Sorting: bool = False,
+        Square_Axis: str = "Z") -> None:
+        
+        Square_Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Square_Axis)
+        param_layer_name = get_param_layer_name("Ring Removal", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method,
+             "FFT Freq Cutoff": FFT_Freq_Cutoff,
+             "FFT Filter Order": FFT_Filter_Order,
+             "FFT Rows": FFT_Rows,
+             "Wavelet": Wavelet,
+             "Wavelet Level": Wavelet_Level,
+             "Wavelet Damping_Size": Wavelet_Damping_Size,
+             "Sorting": Sorting,
+             "Square Axis": Square_Axis})
+        
+        if Method == "FFT":
+            
+            self.viewer.add_image(fourier.fft_ring_removal(Image.data, cutoff_freq = FFT_Freq_Cutoff, filter_order = FFT_Filter_Order, rows = FFT_Rows, sorting = Sorting, square_axis = Square_Axis), name = param_layer_name)
+            
+        elif Method == "Wavelet":
+            
+            self.viewer.add_image(fourier.wavelet_ring_removal(Image.data, level = Wavelet_Level, size = Wavelet_Damping_Size, wavelet = Wavelet, sorting = Sorting, square_axis = Square_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "FFT")
@@ -2038,8 +2126,10 @@ def main() -> napari.viewer.Viewer:
     mod_mask_logic: widgets.Container = modify_funcgui(ui.mask_logic_widget, "Mask Logic Operations")
     mod_mask: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
     mod_crop: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
+    mod_split: widgets.Container = modify_funcgui(ui.split_widget, "Split")
+    mod_join: widgets.Container = modify_funcgui(ui.join_widget, "Join")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop],
+        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop, mod_split, mod_join],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     
@@ -2108,9 +2198,10 @@ def main() -> napari.viewer.Viewer:
     mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
+    mod_ring_removal: widgets.Container = modify_funcgui(ui.ring_removal_widget, "Ring Removal")
     mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
     filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_fft],
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_ring_removal, mod_fft],
         labels = False)
     tabs.addTab(filter_container.native, "Filters")
     

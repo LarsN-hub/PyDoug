@@ -1,6 +1,7 @@
 """
-Module for altering and assessing pixel values and dimensions
+Module for altering pixel gray values
 """
+
 
 # Imports
 
@@ -9,6 +10,7 @@ import pandas as pd
 import numpy as np
 import distrib
 import quant
+import util
 
 from skimage import util as skutil
 from skimage import exposure
@@ -133,37 +135,108 @@ def invert(im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)
 
-def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, clip_limit: float = 0.01, radius: int = 3) -> np.ndarray:
+def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, clip_limit: float = 0.01, radius: int = 3, along_axis: bool = False, axis: int = 0) -> np.ndarray:
     
     if np.any(mask_array):
                 
         if mask_array.shape != im_array.shape:
                     
             mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
-                
-    if method == "global":
             
-        return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
+        mask_array = np.bool(mask_array)
+            
+    if along_axis:
         
-    elif method == "local":
+        proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
+        eq_array: np.ndarray = np.empty(proc_array.shape, proc_array.dtype)
+        
+        if np.any(mask_array):
             
-        if im_array.ndim == 2:
+            proc_mask_array: np.ndrray = util.get_along_axis_array(mask_array, axis)
+        
+        if method == "global":
+            
+            if np.any(mask_array):
+            
+                for n in range(0, proc_array.shape[0]):
                 
+                    if np.any(proc_mask_array[n]):
+                        
+                        eq_array[n] = convert_im_type(exposure.equalize_hist(proc_array[n], mask = proc_mask_array[n]), im_array.dtype)
+                        
+                    else:
+                        
+                        eq_array[n] = proc_array[n]
+                    
+            else:
+                
+                for n in range(0, proc_array.shape[0]):
+                
+                    eq_array[n] = convert_im_type(exposure.equalize_hist(proc_array[n]), im_array.dtype)
+            
+        elif method == "local":
+            
             disk = morph.Footprint("disk")
             disk.radius = radius
             footprint = disk.get_footprint()
                 
-        else:
+            if im_array.ndim == 2:
+                    
+                eq_array = filters.rank.equalize(proc_array, footprint = footprint, mask = mask_array)
+                    
+            else:
                 
-            ball = morph.Footprint("ball")
-            ball.radius = radius
-            footprint = ball.get_footprint()
+                if np.any(mask_array):
+                
+                    for n in range(0, proc_array.shape[0]):
+                        
+                        if np.any(proc_mask_array[n]):
+                
+                            eq_array[n] = filters.rank.equalize(proc_array[n], footprint = footprint, mask = proc_mask_array[n])
+                            
+                        else:
+                            
+                            eq_array[n] = proc_array[n]
+                        
+                else:
+                    
+                    for n in range(0, proc_array.shape[0]):
+                
+                        eq_array[n] = filters.rank.equalize(proc_array[n], footprint = footprint)
+                        
+        elif method == "adaptive":
             
-        return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
+            for n in range(0, proc_array.shape[0]):
+                
+                eq_array[n] = convert_im_type(exposure.equalize_adapthist(proc_array[n], radius, clip_limit), im_array.dtype)
         
-    elif method == "adaptive":
+        return util.undo_axial_array(eq_array, axis)
+    
+    else:
+                
+        if method == "global":
+                
+            return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
             
-        return convert_im_type(exposure.equalize_adapthist(im_array, radius, clip_limit), im_array.dtype)
+        elif method == "local":
+                
+            if im_array.ndim == 2:
+                    
+                disk = morph.Footprint("disk")
+                disk.radius = radius
+                footprint = disk.get_footprint()
+                    
+            else:
+                    
+                ball = morph.Footprint("ball")
+                ball.radius = radius
+                footprint = ball.get_footprint()
+                
+            return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
+            
+        elif method == "adaptive":
+                
+            return convert_im_type(exposure.equalize_adapthist(im_array, radius, clip_limit), im_array.dtype)
         
 def histogram_matching(im_array: np.ndarray, ref_array: np.ndarray) -> np.ndarray:
     

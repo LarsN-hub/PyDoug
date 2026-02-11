@@ -2,6 +2,7 @@
 Module for detection-based image segmentation
 """
 
+
 # Imports
 
 import cropclip as cc

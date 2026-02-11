@@ -20,6 +20,32 @@ axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
 
 # Functions
 
+def check_if_square(im_array: np.ndarray) -> bool:
+    
+    if im_array.ndim == 2:
+        
+        if im_array.shape[0] != im_array.shape[1]:
+            
+            return False
+        
+        else:
+            
+            return True
+        
+    elif im_array.ndim == 3:
+        
+        if im_array.shape[1] != im_array.shape[2]:
+            
+            return False
+        
+        else:
+            
+            return True
+        
+    else:
+        
+        return False
+
 def get_along_axis_array(im_array: np.ndarray, axis: int) -> np.ndarray:
     
     if axis == 1:

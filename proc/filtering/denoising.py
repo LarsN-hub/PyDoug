@@ -2,6 +2,7 @@
 Module for denoising images
 """
 
+
 # Imports
 
 import numpy as np
@@ -98,7 +99,7 @@ def non_local_means(im_array: np.ndarray, *,
     if axial:
         
         proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
-        nl_array: np.ndarray = np.emtpy(proc_array.shape)
+        nl_array: np.ndarray = np.empty(proc_array.shape)
         
         for n in range(0, proc_array.shape[0]):
             
@@ -145,7 +146,7 @@ def tv_bregman(im_array: np.ndarray, *,
     if axial:
         
         proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
-        tv_array: np.ndarray = np.emtpy(proc_array.shape)
+        tv_array: np.ndarray = np.empty(proc_array.shape)
         
         for n in range(0, proc_array.shape[0]):
             
@@ -172,7 +173,7 @@ def tv_chambolle(im_array: np.ndarray, *,
     if axial:
         
         proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
-        tv_array: np.ndarray = np.emtpy(proc_array.shape)
+        tv_array: np.ndarray = np.empty(proc_array.shape)
         
         for n in range(0, proc_array.shape[0]):
             
@@ -203,7 +204,7 @@ def wavelet(im_array: np.ndarray, *,
     if axial:
         
         proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
-        wave_array: np.ndarray = np.emtpy(proc_array.shape)
+        wave_array: np.ndarray = np.empty(proc_array.shape)
         
         for n in range(0, proc_array.shape[0]):
             

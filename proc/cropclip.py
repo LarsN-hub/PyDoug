@@ -1,6 +1,7 @@
 """
-Module for cropping, clipping, and padding image dimensions
+Module for manipulating and masking images and their dimensions
 """
+
 
 # Imports
 
@@ -72,27 +73,27 @@ def pad_operation(im_array: np.ndarray, bounds: dict[int, list[int]], padded_col
     
     if not is_3d_rgb_dict["3D"]:
             
-        left_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0])) * padded_color
-        right_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1])) * padded_color
+        left_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0]), im_array.dtype) * padded_color
+        right_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1]), im_array.dtype) * padded_color
         im_array = np.insert(im_array, 0, left_x_insert, axis = 1)
         im_array = np.append(im_array, right_x_insert, axis = 1)
-        top_y_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1])) * padded_color
-        bot_y_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1])) * padded_color
+        top_y_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1]), im_array.dtype) * padded_color
+        bot_y_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1]), im_array.dtype) * padded_color
         im_array = np.insert(im_array, 0, top_y_insert, axis = 0)
         im_array = np.append(im_array, bot_y_insert, axis = 0)
             
     else:
         
-        left_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][0])) * padded_color
-        right_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][1])) * padded_color
+        left_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][0]), im_array.dtype) * padded_color
+        right_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][1]), im_array.dtype) * padded_color
         im_array = np.insert(im_array, [0], left_x_insert, axis = 2)
         im_array = np.append(im_array, right_x_insert, axis = 2)
-        top_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0], im_array.shape[2])) * padded_color
-        bot_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1], im_array.shape[2])) * padded_color
+        top_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0], im_array.shape[2]), im_array.dtype) * padded_color
+        bot_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1], im_array.shape[2]), im_array.dtype) * padded_color
         im_array = np.insert(im_array, [0], top_y_insert, axis = 1)
         im_array = np.append(im_array, bot_y_insert, axis = 1)
-        front_z_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1], im_array.shape[2])) * padded_color
-        back_z_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1], im_array.shape[2])) * padded_color
+        front_z_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
+        back_z_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
         im_array = np.insert(im_array, [0], front_z_insert, axis = 0)
         im_array = np.append(im_array, back_z_insert, axis = 0)
         
@@ -111,6 +112,14 @@ def pad(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | 
         pad_array = np.copy(im_array)
         
         return pad_operation(pad_array, bounds, padded_color)
+    
+def split(im_array: np.ndarray, split_index: int, axis = 0) -> list[np.ndarray]:
+    
+    return np.split(im_array, [split_index], axis)
+
+def join(im_array_list: list[np.ndarray], axis: int = 0) -> np.ndarray:
+    
+    return np.concat(im_array_list, axis = axis)
 
 def remove_slice_coords(coords: np.ndarray) -> dict[str, np.ndarray]:
     
