@@ -17,7 +17,7 @@ from typing import Callable
 
 # Functions
 
-def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
+def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None, print_results: bool = True) -> pd.DataFrame:
     
     im_stats: dict = {}
     
@@ -41,12 +41,15 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None) ->
     dtype_dict = util.get_dtype_info(im_array)
     im_stats["DType Min"] = dtype_dict["Min"]
     im_stats["DType Max"] = dtype_dict["Max"]
-    print("\n")
     
-    for stat in list(im_stats.keys()):
+    if print_results:
         
-        current_str: str = stat + ":"
-        print(f"{current_str:<16} {im_stats[stat]}")
+        print("\n")
+    
+        for stat in list(im_stats.keys()):
+        
+            current_str: str = stat + ":"
+            print(f"{current_str:<16} {im_stats[stat]}")
     
     return pd.DataFrame([im_stats])
 

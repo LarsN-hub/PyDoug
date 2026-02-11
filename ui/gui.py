@@ -114,6 +114,22 @@ class ImageProcessor:
         self.histogram_widget.Y_Max.native.setDecimals(3)
         self.histogram_widget.Y_Max.step = 0.001
         self.histogram_widget.Y_Max.value = Y_Max
+        Pixel_Scale = 1
+        self.heat_map_widget.Pixel_Scale.native.setDecimals(3)
+        self.heat_map_widget.Pixel_Scale.step = 0.001
+        self.heat_map_widget.Pixel_Scale.value = Pixel_Scale
+        self.psd_widget.Pixel_Scale.native.setDecimals(3)
+        self.psd_widget.Pixel_Scale.step = 0.001
+        self.psd_widget.Pixel_Scale.value = Pixel_Scale
+        self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
+        self.axis_distribution_widget.Pixel_Scale.step = 0.001
+        self.axis_distribution_widget.Pixel_Scale.value = Pixel_Scale
+        self.misc_calc_widget.Pixel_Scale.native.setDecimals(3)
+        self.misc_calc_widget.Pixel_Scale.step = 0.001
+        self.misc_calc_widget.Pixel_Scale.value = Pixel_Scale
+        self.remove_objects_widget.Pixel_Scale.native.setDecimals(3)
+        self.remove_objects_widget.Pixel_Scale.step = 0.001
+        self.remove_objects_widget.Pixel_Scale.value = Pixel_Scale
         
         self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
         self.manual_threshold_widget.Range.changed.connect(self._live_threshold)
@@ -2000,10 +2016,10 @@ class ImageProcessor:
             mask_name = Mask.name
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        param_layer_name = get_param_layer_name("Heat Map", self.operation_count)
         
         if Add_as_Parameter:
             
-            param_layer_name = get_param_layer_name("Heat Map", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
                  "Method": Method.lower(),

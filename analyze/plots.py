@@ -587,7 +587,15 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
     
     return fig
 
-def heat_axis(data: np.ndarray, input_ax: plt.Axes, *, mode: str = "thick", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Axes:
+def heat_axis(data: np.ndarray, input_ax: plt.Axes, *,
+              mode: str = "thick",
+              cmap: str = "inferno",
+              clim: tuple = None,
+              mask_array: np.ndarray = None,
+              pixel_size: float = 1.0,
+              units: str = "pix", axis: int = 0,
+              height_orientation: str = "near",
+              return_array: bool = False) -> plt.Axes:
     
     if units == "um":
         
@@ -612,13 +620,28 @@ def heat_axis(data: np.ndarray, input_ax: plt.Axes, *, mode: str = "thick", cmap
         vmax: float | int = max(clim)
         
     heat_ax: plt.Axes = input_ax
-    ax_im = heat_ax.imshow(heat_array, cmap = cmap, vmin = vmin, vmax = vmax, origin = "lower", interpolation = "nearest")
+    ax_im = heat_ax.imshow(heat_array, cmap = cmap, vmin = vmin, vmax = vmax, origin = "lower", interpolation = "none", extent = [0, (heat_array.shape[1] * pixel_size), 0, (heat_array.shape[0] * pixel_size)])
     heat_ax.set_xlabel(f"Position ({units})")
     heat_ax.set_ylabel(f"Position ({units})")
     
-    return heat_ax, ax_im
+    if return_array:
+        
+        return heat_ax, ax_im, np.flipud(heat_array)
+    
+    else:
+    
+        return heat_ax, ax_im
 
-def heat_map(data: np.ndarray, *, mode: str = "thickness", cmap: str = "inferno", clim: tuple = None, mask_array: np.ndarray = None, pixel_size: float = 1.0, units: str = "pix", axis: int = 0, height_orientation: str = "near") -> plt.Figure:
+def heat_map(data: np.ndarray, *,
+             mode: str = "thickness",
+             cmap: str = "inferno",
+             clim: tuple = None,
+             mask_array: np.ndarray = None,
+             pixel_size: float = 1.0,
+             units: str = "pix",
+             axis: int = 0,
+             height_orientation: str = "near",
+             return_array: bool = False) -> plt.Figure | np.ndarray:
     
     if mode == "thickness":
         
@@ -629,11 +652,56 @@ def heat_map(data: np.ndarray, *, mode: str = "thickness", cmap: str = "inferno"
         c_label: str = f"Height ({units})"
     
     fig, heat_ax = plt.subplots()
-    heat_ax, ax_im = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation)
+    
+    heat_ax, ax_im, heat_array = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation, return_array = True)
     fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
     
-    return fig
+    if np.any(mask_array):
+        
+        if mask_array.ndim > 2:
+            
+            heat_mask = mask_array[0]
+            
+        else:
+            
+            heat_mask = np.copy(mask_array)
+            
+    else:
+        
+        heat_mask = None
+        
+    if not clim:
+        
+        vmin: float | int = np.min(heat_array)
+        vmax: float | int = np.max(heat_array)
+        
+    else:
+        
+        vmin: float | int = min(clim)
+        vmax: float | int = max(clim)
+        
+    heat_stats: dict = quant.global_statistics(heat_array, mask_array = heat_mask, print_results = False).to_dict(orient = "list")
+    heat_stats["DType Min"] = [vmin]
+    heat_stats["DType Max"] = [vmax]
+    heat_hist: pd.DataFrame = distrib.get_histogram(heat_array, mask_array = heat_mask, normalize = True)
+    print("\n")
+    
+    for stat in list(heat_stats.keys()):
+        
+        current_str: str = stat + ":"
+        print(f"{current_str:<16} {heat_stats[stat][0]} {units}")
+        
+    print(f"{"Min Area Ratio:":<16} {heat_hist.loc[len(heat_hist) - 1]["Counts"]}")
+    print(f"{"Max Area Ratio:":<16} {heat_hist.loc[0]["Counts"]}")
+    
+    if return_array:
+        
+        return fig, heat_array
+    
+    else:
+    
+        return fig
 
 def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *, return_axes: bool = False, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, quant_axes: tuple = (0, 1, 2), mode: str = "vol", units: str = "pix", connectivity: int = None, background: float | int = 0) -> plt.Figure:
        
