@@ -822,7 +822,7 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Equalized", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Method": Method,
+             "Method": Method.lower(),
              "Local Radius": Local_Radius,
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
@@ -1294,6 +1294,10 @@ class ImageProcessor:
         Axis: str = "Z") -> None:
         
         if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        elif Along_Axis and Connectivity > 2:
             
             Connectivity = 2
             
