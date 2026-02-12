@@ -118,6 +118,12 @@ class ImageProcessor:
         self.heat_map_widget.Pixel_Scale.native.setDecimals(3)
         self.heat_map_widget.Pixel_Scale.step = 0.001
         self.heat_map_widget.Pixel_Scale.value = Pixel_Scale
+        self.heat_map_widget.Min_Value.native.setDecimals(3)
+        self.heat_map_widget.Min_Value.step = 0.001
+        self.heat_map_widget.Min_Value.value = 0
+        self.heat_map_widget.Max_Value.native.setDecimals(3)
+        self.heat_map_widget.Max_Value.step = 0.001
+        self.heat_map_widget.Max_Value.value = 0
         self.psd_widget.Pixel_Scale.native.setDecimals(3)
         self.psd_widget.Pixel_Scale.step = 0.001
         self.psd_widget.Pixel_Scale.value = Pixel_Scale
