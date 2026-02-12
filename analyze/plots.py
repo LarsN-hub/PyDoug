@@ -641,18 +641,22 @@ def heat_map(data: np.ndarray, *,
              units: str = "pix",
              axis: int = 0,
              height_orientation: str = "near",
+             cbar_label: str = None,
              return_array: bool = False) -> plt.Figure | np.ndarray:
     
-    if mode == "thickness":
+    if mode == "thickness" and not cbar_label:
         
         c_label: str = f"Thickness ({units})"
         
-    elif mode == "height":
+    elif mode == "height" and not cbar_label:
         
         c_label: str = f"Height ({units})"
+        
+    else:
+        
+        c_label: str = f"{cbar_label} ({units})"
     
     fig, heat_ax = plt.subplots()
-    
     heat_ax, ax_im, heat_array = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation, return_array = True)
     fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     fig_cbar.set_label(c_label, rotation = 270, va = "bottom")

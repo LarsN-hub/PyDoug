@@ -2009,6 +2009,8 @@ class ImageProcessor:
         Define_Limits: bool = False,
         Min_Value: float = 0,
         Max_Value: float = 10,
+        Alternate_Colorbar_Label: bool = False,
+        Colorbar_Label: str = None,
         Apply_Mask: bool = False,
         Mask: napari.layers.image = None,
         Add_as_Parameter: bool = False) -> None:
@@ -2020,6 +2022,10 @@ class ImageProcessor:
         else:
             
             mask_name = Mask.name
+            
+        if not Alternate_Colorbar_Label:
+            
+            Colorbar_Label = None
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Heat Map", self.operation_count)
@@ -2037,6 +2043,8 @@ class ImageProcessor:
                  "Define Limits": Define_Limits,
                  "Min Value": Min_Value,
                  "Max Value": Max_Value,
+                 "Alternate Colorbar label": Alternate_Colorbar_Label,
+                 "Colorbar Label": Colorbar_Label,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
@@ -2050,11 +2058,11 @@ class ImageProcessor:
             
         if Apply_Mask:
             
-            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = Mask.data, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower())
+            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = Mask.data, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
             
         else:
             
-            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower())
+            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
             
         plt.show()
         

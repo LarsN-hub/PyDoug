@@ -420,7 +420,7 @@ def get_heat_map(im_array: np.ndarray, mode: str = "thickness", *, mask_array: n
         
         if height_orientation == "near":
             
-            heat_array: np.ndarray = max_height_array - np.argmax(bool_array, axis)
+            heat_array: np.ndarray = np.argmax(bool_array, axis)
         
         elif height_orientation == "far":
             
