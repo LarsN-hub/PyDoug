@@ -909,6 +909,22 @@ class ImageProcessor:
             {"Name": param_layer_name})
         self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
+    @magicgui(
+        call_button = "Re-Assign")
+    def reassign_widget(self,
+        Image: napari.layers.Image,
+        Input_Intensity: float = 0,
+        Output_Intensity: float = 0) -> None:
+        
+        param_layer_name = get_param_layer_name("Re-assigned", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Input Intensity": Input_Intensity,
+             "Output Intensity": Output_Intensity})
+        new_array: np.ndarray = np.copy(Image.data)
+        new_array[new_array == Input_Intensity] = Output_Intensity
+        self.viewer.add_image(new_array, name = param_layer_name)
+        
     
     #####################
     # Denoising Widgets #
@@ -2194,8 +2210,9 @@ def main() -> napari.viewer.Viewer:
     mod_saturate: widgets.Container = modify_funcgui(ui.saturate_widget, "Saturate")
     mod_equalize: widgets.Container = modify_funcgui(ui.equalize_widget, "Equalize Histogram")
     mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
+    mod_reassign: widgets.Container = modify_funcgui(ui.reassign_widget, "Re-Assign Intensities")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert],
+        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
     
