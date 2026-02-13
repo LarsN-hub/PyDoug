@@ -183,9 +183,9 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
             
     return mask_array
 
-def project_mask(mask_array: np.ndarray, num_slices: int) -> np.ndarray:
+def project_mask(mask_array: np.ndarray, num_slices: int, axis: int = 0) -> np.ndarray:
     
-    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = 0)
+    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = axis)
 
 def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer: napari.layers.Shapes = None, slice_range: tuple = None, convert_to_3d: bool = True) -> np.ndarray:
     

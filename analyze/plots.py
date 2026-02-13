@@ -12,6 +12,7 @@ import distrib
 import napari
 import quant
 import util
+import math
 
 from matplotlib import colorbar as cbar
 from matplotlib import pyplot as plt
@@ -358,6 +359,24 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
     else:
         
         hist_df: pd.DataFrame = data.copy()
+        
+    hist_mean: float = np.sum((hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
+    ext_bin_centers: np.ndarray = np.empty((1, int(np.sum(hist_df["Counts"]))))
+    index: int = 0
+    bin_loc: int = 0
+    
+    for bin_center in hist_df["Bin Centers"]:
+        
+        for count in range(0, int(hist_df["Counts"][bin_loc])):
+            
+            ext_bin_centers[0, index] = bin_center
+            index += 1
+            
+        bin_loc += 1
+        
+    hist_std: float = math.sqrt(np.sum(np.square(ext_bin_centers - hist_mean)) / np.sum(hist_df["Counts"]))
+    print(f"\n{"Histogram Mean:":<16} {hist_mean}")
+    print(f"{"Histogram StDv:":<16} {hist_std}")
         
     if ignore_edges:
         

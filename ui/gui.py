@@ -707,11 +707,28 @@ class ImageProcessor:
         Axis: str = "Z") -> None:
         
         Axis = util.convert_ax_str_to_int(Image_1.data, Image_1.rgb, Axis)
-        param_layer_name = get_param_layer_name("Join", self.operation_count)
+        param_layer_name = get_param_layer_name("Joined", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Axis": Axis})
         self.viewer.add_image(cc.join([Image_1.data, Image_2.data], Axis), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Extend")
+    def extend_widget(self,
+        Image: napari.layers.Image,
+        Repetitions: int = 10,
+        Add_as_Parameter: bool = False) -> None:
+        
+        param_layer_name = get_param_layer_name("Extended", self.operation_count)
+        
+        if Add_as_Parameter:
+            
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Repetitions": Repetitions})
+            
+        self.viewer.add_image(cc.project_mask(Image.data, num_slices = Repetitions), name = param_layer_name)
 
 
     #####################
@@ -1252,6 +1269,7 @@ class ImageProcessor:
         Image: napari.layers.Image,
         Method: str = "Connectivity",
         Connectivity: int = 3,
+        Watershed_Compactness: float = 0,
         Background: int = 0,
         Along_Axis: bool = False,
         Axis: str = "Z",
@@ -1265,24 +1283,25 @@ class ImageProcessor:
         else:
             
             mask_name = Mask.name
+            
+        if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        elif Connectivity > 2 and Along_Axis:
+            
+            Connectivity = 2
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
         if Method == "Connectivity":
-        
-            if Connectivity > Image.data.ndim:
-                
-                Connectivity = 2
-                
-            elif Connectivity > 2 and Along_Axis:
-                
-                Connectivity = 2
                 
             param_layer_name = get_param_layer_name("Label", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
                  "Background": Background,
                  "Connectivity": Connectivity,
+                 "Watershed Compactness": Watershed_Compactness,
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
                  "Apply Mask": Apply_Mask,
@@ -1302,6 +1321,8 @@ class ImageProcessor:
             parameters_log.append(
                 {"Name": param_layer_name,
                  "Background": Background,
+                 "Connectivity": Connectivity,
+                 "Watershed Compactness": Watershed_Compactness,
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
                  "Apply Mask": Apply_Mask,
@@ -1309,11 +1330,11 @@ class ImageProcessor:
             
             if Apply_Mask:
                 
-                self.viewer.add_image(detect.watershed(Image.data, background = Background, mask_array = Mask.data, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(detect.watershed(Image.data, background = Background, mask_array = Mask.data, connectivity = Connectivity, compactness = Watershed_Compactness, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
             
             else:
                 
-                self.viewer.add_image(detect.watershed(Image.data, background = Background, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(detect.watershed(Image.data, background = Background, connectivity = Connectivity, compactness = Watershed_Compactness, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
             
     @magicgui(
         call_button = "Segment")
@@ -1603,6 +1624,7 @@ class ImageProcessor:
     ####################
     
     @magicgui(
+        X_Max = {"max": 1000000},
         Y_Max = {"max": 1000000000},
         call_button = "Plot Histogram")
     def histogram_widget(self,
@@ -1931,6 +1953,7 @@ class ImageProcessor:
     @magicgui(
         Type = {"choices": domain_size_types_list},
         Connectivity = {"choices": connectivity_list},
+        X_Max = {"max": 1000000},
         call_button = "Plot Distribution")
     def psd_widget(self,
         Image: napari.layers.Image,
@@ -1945,7 +1968,7 @@ class ImageProcessor:
         X_Max: float = 0,
         Y_Max: float = 0,
         Apply_Mask: bool = False,
-        Mask: napari.layers.image = None,
+        Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
         
         if Type == "Volume":
@@ -2028,7 +2051,7 @@ class ImageProcessor:
         Alternate_Colorbar_Label: bool = False,
         Colorbar_Label: str = None,
         Apply_Mask: bool = False,
-        Mask: napari.layers.image = None,
+        Mask: napari.layers.Image = None,
         Return_Array: bool = False,
         Add_as_Parameter: bool = False) -> None:
         
@@ -2185,8 +2208,9 @@ def main() -> napari.viewer.Viewer:
     mod_crop: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
     mod_split: widgets.Container = modify_funcgui(ui.split_widget, "Split")
     mod_join: widgets.Container = modify_funcgui(ui.join_widget, "Join")
+    mod_extend: widgets.Container = modify_funcgui(ui.extend_widget, "Extend")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop, mod_split, mod_join],
+        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop, mod_split, mod_join, mod_extend],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     

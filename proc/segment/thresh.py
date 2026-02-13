@@ -196,7 +196,7 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
         
         return pixels.convert_im_type(pixels.normalize(filters.rank.threshold(im_array, footprint, mask = mask_array)), "uint8")
     
-def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0) -> np.ndarray | int:
+def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0, randomize: bool = True) -> np.ndarray | int:
     
     proc_array: np.ndarray = np.copy(im_array)
     
@@ -220,7 +220,7 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
                 
                 connectivity = 2
                 
-        return measure.label(proc_array, background = background, return_num = return_num, connectivity = connectivity)
+        lab_array: np.ndarray = measure.label(proc_array, background = background, return_num = return_num, connectivity = connectivity)
 
     else:
         
@@ -238,11 +238,33 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
         
         if return_num:
             
-            return util.undo_axial_array(lab_array, axis), num_unique
+            lab_array = util.undo_axial_array(lab_array, axis), num_unique
         
         else:
             
-            return util.undo_axial_array(lab_array, axis)
+            lab_array = util.undo_axial_array(lab_array, axis)
+            
+    if randomize:
+        
+        return randomize_labels(lab_array)
+    
+    else:
+        
+        return lab_array
+        
+def randomize_labels(im_array: np.ndarray) -> np.ndarray:
+    
+    labels: np.ndarray = np.unique(im_array)[1:]
+    rng: np.random.Generator = np.random.default_rng()
+    rand_labels: np.ndarray = np.copy(labels)
+    rng.shuffle(rand_labels)
+    rand_array: np.ndarray = np.zeros(im_array.shape, im_array.dtype)
+    
+    for index, og_label in enumerate(labels):
+        
+        rand_array[im_array == og_label] = rand_labels[index]
+        
+    return rand_array
         
 
 # Main
