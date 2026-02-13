@@ -607,7 +607,7 @@ def heat_axis(data: np.ndarray, input_ax: plt.Axes, *,
     
     else:
         
-        heat_array: np.ndarray = np.copy(data)
+        heat_array: np.ndarray = np.flipud(np.copy(data))
         
     if not clim:
         

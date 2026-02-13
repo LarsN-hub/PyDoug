@@ -15,7 +15,7 @@ from numba import jit
 # Globals
 
 axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
-axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
+axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0, "Z": -1}
 
 
 # Functions

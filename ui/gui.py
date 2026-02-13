@@ -2013,6 +2013,7 @@ class ImageProcessor:
         Colorbar_Label: str = None,
         Apply_Mask: bool = False,
         Mask: napari.layers.image = None,
+        Return_Array: bool = False,
         Add_as_Parameter: bool = False) -> None:
         
         if not Apply_Mask:
@@ -2046,7 +2047,8 @@ class ImageProcessor:
                  "Alternate Colorbar label": Alternate_Colorbar_Label,
                  "Colorbar Label": Colorbar_Label,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": mask_name})
+                 "Mask Used": mask_name,
+                 "Return Array": Return_Array})
             
         if Define_Limits:
             
@@ -2058,11 +2060,20 @@ class ImageProcessor:
             
         if Apply_Mask:
             
-            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = Mask.data, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
+            mask_array: np.ndarray = Mask.data
             
         else:
             
-            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
+            mask_array: None = None
+            
+        if Return_Array:
+            
+            _, heat_array = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label, return_array = True)
+            self.viewer.add_image(heat_array, name = param_layer_name)
+            
+        else:
+            
+            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
             
         plt.show()
         
