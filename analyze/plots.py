@@ -26,6 +26,10 @@ plt.rcParams["font.sans-serif"] = "Arial"
 
 # Functions
 
+def get_basic_colors() -> tuple[str]:
+    
+    return ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
+
 def get_color_list(mode: str = "br", num_colors: int = 2) -> list[np.ndarray]:
     
     color_list: list[tuple] = []
@@ -157,6 +161,77 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 axis.set_ylim(0, 65535)
                 
     return axis
+
+def simple_bar(x: np.ndarray, y: np.ndarray, *, y_label: str = "Values", x_label: str = "Categories", y_units: str = None, x_units: str = None, width: float = 0.8, labels: tuple[str] = None, ymax: float = None, xlims: tuple[float] = None) -> plt.Figure:
+    
+    if x_units == "um":
+        
+        x_units = "\u00b5m"
+        
+    if y_units == "um":
+        
+        y_units = "\u00b5m"
+    
+    if x_units:
+        
+        x_title: str = f"{x_label} ({x_units})"
+        
+    else:
+        
+        x_title: str = x_label
+        
+    if y_units:
+        
+        y_title: str = f"{y_label} ({y_units})"
+        
+    else:
+        
+        y_title: str = y_label
+        
+    fig, bar_ax = plt.subplots()
+        
+    if y.ndim > 1:
+        
+        if y.shape[0] % 2 != 0:
+            
+            offset_start: float = -math.floor(y.shape[0] / 2) * width
+            
+        else:
+            
+            offset_start: float = (-math.floor(y.shape[0] / 2) * width) - (width / 2)
+            
+        offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y.shape[1] * width), width)
+        print(offset_incs)
+        for y_index in range(0, y.shape[0]):
+            
+            if labels:
+            
+                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], color = get_basic_colors()[y_index], width = width, label = labels[y_index])
+                
+            else:
+                
+                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], color = get_basic_colors()[y_index], width = width)
+    
+    else:
+        
+        bar_ax.bar(x, y, width = width)
+    
+    bar_ax.set_xlabel(x_title)
+    bar_ax.set_ylabel(y_title)
+    
+    if ymax:
+        
+        bar_ax.set_ylim(0, ymax)
+        
+    if xlims:
+        
+        bar_ax.set_xlim(min(xlims), max(xlims))
+    
+    if labels:
+        
+        bar_ax.legend()
+    
+    return fig
 
 def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, ignore_edges: bool = False, connectivity: int = None, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
     
