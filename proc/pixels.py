@@ -5,16 +5,18 @@ Module for altering pixel gray values
 
 # Imports
 
-import cropclip as cc
 import pandas as pd
 import numpy as np
-import distrib
-import quant
-import util
 
 from skimage import util as skutil
 from skimage import exposure
 from skimage import filters
+
+import cropclip as cc
+import distrib
+import quant
+import util
+
 from filtering import morph
 
 

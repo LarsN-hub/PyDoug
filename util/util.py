@@ -6,10 +6,11 @@ Module containing miscellaneous utilities
 # Imports
 
 import numpy as np
-import trans
 import math
 
 from numba import jit
+
+import trans
 
 
 # Globals

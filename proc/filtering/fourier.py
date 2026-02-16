@@ -7,10 +7,11 @@ Module for k-space filtering of images
 
 import algotom.post.postprocessing as post
 import numpy as np
-import pixels
-import util
 
 from scipy import fft
+
+import pixels
+import util
 
 
 # Functions

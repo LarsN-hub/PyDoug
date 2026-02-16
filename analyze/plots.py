@@ -5,18 +5,20 @@ Module for generating plots to analyze images
 
 # Imports
 
-import sliceview as sv
 import pandas as pd
 import numpy as np
-import distrib
 import napari
-import quant
-import util
 import math
 
 from matplotlib import colorbar as cbar
 from matplotlib import pyplot as plt
 from typing import Callable
+
+import sliceview as sv
+import distrib
+import quant
+import util
+
 
 # Globals
 
@@ -162,7 +164,24 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
-def simple_bar(x: np.ndarray, y: np.ndarray, *, y_label: str = "Values", x_label: str = "Categories", y_units: str = None, x_units: str = None, width: float = 0.8, labels: tuple[str] = None, ymax: float = None, xlims: tuple[float] = None) -> plt.Figure:
+def simple_bar(x: np.ndarray, y: np.ndarray, *,
+               y_label: str = "Values",
+               x_label: str = "Categories",
+               y_units: str = None,
+               x_units: str = None,
+               width: float = 0.8,
+               labels: tuple[str] = None,
+               ymax: float = None,
+               xlims: tuple[float] = None,
+               colors: tuple = None,
+               add_lines: bool | tuple[bool] = False,
+               axis2: bool = False,
+               x2: np.ndarray = None,
+               y2: np.ndarray = None,
+               y2_label: str = "Values",
+               y2_units: str = None,
+               colors2: tuple = None,
+               add_lines2: bool = False) -> plt.Figure:
     
     if x_units == "um":
         
@@ -198,23 +217,47 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *, y_label: str = "Values", x_label
             
         else:
             
-            offset_start: float = (-math.floor(y.shape[0] / 2) * width) - (width / 2)
+            offset_start: float = (-math.floor(y.shape[0] / 2) * width) / 2
             
         offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y.shape[1] * width), width)
-        print(offset_incs)
+        
         for y_index in range(0, y.shape[0]):
             
-            if labels:
-            
-                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], color = get_basic_colors()[y_index], width = width, label = labels[y_index])
+            if colors:
+                
+                color = colors[y_index]
                 
             else:
                 
-                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], color = get_basic_colors()[y_index], width = width)
+                color = get_basic_colors()[y_index]
+            
+            if labels:
+            
+                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color, label = labels[y_index])
+                
+            else:
+                
+                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color)
+                
+            if add_lines:
+                
+                if isinstance(add_lines, tuple):
+                    
+                    if add_lines[y_index]:
+                        
+                        bar_ax.plot(x + offset_incs[y_index], y[y_index, :], color = color / 2)
+        
+                else:
+                
+                    bar_ax.plot(x + offset_incs[y_index], y[y_index, :], color = color / 2)
     
     else:
         
         bar_ax.bar(x, y, width = width)
+        
+        if add_lines:
+            
+            bar_ax.plot(x, y)
     
     bar_ax.set_xlabel(x_title)
     bar_ax.set_ylabel(y_title)
@@ -425,7 +468,14 @@ def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> p
     
     return fig
 
-def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Axes:
+def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
+                   x_label: str = "Value",
+                   mask_array: np.ndarray = None,
+                   xlims: tuple = None,
+                   ylims: tuple = None,
+                   units: str = None,
+                   ignore_edges: bool = False,
+                   normalize: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
@@ -449,7 +499,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
             
         bin_loc += 1
         
-    hist_std: float = math.sqrt(np.sum(np.square(ext_bin_centers - hist_mean)) / np.sum(hist_df["Counts"]))
+    hist_std: float = np.std(ext_bin_centers)
     print(f"\n{"Histogram Mean:":<16} {hist_mean}")
     print(f"{"Histogram StDv:":<16} {hist_std}")
         
@@ -484,14 +534,29 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_lab
         
     return hist_ax
 
-def histogram(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Figure:
+def histogram(data: np.ndarray | pd.DataFrame, *,
+              x_label: str = "Value",
+              mask_array: np.ndarray = None,
+              xlims: tuple = None,
+              ylims: tuple = None,
+              ignore_edges: bool = False,
+              normalize: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
     hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
     
     return fig
 
-def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, connectivity: int = None, background: float | int = 0) -> plt.Axes:
+def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
+                         mode: str = "vol",
+                         units: str = "pix",
+                         mask_array: np.ndarray = None,
+                         xlims: tuple = None,
+                         ylims: tuple = None,
+                         ignore_edges: bool = False,
+                         normalize: bool = False,
+                         connectivity: int = None,
+                         background: float | int = 0) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         

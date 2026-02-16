@@ -5,16 +5,18 @@ Module for threshold-based image segmentation
 
 # Imports
 
-import cropclip as cc
 import pandas as pd
 import numpy as np
+
+from skimage import filters
+from skimage import measure
+
+import cropclip as cc
 import distrib
 import pixels
 import util
 
 from filtering import morph
-from skimage import filters
-from skimage import measure
 
 
 # Functions

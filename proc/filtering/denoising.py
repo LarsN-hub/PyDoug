@@ -6,12 +6,13 @@ Module for denoising images
 # Imports
 
 import numpy as np
-import pixels
-import util
 
 from skimage import restoration
 from skimage import filters
 from typing import Callable
+
+import pixels
+import util
 
 
 # Functions

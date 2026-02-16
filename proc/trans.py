@@ -6,9 +6,10 @@ Module for image transformation operations
 # Imports
 
 import numpy as np
-import pixels
 
 from skimage import transform
+
+import pixels
 
 
 # Functions

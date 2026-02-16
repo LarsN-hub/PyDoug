@@ -5,16 +5,18 @@ Module for detection-based image segmentation
 
 # Imports
 
-import cropclip as cc
 import numpy as np
-import pixels
-import quant
-import util
 
 from scipy import ndimage as ndi
 from skimage import segmentation
 from skimage import filters
 from skimage import feature
+
+import cropclip as cc
+import pixels
+import quant
+import util
+
 from segment import thresh
 
 

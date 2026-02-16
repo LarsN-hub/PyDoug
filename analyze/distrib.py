@@ -5,15 +5,16 @@ Module for multi-value measurements of images
 
 # Imports
 
-import cropclip as cc
 import pandas as pd
 import numpy as np
-import pixels
-import trans
-import quant
 
 from skimage import exposure
 from segment import thresh
+
+import cropclip as cc
+import pixels
+import trans
+import quant
 
 
 # Functions

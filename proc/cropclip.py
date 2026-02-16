@@ -5,13 +5,14 @@ Module for manipulating and masking images and their dimensions
 
 # Imports
 
-import sliceview as sv
 import numpy as np
 import napari
 import math
-import util
 
 from skimage import draw
+
+import sliceview as sv
+import util
 
 
 # Functions

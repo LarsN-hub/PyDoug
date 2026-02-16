@@ -7,12 +7,14 @@ Module for single-value measurements of images
 
 import pandas as pd
 import numpy as np
+
+from skimage import feature
+from typing import Callable
+
 import distrib
 import util
 
 from filtering import denoising
-from skimage import feature
-from typing import Callable
 
 
 # Functions

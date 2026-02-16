@@ -6,10 +6,12 @@ Module for altering morphology of image features
 # Imports
 
 import numpy as np
+
+from skimage import morphology
+
 import pixels
 import util
 
-from skimage import morphology
 from segment import thresh
 
 

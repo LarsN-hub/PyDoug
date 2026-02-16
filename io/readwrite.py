@@ -9,9 +9,8 @@ import tkfilebrowser as tkfb
 import tkinter as tk
 import numpy as np
 import platform
-import pixels
+import napari
 import h5py
-import util
 import csv
 import os
 
@@ -19,6 +18,10 @@ from timeit import default_timer as timer
 from matplotlib import pyplot as plt
 from skimage import io
 from PIL import Image
+
+import sliceview as sv
+import pixels
+import util
 
 
 # Globals
@@ -112,33 +115,33 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
                 
     return file_paths
 
-def get_path(directory = False) -> str:
+def get_path(directory = False, title: str = "Select image file") -> str:
     
     root: tk.Tk = tk.Tk()
     
     if directory:
         
-        path: str = tkfb.askopendirname(parent = root, title = "Select folder")
+        path: str = tkfb.askopendirname(parent = root, title = title)
     
     else:
         
-        path: str = tkfb.askopenfilename(parent = root, title = "Select file")
+        path: str = tkfb.askopenfilename(parent = root, title = title)
         
     root.destroy()
     
     return universalize_paths(path)
 
-def get_paths(directory = False) -> list[str]:
+def get_paths(directory = False, title: str = "Select image file(s)") -> list[str]:
     
     root: tk.Tk = tk.Tk()
     
     if directory:
         
-        paths: tuple[str] = tkfb.askopendirnames(parent = root, title = "Select folder(s)")
+        paths: tuple[str] = tkfb.askopendirnames(parent = root, title = title)
     
     else:
         
-        paths: tuple[str] = tkfb.askopenfilenames(parent = root, title = "Select file(s)")   
+        paths: tuple[str] = tkfb.askopenfilenames(parent = root, title = title)   
         
     root.destroy()
          
@@ -500,15 +503,34 @@ def write_plot(fig: plt.Figure, file_name: str, save_dir: str) -> None:
     save_path: str = save_dir + "/" + file_name + ".png"
     fig.savefig(save_path)
     
-def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: str) -> None:
+def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: str, *,
+                     viewer: napari.viewer.Viewer = None,
+                     compress_masks: bool = True) -> None:
     
     mod_parameters_list: list[list] = util.dict_list_to_list_list(parameters_log)
     save_path: str = save_dir + "/" + file_name + ".csv"
-    
-    with open(save_path, "w", newline = "") as csv_file:
         
+    with open(save_path, "w", newline = "") as csv_file:
+            
         writer = csv.writer(csv_file)
         writer.writerows(mod_parameters_list)
+            
+    for row in parameters_log:
+            
+        if "Mask Used" in list(row.keys()):
+                
+            mask_layer: napari.layers.Image = sv.get_layer(viewer, row["Mask Used"])
+                
+            if mask_layer != None:
+                
+                if compress_masks:
+                    
+                    write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
+                
+                else:
+                    
+                    write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
+            
     
 def read_parameters_file(parameters_file_path: str) -> list[dict]:
     

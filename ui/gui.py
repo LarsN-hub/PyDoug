@@ -6,17 +6,10 @@ Module for PyDoug GUI
 # Imports
 
 import magicclass.widgets as mcw
-import sliceview as sv
-import readwrite as rw
-import cropclip as cc
 import numpy as np
 import pathlib
 import napari
-import pixels
-import plots
-import trans
-import quant
-import util
+
 import pywt
 import os
 
@@ -24,12 +17,23 @@ from qtpy.QtWidgets import QTabWidget
 from matplotlib import pyplot as plt
 from magicclass import magicclass
 from matplotlib import colormaps
-from filtering import denoising
-from filtering import fourier
 from magicgui import magicgui
 from magicgui import widgets
-from filtering import morph
 from qtpy.QtCore import Qt
+
+import sliceview as sv
+import readwrite as rw
+import cropclip as cc
+import pixels
+import plots
+import trans
+import quant
+import batch
+import util
+
+from filtering import denoising
+from filtering import fourier
+from filtering import morph
 from segment import thresh
 from segment import detect
 
@@ -402,23 +406,15 @@ class ImageProcessor:
         
         save_dir: str = str(Save_Folder) + "/" + str(Folder_Name)
         os.makedirs(save_dir)
-        rw.write_parameters(parameters_log, "Parameters", save_dir)
+        rw.write_parameters(parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
         
-        for row in parameters_log:
-            
-            if "Mask Used" in list(row.keys()):
-                
-                mask_layer: napari.layers.Image = sv.get_layer(self.viewer, row["Mask Used"])
-                
-                if mask_layer != None:
-                
-                    if Compress_Masks:
-                    
-                        rw.write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
-                
-                    else:
-                    
-                        rw.write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
+    @magicgui(
+        call_button = "Run Batch Script")
+    def batch_widget(self,
+        Directories: bool = False,
+        Copy_Parameters: bool = True) -> None:
+        
+        batch.main(Directories, Copy_Parameters)
             
             
     ######################
@@ -2190,8 +2186,9 @@ def main() -> napari.viewer.Viewer:
     mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
     mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
     mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
+    mod_batch: widgets.Container = modify_funcgui(ui.batch_widget, "Batch Processing")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_param_export],
+        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_param_export, mod_batch],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
