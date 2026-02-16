@@ -118,6 +118,7 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
 def get_path(directory = False, title: str = "Select image file") -> str:
     
     root: tk.Tk = tk.Tk()
+    root.tk.call('tk', 'scaling', root.winfo_fpixels('1i')/72)
     
     if directory:
         
@@ -134,6 +135,7 @@ def get_path(directory = False, title: str = "Select image file") -> str:
 def get_paths(directory = False, title: str = "Select image file(s)") -> list[str]:
     
     root: tk.Tk = tk.Tk()
+    root.tk.call('tk', 'scaling', root.winfo_fpixels('1i')/72)
     
     if directory:
         
@@ -518,18 +520,20 @@ def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: 
     for row in parameters_log:
             
         if "Mask Used" in list(row.keys()):
+            
+            if row["Apply Mask"]:
                 
-            mask_layer: napari.layers.Image = sv.get_layer(viewer, row["Mask Used"])
-                
-            if mask_layer != None:
-                
-                if compress_masks:
+                mask_layer: napari.layers.Image = sv.get_layer(viewer, row["Mask Used"])
                     
-                    write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
-                
-                else:
+                if mask_layer != None:
                     
-                    write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
+                    if compress_masks:
+                        
+                        write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
+                    
+                    else:
+                        
+                        write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
             
     
 def read_parameters_file(parameters_file_path: str) -> list[dict]:

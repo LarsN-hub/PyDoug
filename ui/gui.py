@@ -409,12 +409,16 @@ class ImageProcessor:
         rw.write_parameters(parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
         
     @magicgui(
+        Image_Format = {"choices": ["2D", "3D"]},
         call_button = "Run Batch Script")
     def batch_widget(self,
-        Directories: bool = False,
+        Image_Format: str = "3D",
+        Importing_Sequences: bool = False,
+        Exporting_Sequences: bool = False,
+        Multi_Page: bool = True,
         Copy_Parameters: bool = True) -> None:
         
-        batch.main(Directories, Copy_Parameters)
+        batch.main(Image_Format, Importing_Sequences, Exporting_Sequences, Copy_Parameters, Multi_Page)
             
             
     ######################
@@ -632,6 +636,7 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Method": Mask_Method.lower(),
              "Masked Color": color_spec,
+             "Apply Mask": True,
              "Mask Used": Mask.name})
         self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
     
@@ -664,6 +669,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Masked Color": color_spec,
+             "Apply Mask": True,
              "Mask Used": Mask.name})
         
         if Conserve_RAM:
@@ -1701,7 +1707,14 @@ class ImageProcessor:
         call_button = "Plot Line Scan")
     def line_scan_widget(self,
         Image: napari.layers.Image,
-        Shapes: napari.layers.Shapes) -> None:
+        Shapes: napari.layers.Shapes,
+        Add_as_Parameter: bool = False) -> None:
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name("Line Scan", self.operation_count)
+            parameters_log.append(
+                {"Name": param_layer_name})
         
         if util.is_3d_rgb(Image.data)["3D"]:
             
@@ -1733,7 +1746,7 @@ class ImageProcessor:
         
         if Add_as_Parameter:
             
-            param_layer_name = get_param_layer_name("Histogram Plot", self.operation_count)
+            param_layer_name = get_param_layer_name("Gray Level Plot", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
                  "Apply Mask": Apply_Mask,
