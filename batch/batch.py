@@ -55,6 +55,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
                 z_bounds = None
                 
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
+            print(bounds_dict)
             im_array = cc.trim(im_array,
                                bounds_dict = bounds_dict,
                                bounds_as_slices = parameter["Bounds as Slices"],
@@ -62,7 +63,36 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Padded") == 0:
             
-            pass
+            if parameter["X Bounds"]:
+                
+                x_bounds = [parameter["X Min"], parameter["X Max"]]
+                
+            else:
+                
+                x_bounds = None
+                
+            if parameter["Y Bounds"]:
+                
+                y_bounds = [parameter["Y Min"], parameter["Y Max"]]
+                
+            else:
+                
+                y_bounds = None
+                
+            if parameter["Z Bounds"]:
+                
+                z_bounds = [parameter["Z Min"], parameter["Z Max"]]
+                
+            else:
+                
+                z_bounds = None
+                
+            bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
+            im_array = cc.pad(im_array,
+                              bounds_dict = bounds_dict,
+                              bounds_as_slices = parameter["Bounds as Slices"],
+                              padded_color = parameter["Padded Color"],
+                              conserve_mem = True)
         
         elif parameter["Name"].find("Masked") == 0:
             
@@ -74,7 +104,10 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Cropped") == 0:
             
-            pass
+            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+            im_array = cc.crop(im_array, mask_array,
+                               mask_color = parameter["Masked Color"],
+                               conserve_mem = True)
         
         
         ########################
@@ -290,17 +323,19 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
 
 # Main
 
-def main(format: str = "3D", input_directories: bool = False, output_directories: bool = False, copy_parameters: bool = True, multi_page: bool = True) -> None:
+def main(format: str = "3D", stack_format: str = "Multi-Page", export_multi_page: bool = True, copy_parameters: bool = True) -> None:
     
-    if input_directories:
+    if stack_format == "Sequence":
         
         title: str = "Select image folder(s)"
+        directories: bool = True
         
     else:
         
         title: str = "Select image file(s)"
+        directories: bool = False
     
-    im_list: list[str] = rw.get_paths(input_directories, title)
+    im_list: list[str] = rw.get_paths(directories, title)
     parameters_path: str = rw.get_path(True, "Select parameters directory")
     parameters_dict: dict[str, list, np.ndarray] = rw.read_parameters_dir(parameters_path)
     save_dir: str = rw.get_path(True, "Select output directory")
@@ -310,7 +345,7 @@ def main(format: str = "3D", input_directories: bool = False, output_directories
         os.mkdir(save_dir + "/Parameters")
         shutil.copytree(parameters_path, save_dir + "/Parameters", dirs_exist_ok = True)
         
-    for index, im_path in enumerate(im_list):
+    for index, im_path in enumerate(im_list, 1):
         
         print(f"\nImporting dataset {index} of {len(im_list)}...")
         
@@ -334,7 +369,7 @@ def main(format: str = "3D", input_directories: bool = False, output_directories
         
         if format == "3D":
             
-            rw.write_stack(im_array, save_dir, file_name, multi_page = multi_page)
+            rw.write_stack(im_array, save_dir, file_name, multi_page = export_multi_page)
         
         elif format == "2D":
             

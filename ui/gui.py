@@ -410,15 +410,15 @@ class ImageProcessor:
         
     @magicgui(
         Image_Format = {"choices": ["2D", "3D"]},
+        Stack_Format = {"choices": ["Multi-Page", "Sequence"]},
         call_button = "Run Batch Script")
     def batch_widget(self,
         Image_Format: str = "3D",
-        Importing_Sequences: bool = False,
-        Exporting_Sequences: bool = False,
-        Multi_Page: bool = True,
+        Stack_Format: str = "Multi-Page",
+        Export_Multi_Page: bool = True,
         Copy_Parameters: bool = True) -> None:
         
-        batch.main(Image_Format, Importing_Sequences, Exporting_Sequences, Copy_Parameters, Multi_Page)
+        batch.main(Image_Format, Stack_Format, Export_Multi_Page, Copy_Parameters)
             
             
     ######################

@@ -5,19 +5,30 @@ Module for import/export of images, parameters, and plots
 
 # Imports
 
-import tkfilebrowser as tkfb
-import tkinter as tk
+from tkinter import filedialog
+from tkinter_unblur import Tk
 import numpy as np
 import platform
 import napari
 import h5py
 import csv
+import sys
 import os
 
 from timeit import default_timer as timer
 from matplotlib import pyplot as plt
 from skimage import io
 from PIL import Image
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QVBoxLayout,
+    QFileSystemModel,
+    QTreeView,
+    QPushButton,
+    QAbstractItemView,
+)
+from qtpy.QtCore import QDir
 
 import sliceview as sv
 import pixels
@@ -97,6 +108,40 @@ valid_exts: tuple[str] = h5_exts + ("apng",
                                     "xv")
 
 
+
+# Classes
+
+class MultiFolderDialog(QDialog):
+    
+    def __init__(self, parent = None, start_dir = None):
+        
+        super().__init__(parent)
+        self.setWindowTitle("Select Folders")
+        self.resize(600, 400)
+        layout = QVBoxLayout(self)
+        self.model = QFileSystemModel()
+        self.model.setFilter(QDir.AllDirs | QDir.NoDotAndDotDot)
+        self.model.setRootPath(start_dir or QDir.rootPath())
+        self.tree = QTreeView()
+        self.tree.setModel(self.model)
+        self.tree.setRootIndex(self.model.index(start_dir or QDir.rootPath()))
+        self.tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tree.setHeaderHidden(True)
+        
+        for i in range(1, 4):
+            
+            self.tree.hideColumn(i)
+
+        layout.addWidget(self.tree)
+        self.ok_button = QPushButton("Select")
+        self.ok_button.clicked.connect(self.accept)
+        layout.addWidget(self.ok_button)
+
+    def selected_folders(self):
+        
+        indexes = self.tree.selectionModel().selectedRows()
+        return [self.model.filePath(i) for i in indexes]
+
 # Functions
 
 def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
@@ -116,38 +161,41 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
     return file_paths
 
 def get_path(directory = False, title: str = "Select image file") -> str:
-    
-    root: tk.Tk = tk.Tk()
-    root.tk.call('tk', 'scaling', root.winfo_fpixels('1i')/72)
+                
+    root = Tk()
     
     if directory:
         
-        path: str = tkfb.askopendirname(parent = root, title = title)
-    
+        file_path = filedialog.askdirectory(parent = root, title = title)
+        
     else:
         
-        path: str = tkfb.askopenfilename(parent = root, title = title)
-        
+        file_path = filedialog.askopenfilename(parent = root, title = title)
+    
     root.destroy()
     
-    return universalize_paths(path)
+    return universalize_paths(file_path)
 
-def get_paths(directory = False, title: str = "Select image file(s)") -> list[str]:
+def get_paths(directories = False, title: str = "Select image sequence directories") -> list[str]:
     
-    root: tk.Tk = tk.Tk()
-    root.tk.call('tk', 'scaling', root.winfo_fpixels('1i')/72)
+    if directories:
     
-    if directory:
+        app = QApplication.instance() or QApplication(sys.argv)
+        dialog = MultiFolderDialog()
         
-        paths: tuple[str] = tkfb.askopendirnames(parent = root, title = title)
+        if dialog.exec():
+            
+            return dialog.selected_folders()
+             
+        return universalize_paths([])
     
     else:
         
-        paths: tuple[str] = tkfb.askopenfilenames(parent = root, title = title)   
+        root = Tk()
+        file_paths: list[str] = filedialog.askopenfilenames(title = title)
+        root.destroy()
         
-    root.destroy()
-         
-    return universalize_paths(list(paths))
+        return universalize_paths(file_paths)
 
 def get_ext(file_path: str) -> str:
     
