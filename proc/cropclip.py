@@ -50,12 +50,12 @@ def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int |
         
         if not is_3d_rgb_dict["3D"]:
                 
-            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
-                
+            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]        
+        
         else:
                 
             return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
-    
+            
     else:
         
         if not is_3d_rgb_dict["3D"]:

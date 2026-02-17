@@ -23,90 +23,136 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
     
     for parameter in parameters_log:
         
-        
         #########################
         # Manipulate Operations #
         #########################
         
         if parameter["Name"].find("Trimmed") == 0:
             
-            if parameter["X Bounds"]:
+            print("Trimming...")
+            
+            if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds = [parameter["X Min"], parameter["X Max"]]
+                x_bounds = [int(parameter["X Min"]), int(parameter["X Max"])]
                 
             else:
                 
                 x_bounds = None
                 
-            if parameter["Y Bounds"]:
+            if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds = [parameter["Y Min"], parameter["Y Max"]]
+                y_bounds = [int(parameter["Y Min"]), int(parameter["Y Max"])]
                 
             else:
                 
                 y_bounds = None
                 
-            if parameter["Z Bounds"]:
+            if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds = [parameter["Z Min"], parameter["Z Max"]]
+                z_bounds = [int(parameter["Z Min"]), int(parameter["Z Max"])]
                 
             else:
                 
                 z_bounds = None
                 
+            if parameter["Bounds as Slices"].lower() == "true":
+                
+                bounds_as_slices = True
+                
+            else:
+                
+                bounds_as_slices = False
+                
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
-            print(bounds_dict)
             im_array = cc.trim(im_array,
                                bounds_dict = bounds_dict,
-                               bounds_as_slices = parameter["Bounds as Slices"],
+                               bounds_as_slices = bounds_as_slices,
                                conserve_mem = True)
         
         elif parameter["Name"].find("Padded") == 0:
             
-            if parameter["X Bounds"]:
+            print("Padding...")
+            
+            if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds = [parameter["X Min"], parameter["X Max"]]
+                x_bounds = [int(parameter["X Min"]), int(parameter["X Max"])]
                 
             else:
                 
                 x_bounds = None
                 
-            if parameter["Y Bounds"]:
+            if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds = [parameter["Y Min"], parameter["Y Max"]]
+                y_bounds = [int(parameter["Y Min"]), int(parameter["Y Max"])]
                 
             else:
                 
                 y_bounds = None
                 
-            if parameter["Z Bounds"]:
+            if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds = [parameter["Z Min"], parameter["Z Max"]]
+                z_bounds = [int(parameter["Z Min"]), int(parameter["Z Max"])]
                 
             else:
                 
                 z_bounds = None
                 
+            if parameter["Bounds as Slices"].lower() == "true":
+                
+                bounds_as_slices = True
+                
+            else:
+                
+                bounds_as_slices = False
+                
+            if np.issubdtype(im_array.dtype, np.floating):
+                
+                padded_color = float(parameter["Padded Color"])
+                
+            else:
+                
+                padded_color = int(parameter["Padded Color"])
+                
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
             im_array = cc.pad(im_array,
                               bounds_dict = bounds_dict,
-                              bounds_as_slices = parameter["Bounds as Slices"],
-                              padded_color = parameter["Padded Color"],
+                              bounds_as_slices = bounds_as_slices,
+                              padded_color = padded_color,
                               conserve_mem = True)
         
         elif parameter["Name"].find("Masked") == 0:
             
+            print("Masking...")
+            
+            if np.issubdtype(im_array.dtype, np.floating):
+                
+                mask_color = float(parameter["Masked Color"])
+                
+            else:
+                
+                mask_color = int(parameter["Masked Color"])
+                
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.mask(im_array, mask_array,
                                method = parameter["Method"],
-                               mask_color = parameter["Masked Color"],
+                               mask_color = mask_color,
                                conserve_mem = True)
         
         elif parameter["Name"].find("Cropped") == 0:
             
+            print("Cropping...")
+            
+            if np.issubdtype(im_array.dtype, np.floating):
+                
+                mask_color = float(parameter["Masked Color"])
+                
+            else:
+                
+                mask_color = int(parameter["Masked Color"])
+            
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.crop(im_array, mask_array,
-                               mask_color = parameter["Masked Color"],
+                               mask_color = mask_color,
                                conserve_mem = True)
         
         
@@ -225,11 +271,11 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
                 
             im_array = detect.watershed(im_array,
                                         mask_array = mask_array,
-                                        background = parameter["Background"],
-                                        connectivity = parameter["Connectivity"],
-                                        compactness = parameter["Watershed Compactness"],
-                                        along_axis = parameter["Along Axis"],
-                                        axis = parameter["Axis"])
+                                        background = float(parameter["Background"]),
+                                        connectivity = int(parameter["Connectivity"]),
+                                        compactness = float(parameter["Watershed Compactness"]),
+                                        along_axis = bool(parameter["Along Axis"]),
+                                        axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Random Walk") == 0:
             
