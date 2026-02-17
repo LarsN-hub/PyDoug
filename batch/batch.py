@@ -11,6 +11,7 @@ import os
 
 import readwrite as rw
 import cropclip as cc
+import trans
 
 from segment import detect
 
@@ -33,35 +34,35 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
             
             if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds = [int(parameter["X Min"]), int(parameter["X Max"])]
+                x_bounds: list = [int(parameter["X Min"]), int(parameter["X Max"])]
                 
             else:
                 
-                x_bounds = None
+                x_bounds: None = None
                 
             if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds = [int(parameter["Y Min"]), int(parameter["Y Max"])]
+                y_bounds: list = [int(parameter["Y Min"]), int(parameter["Y Max"])]
                 
             else:
                 
-                y_bounds = None
+                y_bounds: None = None
                 
             if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds = [int(parameter["Z Min"]), int(parameter["Z Max"])]
+                z_bounds: list = [int(parameter["Z Min"]), int(parameter["Z Max"])]
                 
             else:
                 
-                z_bounds = None
+                z_bounds: None = None
                 
             if parameter["Bounds as Slices"].lower() == "true":
                 
-                bounds_as_slices = True
+                bounds_as_slices: bool = True
                 
             else:
                 
-                bounds_as_slices = False
+                bounds_as_slices: bool = False
                 
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
             im_array = cc.trim(im_array,
@@ -75,45 +76,45 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
             
             if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds = [int(parameter["X Min"]), int(parameter["X Max"])]
+                x_bounds: list = [int(parameter["X Min"]), int(parameter["X Max"])]
                 
             else:
                 
-                x_bounds = None
+                x_bounds: None = None
                 
             if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds = [int(parameter["Y Min"]), int(parameter["Y Max"])]
+                y_bounds: list = [int(parameter["Y Min"]), int(parameter["Y Max"])]
                 
             else:
                 
-                y_bounds = None
+                y_bounds: None = None
                 
             if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds = [int(parameter["Z Min"]), int(parameter["Z Max"])]
+                z_bounds: list = [int(parameter["Z Min"]), int(parameter["Z Max"])]
                 
             else:
                 
-                z_bounds = None
+                z_bounds: None = None
                 
             if parameter["Bounds as Slices"].lower() == "true":
                 
-                bounds_as_slices = True
+                bounds_as_slices: bool = True
                 
             else:
                 
-                bounds_as_slices = False
+                bounds_as_slices: bool = False
                 
             if np.issubdtype(im_array.dtype, np.floating):
                 
-                padded_color = float(parameter["Padded Color"])
+                padded_color: float = float(parameter["Padded Color"])
                 
             else:
                 
-                padded_color = int(parameter["Padded Color"])
+                padded_color: int = int(parameter["Padded Color"])
                 
-            bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
+            bounds_dict: dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
             im_array = cc.pad(im_array,
                               bounds_dict = bounds_dict,
                               bounds_as_slices = bounds_as_slices,
@@ -126,11 +127,11 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
             
             if np.issubdtype(im_array.dtype, np.floating):
                 
-                mask_color = float(parameter["Masked Color"])
+                mask_color: float = float(parameter["Masked Color"])
                 
             else:
                 
-                mask_color = int(parameter["Masked Color"])
+                mask_color: int = int(parameter["Masked Color"])
                 
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.mask(im_array, mask_array,
@@ -144,11 +145,11 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
             
             if np.issubdtype(im_array.dtype, np.floating):
                 
-                mask_color = float(parameter["Masked Color"])
+                mask_color: float = float(parameter["Masked Color"])
                 
             else:
                 
-                mask_color = int(parameter["Masked Color"])
+                mask_color: int = int(parameter["Masked Color"])
             
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.crop(im_array, mask_array,
@@ -162,19 +163,40 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Resliced") == 0:
             
-            pass
+            print("Reslicing...")
+            im_array = trans.reslice(im_array, parameter["Orientation"])
         
         elif parameter["Name"].find("Rotated") == 0:
             
-            pass
+            print("Rotating...")
+            
+            if parameter["Resize"].lower() == "true":
+                
+                resize: bool = True
+                
+            else:
+                
+                resize: bool = False
+            
+            if parameter["Clockwise"].lower() == "true":
+                
+                im_array = trans.rotate(im_array, float(parameter["Angle"]),
+                                        "CW", resize = resize)
+                
+            else:
+                
+                im_array = trans.rotate(im_array, float(parameter["Angle"]),
+                                        resize = resize)
         
         elif parameter["Name"].find("Mirrored") == 0:
             
-            pass
+            print("Mirroring...")
+            im_array = trans.mirror(im_array, int(parameter["Direction"]))
         
         elif parameter["Name"].find("Rescaled") == 0:
             
-            pass
+            print("Rescaling...")
+            im_array = trans.rescale(im_array, float(parameter["Scale"]))
         
         
         ###########################
@@ -183,27 +205,27 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Converted") == 0:
             
-            pass
+            print("Converting type...")
         
         elif parameter["Name"].find("Normalized") == 0:
             
-            pass
+            print("Normalizing...")
         
         elif parameter["Name"].find("Saturated") == 0:
             
-            pass
+            print("Saturating...")
         
         elif parameter["Name"].find("Equalized") == 0:
             
-            pass
+            print("Equalizing...")
         
         elif parameter["Name"].find("Inverted") == 0:
             
-            pass
+            print("Inverting...")
         
         elif parameter["Name"].find("Re-assigned") == 0:
             
-            pass
+            print("Re-assigning...")
         
         
         ########################
@@ -212,31 +234,31 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Bilateral") == 0:
             
-            pass
+            print("Bilateral filter...")
         
         elif parameter["Name"].find("Gaussian") == 0:
             
-            pass
+            print("Gaussian blur...")
         
         elif parameter["Name"].find("Non-Local Means") == 0:
             
-            pass
+            print("Non-local means filter...")
         
         elif parameter["Name"].find("Removed Background") == 0:
             
-            pass
+            print("Removing background...")
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
-            pass
+            print("TV Bregman filter...")
         
         elif parameter["Name"].find("TV Chambolle") == 0:
             
-            pass
+            print("TV Chambolle filter...")
         
         elif parameter["Name"].find("Wavelet") == 0:
             
-            pass
+            print("Wavelet filter...")
         
         
         ###########################
@@ -245,21 +267,23 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Manual Threshold") == 0:
             
-            pass
+            print("Manual thresholding...")
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
             
-            pass
+            print("Histogram thresholding...")
         
         elif parameter["Name"].find("Local Threshold") == 0:
             
-            pass
+            print("Local thresholding...")
         
         elif parameter["Name"].find("Label") == 0:
             
-            pass
+            print("Connectivity labelling...")
         
         elif parameter["Name"].find("Watershed") == 0:
+            
+            print("Watershed labelling...")
             
             if parameter["Apply Mask"]:
                 
@@ -269,21 +293,29 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
                 
                 mask_array = None
                 
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
             im_array = detect.watershed(im_array,
                                         mask_array = mask_array,
                                         background = float(parameter["Background"]),
                                         connectivity = int(parameter["Connectivity"]),
                                         compactness = float(parameter["Watershed Compactness"]),
-                                        along_axis = bool(parameter["Along Axis"]),
+                                        along_axis = along_axis,
                                         axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Random Walk") == 0:
             
-            pass
+            print("Random walk thresholding...")
         
         elif parameter["Name"].find("Morph Snakes") == 0:
             
-            pass
+            print("Morphological snakes thresholding...")
         
         
         #####################
@@ -292,43 +324,43 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Remove Objects") == 0:
             
-            pass
+            print("Removing objects...")
         
         elif parameter["Name"].find("Dilation") == 0:
             
-            pass
+            print("Dilating...")
         
         elif parameter["Name"].find("Erosion") == 0:
             
-            pass
+            print("Eroding...")
         
         elif parameter["Name"].find("Closing") == 0:
             
-            pass
+            print("Closing...")
         
         elif parameter["Name"].find("Opening") == 0:
             
-            pass
+            print("Opening...")
         
         elif parameter["Name"].find("Top Hat") == 0:
             
-            pass
+            print("Top hat...")
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
-            pass
+            print("Detecting edges...")
         
         elif parameter["Name"].find("Corner Detection") == 0:
             
-            pass
+            print("Detecting corners...")
         
         elif parameter["Name"].find("Ring Removal") == 0:
             
-            pass
+            print("Removing rings...")
         
         elif parameter["Name"].find("FFT") == 0:
             
-            pass
+            print("Computing FFT...")
         
         
         #######################
@@ -337,31 +369,31 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Histogram Plot") == 0:
             
-            pass
+            print("Generating histogram...")
         
         elif parameter["Name"].find("Line Scan") == 0:
             
-            pass
+            print("Generating line scan...")
         
         elif parameter["Name"].find("Gray Level Plot") == 0:
             
-            pass
+            print("Generating gray levels plot...")
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             
-            pass
+            print("Performing calculations...")
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             
-            pass
+            print("Generating axial distribution...")
         
         elif parameter["Name"].find("Domain Size Distribution Plot") == 0:
             
-            pass
+            print("Generating domain size distribution...")
         
         elif parameter["Name"].find("Heat Map") == 0:
             
-            pass
+            print("Generating heat map...")
         
     
     return im_array

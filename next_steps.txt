@@ -1,11 +1,8 @@
 ui/gui.py
 - Consider changing label function to add a label layer
-- Add batch processing file(s) and widget
 - Add plot gathering and export function (drop-down for figures???)
 
 batch/batchproc.py
-- Create file
-- Create batch processing function
 
 analysis/plots.py
 - add colorbar to time series and positional psd plots

@@ -748,7 +748,7 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Resliced", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Orientation": Orientation})
+             "Orientation": Orientation.lower()})
         self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = param_layer_name)
         
     @magicgui(
@@ -876,14 +876,21 @@ class ImageProcessor:
         Min_Bound: float = 0,
         Max_Bound: float = 100) -> None:
         
+        if Bounds_as_Percentages:
+            
+            bounds = quant.get_percent_intensities(Image.data, (Min_Bound, Max_Bound))
+            
+        else:
+            
+            bounds = (Min_Bound, Max_Bound)
+        
         param_layer_name = get_param_layer_name("Saturated", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
              "Auto Normalize": Auto_Normalize,
-             "Bounds as Percentages": Bounds_as_Percentages,
-             "Min Bound": Min_Bound,
-             "Max Bound": Max_Bound})
-        self.viewer.add_image(pixels.saturate(Image.data, (Min_Bound, Max_Bound), auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = param_layer_name)
+             "Min Bound": min(bounds),
+             "Max Bound": max(bounds)})
+        self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = param_layer_name)
 
     @magicgui(Method = {"choices": equalize_list},
         call_button = "Equalize Histogram")
