@@ -32,7 +32,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         if parameter["Name"].find("Trimmed") == 0:
             
-            print("Trimming...")
+            print("\nTrimming...")
             
             if parameter["X Bounds"].lower() == "true":
                 
@@ -74,7 +74,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Padded") == 0:
             
-            print("Padding...")
+            print("\nPadding...")
             
             if parameter["X Bounds"].lower() == "true":
                 
@@ -125,7 +125,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Masked") == 0:
             
-            print("Masking...")
+            print("\nMasking...")
             
             if np.issubdtype(im_array.dtype, np.floating):
                 
@@ -143,7 +143,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Cropped") == 0:
             
-            print("Cropping...")
+            print("\nCropping...")
             
             if np.issubdtype(im_array.dtype, np.floating):
                 
@@ -165,12 +165,12 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Resliced") == 0:
             
-            print("Reslicing...")
+            print("\nReslicing...")
             im_array = trans.reslice(im_array, parameter["Orientation"])
         
         elif parameter["Name"].find("Rotated") == 0:
             
-            print("Rotating...")
+            print("\nRotating...")
             
             if parameter["Resize"].lower() == "true":
                 
@@ -192,12 +192,12 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Mirrored") == 0:
             
-            print("Mirroring...")
+            print("\nMirroring...")
             im_array = trans.mirror(im_array, int(parameter["Direction"]))
         
         elif parameter["Name"].find("Rescaled") == 0:
             
-            print("Rescaling...")
+            print("\nRescaling...")
             im_array = trans.rescale(im_array, float(parameter["Scale"]))
         
         
@@ -207,7 +207,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Converted") == 0:
             
-            print("Converting type...")
+            print("\nConverting type...")
             
             if parameter["Auto Normalize"].lower() == "true":
                 
@@ -232,7 +232,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Normalized") == 0:
             
-            print("Normalizing...")
+            print("\nNormalizing...")
             
             if parameter["Input Range"].lower() == "true":
                 
@@ -240,7 +240,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
                 
             else:
                 
-                in_range: None = None
+                in_range: str = "image"
                 
             if parameter["Output Range"].lower() == "true":
                 
@@ -248,7 +248,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
                 
             else:
                 
-                out_range: None = None
+                out_range: str = "dtype"
                 
             im_array = pixels.normalize(im_array,
                                         in_range = in_range,
@@ -256,7 +256,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Saturated") == 0:
             
-            print("Saturating...")
+            print("\nSaturating...")
             
             if parameter["Auto Normalize"].lower() == "true":
                 
@@ -272,7 +272,7 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Equalized") == 0:
             
-            print("Equalizing...")
+            print("\nEqualizing...")
             
             if parameter["Apply Mask"].lower() == "true":
                 
@@ -298,12 +298,12 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Inverted") == 0:
             
-            print("Inverting...")
+            print("\nInverting...")
             im_array = pixels.invert(im_array)
         
         elif parameter["Name"].find("Re-assigned") == 0:
             
-            print("Re-assigning...")
+            print("\nRe-assigning...")
             im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])
         
         
@@ -313,31 +313,31 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Bilateral") == 0:
             
-            print("Bilateral filter...")
+            print("\nBilateral filter...")
         
         elif parameter["Name"].find("Gaussian") == 0:
             
-            print("Gaussian blur...")
+            print("\nGaussian blur...")
         
         elif parameter["Name"].find("Non-Local Means") == 0:
             
-            print("Non-local means filter...")
+            print("\nNon-local means filter...")
         
         elif parameter["Name"].find("Removed Background") == 0:
             
-            print("Removing background...")
+            print("\nRemoving background...")
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
-            print("TV Bregman filter...")
+            print("\nTV Bregman filter...")
         
         elif parameter["Name"].find("TV Chambolle") == 0:
             
-            print("TV Chambolle filter...")
+            print("\nTV Chambolle filter...")
         
         elif parameter["Name"].find("Wavelet") == 0:
             
-            print("Wavelet filter...")
+            print("\nWavelet filter...")
         
         
         ###########################
@@ -346,23 +346,23 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Manual Threshold") == 0:
             
-            print("Manual thresholding...")
+            print("\nManual thresholding...")
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
             
-            print("Histogram thresholding...")
+            print("\nHistogram thresholding...")
         
         elif parameter["Name"].find("Local Threshold") == 0:
             
-            print("Local thresholding...")
+            print("\nLocal thresholding...")
         
         elif parameter["Name"].find("Label") == 0:
             
-            print("Connectivity labelling...")
+            print("\nConnectivity labelling...")
         
         elif parameter["Name"].find("Watershed") == 0:
             
-            print("Watershed labelling...")
+            print("\nWatershed labelling...")
             
             if parameter["Apply Mask"]:
                 
@@ -390,11 +390,11 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Random Walk") == 0:
             
-            print("Random walk thresholding...")
+            print("\nRandom walk thresholding...")
         
         elif parameter["Name"].find("Morph Snakes") == 0:
             
-            print("Morphological snakes thresholding...")
+            print("\nMorphological snakes thresholding...")
         
         
         #####################
@@ -403,43 +403,43 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Remove Objects") == 0:
             
-            print("Removing objects...")
+            print("\nRemoving objects...")
         
         elif parameter["Name"].find("Dilation") == 0:
             
-            print("Dilating...")
+            print("\nDilating...")
         
         elif parameter["Name"].find("Erosion") == 0:
             
-            print("Eroding...")
+            print("\nEroding...")
         
         elif parameter["Name"].find("Closing") == 0:
             
-            print("Closing...")
+            print("\nClosing...")
         
         elif parameter["Name"].find("Opening") == 0:
             
-            print("Opening...")
+            print("\nOpening...")
         
         elif parameter["Name"].find("Top Hat") == 0:
             
-            print("Top hat...")
+            print("\nTop hat...")
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
-            print("Detecting edges...")
+            print("\nDetecting edges...")
         
         elif parameter["Name"].find("Corner Detection") == 0:
             
-            print("Detecting corners...")
+            print("\nDetecting corners...")
         
         elif parameter["Name"].find("Ring Removal") == 0:
             
-            print("Removing rings...")
+            print("\nRemoving rings...")
         
         elif parameter["Name"].find("FFT") == 0:
             
-            print("Computing FFT...")
+            print("\nComputing FFT...")
         
         
         #######################
@@ -448,31 +448,31 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Histogram Plot") == 0:
             
-            print("Generating histogram...")
+            print("\nGenerating histogram...")
         
         elif parameter["Name"].find("Line Scan") == 0:
             
-            print("Generating line scan...")
+            print("\nGenerating line scan...")
         
         elif parameter["Name"].find("Gray Level Plot") == 0:
             
-            print("Generating gray levels plot...")
+            print("\nGenerating gray levels plot...")
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             
-            print("Performing calculations...")
+            print("\nPerforming calculations...")
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             
-            print("Generating axial distribution...")
+            print("\nGenerating axial distribution...")
         
         elif parameter["Name"].find("Domain Size Distribution Plot") == 0:
             
-            print("Generating domain size distribution...")
+            print("\nGenerating domain size distribution...")
         
         elif parameter["Name"].find("Heat Map") == 0:
             
-            print("Generating heat map...")
+            print("\nGenerating heat map...")
         
     
     return im_array

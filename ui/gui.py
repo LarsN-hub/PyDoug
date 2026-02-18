@@ -855,17 +855,23 @@ class ImageProcessor:
              "Output Min": Output_Min,
              "Output Max": Output_Max})
         
-        if Input_Range and Output_Range:
+        if Input_Range:
             
-            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max), out_range = (Output_Min, Output_Max)), name = param_layer_name)
+            in_range: tuple = (Input_Min, Input_Max)
+            
+        else:
+            
+            in_range: str = "image"
+            
+        if Output_Range:
+            
+            out_range: tuple = (Output_Min, Output_Max)
+            
+        else:
+            
+            out_range: str = "dtype"
         
-        elif Input_Range and not Output_Range:
-            
-            self.viewer.add_image(pixels.normalize(Image.data, in_range = (Input_Min, Input_Max)), name = param_layer_name)
-        
-        elif Output_Range and not Input_Range:
-            
-            self.viewer.add_image(pixels.normalize(Image.data, out_range = (Output_Min, Output_Max)), name = param_layer_name)
+        self.viewer.add_image(pixels.normalize(Image.data, in_range = in_range, out_range = out_range), name = param_layer_name)
 
     @magicgui(
         call_button = "Saturate")
@@ -890,7 +896,7 @@ class ImageProcessor:
              "Auto Normalize": Auto_Normalize,
              "Min Bound": min(bounds),
              "Max Bound": max(bounds)})
-        self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = Bounds_as_Percentages), name = param_layer_name)
+        self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = False), name = param_layer_name)
 
     @magicgui(Method = {"choices": equalize_list},
         call_button = "Equalize Histogram")
