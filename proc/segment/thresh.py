@@ -204,7 +204,7 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
     
     if np.any(mask_array):
         
-        if mask_array.ndim > im_array.ndim:
+        if mask_array.ndim < im_array.ndim:
             
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
             

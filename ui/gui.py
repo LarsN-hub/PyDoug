@@ -1264,10 +1264,6 @@ class ImageProcessor:
             
             mask_name = Mask.name
         
-        if Savoula_Sigma_Range == 0:
-            
-            Savoula_Sigma_Range = None
-        
         param_layer_name = get_param_layer_name("Local Threshold", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
@@ -1278,13 +1274,28 @@ class ImageProcessor:
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
         
+        if Savoula_Sigma_Range == 0:
+            
+            Savoula_Sigma_Range = None
+        
         if Apply_Mask:
             
-            self.viewer.add_image(thresh.local(Image.data, mask_array = Mask.data, method = Method.lower(), radius = Radius, window_size = Radius, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
+            self.viewer.add_image(thresh.local(Image.data,
+                                               mask_array = Mask.data,
+                                               method = Method.lower(),
+                                               radius = Radius,
+                                               window_size = Radius,
+                                               k = Niblack_or_Savoula_Sigma_Weight,
+                                               r = Savoula_Sigma_Range), name = param_layer_name)
             
         else:
             
-            self.viewer.add_image(thresh.local(Image.data, method = Method.lower(), radius = Radius, window_size = Radius, k = Niblack_or_Savoula_Sigma_Weight, r = Savoula_Sigma_Range), name = param_layer_name)
+            self.viewer.add_image(thresh.local(Image.data,
+                                               method = Method.lower(),
+                                               radius = Radius,
+                                               window_size = Radius,
+                                               k = Niblack_or_Savoula_Sigma_Weight,
+                                               r = Savoula_Sigma_Range), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": label_list},
@@ -1335,11 +1346,20 @@ class ImageProcessor:
             
             if Apply_Mask:
                 
-                self.viewer.add_image(thresh.label(Image.data, mask_array = Mask.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(thresh.label(Image.data,
+                                                   mask_array = Mask.data,
+                                                   connectivity = Connectivity,
+                                                   background = Background,
+                                                   positional = Along_Axis,
+                                                   axis = Axis), name = param_layer_name)
             
             else:
                 
-                self.viewer.add_image(thresh.label(Image.data, connectivity = Connectivity, background = Background, positional = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(thresh.label(Image.data,
+                                                   connectivity = Connectivity,
+                                                   background = Background,
+                                                   positional = Along_Axis,
+                                                   axis = Axis), name = param_layer_name)
                 
         elif Method == "Watershed":
             
@@ -1376,7 +1396,9 @@ class ImageProcessor:
              "Beta": Beta,
              "Lower Percentile": Lower_Percentile,
              "Upper Percentile": Lower_Percentile})
-        self.viewer.add_image(detect.random_walk(Image.data, (Lower_Percentile, Upper_Percentile), Beta), name = param_layer_name)
+        self.viewer.add_image(detect.random_walk(Image.data,
+                                                 (Lower_Percentile, Upper_Percentile),
+                                                 Beta), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": morph_snakes_list},

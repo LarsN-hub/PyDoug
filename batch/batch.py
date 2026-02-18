@@ -15,6 +15,7 @@ import pixels
 import trans
 
 from filtering import denoising
+from segment import thresh
 from segment import detect
 
 
@@ -479,18 +480,80 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Manual Threshold") == 0:
             
             print("\nManual thresholding...")
+            im_array = thresh.gui_threshold(im_array,
+                                            (float(parameter["Min"]), float(parameter["Max"])))
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
             
             print("\nHistogram thresholding...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            im_array = thresh.hist(im_array,
+                                   method = parameter["Method"],
+                                   otsu_classes = int(parameter["Otsu Classes"]),
+                                   mask_array = mask_array)
         
         elif parameter["Name"].find("Local Threshold") == 0:
             
             print("\nLocal thresholding...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if float(parameter["Sigma Range"]) == 0:
+                
+                r: None = None
+                
+            else:
+                
+                r: float = float(parameter["Sigma Range"])
+                
+            im_array = thresh.local(im_array,
+                                    mask_array = mask_array,
+                                    method = parameter["Method"],
+                                    radius = int(parameter["Radius"]),
+                                    window_size = int(parameter["Radius"]),
+                                    k = float(parameter["Sigma Weight"]),
+                                    r = r)
         
         elif parameter["Name"].find("Label") == 0:
             
             print("\nConnectivity labelling...")
+            
+            if parameter["Apply Mask"]:
+                
+                mask_array = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array = None
+                
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = thresh.label(im_array,
+                                    mask_array = mask_array,
+                                    connectivity = int(parameter["Connectivity"]),
+                                    background = float(parameter["Background"]),
+                                    positional = along_axis,
+                                    axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Watershed") == 0:
             
@@ -523,10 +586,19 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Random Walk") == 0:
             
             print("\nRandom walk thresholding...")
+            im_array = detect.random_walk(im_array,
+                                          (float(parameter["Lower Percentile"]), float(parameter["Upper Percentile"])),
+                                          float(parameter["Beta"]))
         
         elif parameter["Name"].find("Morph Snakes") == 0:
             
             print("\nMorphological snakes thresholding...")
+            im_array = detect.morph_snakes(im_array, parameter["Method"],
+                                           square_size = int(parameter["Square Size"]),
+                                           num_iter = int(parameter["Iterations"]),
+                                           smoothing = int(parameter["Smoothing"]),
+                                           alpha = float(parameter["Alpha"]),
+                                           sigma = float(parameter["Sigma"]))
         
         
         #####################
