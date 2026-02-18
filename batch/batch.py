@@ -14,7 +14,7 @@ import cropclip as cc
 import pixels
 import trans
 
-
+from filtering import denoising
 from segment import detect
 
 
@@ -314,30 +314,162 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Bilateral") == 0:
             
             print("\nBilateral filter...")
+            
+            if int(parameter["Window Size"]) == 0:
+                
+                win_size: None = None
+                
+            else:
+                
+                win_size: int = int(parameter["Window Size"])
+            
+            im_array = denoising.bilateral(im_array,
+                                           axis = int(parameter["Axis"]),
+                                           win_size = win_size,
+                                           sigma_color = float(parameter["Sigma Color"]),
+                                           sigma_spatial = float(parameter["Sigma Spatial"]),
+                                           bins = int(parameter["Bins"]),
+                                           mode = parameter["Mode"],
+                                           cval = float(parameter["CVal"]))
         
         elif parameter["Name"].find("Gaussian") == 0:
             
             print("\nGaussian blur...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = denoising.gaussian(im_array,
+                                          sigma = float(parameter["Sigma"]),
+                                          truncate = float(parameter["Truncate"]),
+                                          mode = parameter["Mode"],
+                                          cval = float(parameter["CVal"]),
+                                          axial = along_axis,
+                                          axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Non-Local Means") == 0:
             
             print("\nNon-local means filter...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = denoising.non_local_means(im_array,
+                                                 patch_size = int(parameter["Patch Size"]),
+                                                 patch_distance = int(parameter["Patch Distance"]),
+                                                 h = float(parameter["Cut Off Distance"]),
+                                                 sigma = float(parameter["Sigma"]),
+                                                 axial = along_axis,
+                                                 axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Removed Background") == 0:
             
             print("\nRemoving background...")
+            im_array = denoising.remove_background(im_array,
+                                                   radius = int(parameter["Radius"]))
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
             print("\nTV Bregman filter...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            if parameter["Isotropic"].lower() == "true":
+                
+                isotropic: bool = True
+                
+            else:
+                
+                isotropic: bool = False
+                
+            im_array = denoising.tv_bregman(im_array,
+                                            weight = float(parameter["Weight"]),
+                                            eps = float(parameter["Epsilon"]),
+                                            max_num_iter = int(parameter["Max Iterations"]),
+                                            isotropic = isotropic,
+                                            axial = along_axis,
+                                            axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("TV Chambolle") == 0:
             
             print("\nTV Chambolle filter...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = denoising.tv_chambolle(im_array,
+                                              weight = float(parameter["Weight"]),
+                                              eps = float(parameter["Epsilon"]),
+                                              max_num_iter = int(parameter["Max Iterations"]),
+                                              axial = along_axis,
+                                              axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Wavelet") == 0:
             
             print("\nWavelet filter...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            if parameter["Rescale Sigma"].lower() == "true":
+                
+                rescale_sigma: bool = True
+                
+            else:
+                
+                rescale_sigma: bool = False
+                
+            if float(parameter["Sigma"]) == 0:
+                
+                sigma: None = None
+                
+            else:
+                
+                sigma: float = float(parameter["Sigma"])
+                
+            if int(parameter["Wavelet Levels"]) == 0:
+                
+                wavelet_levels: None = None
+                
+            else:
+                
+                wavelet_levels: int = int(parameter["Wavelet Levels"])
+                
+            im_array = denoising.wavelet(im_array,
+                                         wavelet = parameter["Wavelet"],
+                                         mode = parameter["Mode"],
+                                         sigma = sigma,
+                                         wavelet_levels = wavelet_levels,
+                                         rescale_sigma = rescale_sigma,
+                                         method = parameter["Threshold Method"],
+                                         axial = along_axis,
+                                         axis = int(parameter["Axis"]))
         
         
         ###########################

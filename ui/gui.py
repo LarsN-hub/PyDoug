@@ -808,6 +808,8 @@ class ImageProcessor:
 
     @magicgui(
         Type = {"choices": convert_type_list},
+        Min = {"max": 65535, "min": -65535},
+        Max = {"max": 65535, "min": -65535},
         call_button = "Convert Type")
     def convert_type_widget(self,
         Image: napari.layers.Image,
@@ -835,6 +837,10 @@ class ImageProcessor:
             self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize, float_bounds = (Min, Max)), name = param_layer_name)
 
     @magicgui(
+        Input_Min = {"max": 65535, "min": -65535},
+        Input_Max = {"max": 65535, "min": -65535},
+        Output_Min = {"max": 65535, "min": -65535},
+        Output_Max = {"max": 65535, "min": -65535},
         call_button = "Normalize")
     def normalize_widget(self,
         Image: napari.layers.Image,
@@ -874,6 +880,8 @@ class ImageProcessor:
         self.viewer.add_image(pixels.normalize(Image.data, in_range = in_range, out_range = out_range), name = param_layer_name)
 
     @magicgui(
+        Min_Bound = {"max": 65535, "min": -65535},
+        Max_Bound = {"max": 65535, "min": -65535},
         call_button = "Saturate")
     def saturate_widget(self,
         Image: napari.layers.Image,
@@ -942,6 +950,8 @@ class ImageProcessor:
         self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
     @magicgui(
+        Input_Intensity = {"max": 65535, "min": -65535},
+        Output_Intensity = {"max": 65535, "min": -65535},
         call_button = "Re-Assign")
     def reassign_widget(self,
         Image: napari.layers.Image,
@@ -976,12 +986,7 @@ class ImageProcessor:
         Edges_Method: str = "Edge",
         Constant_Value: float = 0) -> None:
         
-        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
-        
-        if Window_Size == 0:
-            
-            Window_Size = None
-            
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)            
         param_layer_name = get_param_layer_name("Bilateral", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
@@ -992,6 +997,11 @@ class ImageProcessor:
              "Bins": Bins,
              "Mode": Edges_Method.lower(),
              "CVal": Constant_Value})
+        
+        if Window_Size == 0:
+            
+            Window_Size = None
+        
         self.viewer.add_image(denoising.bilateral(Image.data,
                                                   axis = Axis,
                                                   win_size = Window_Size,
@@ -1121,7 +1131,7 @@ class ImageProcessor:
         parameters_log.append(
             {"Name": param_layer_name,
              "Weight": Weight,
-             "Epsion": Epsilon,
+             "Epsilon": Epsilon,
              "Max Iterations": Max_Iterations,
              "Along Axis": Along_Axis,
              "Axis": Axis})
@@ -1148,14 +1158,6 @@ class ImageProcessor:
         Rescale_Sigma: bool = True,
         Along_Axis: bool = False,
         Axis: str = "Z") -> None:
-        
-        if Sigma == 0:
-            
-            Sigma = None
-            
-        if Wavelet_Levels == 0:
-            
-            Wavelet_Levels = None
             
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Wavelet", self.operation_count)
@@ -1169,6 +1171,15 @@ class ImageProcessor:
              "Rescale Sigma": Rescale_Sigma,
              "Along Axis": Along_Axis,
              "Axis": Axis})
+        
+        if Sigma == 0:
+            
+            Sigma = None
+            
+        if Wavelet_Levels == 0:
+            
+            Wavelet_Levels = None
+        
         self.viewer.add_image(denoising.wavelet(Image.data,
                                                 wavelet = Wavelet,
                                                 mode = Mode.lower(),
