@@ -11,7 +11,9 @@ import os
 
 import readwrite as rw
 import cropclip as cc
+import pixels
 import trans
+
 
 from segment import detect
 
@@ -206,26 +208,103 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Converted") == 0:
             
             print("Converting type...")
+            
+            if parameter["Auto Normalize"].lower() == "true":
+                
+                auto_normalize: bool = True
+                
+            else:
+                
+                auto_normalize: bool = False
+                
+            if parameter["Bounds"].lower() == "true":
+                
+                im_array = pixels.convert_im_type(im_array,
+                                                  parameter["Type"],
+                                                  norm = auto_normalize,
+                                                  float_bounds = (float(parameter["Min"]), float(parameter["Max"])))
+                
+            else:
+                
+                im_array = pixels.convert_im_type(im_array,
+                                                  parameter["Type"],
+                                                  norm = auto_normalize)
         
         elif parameter["Name"].find("Normalized") == 0:
             
             print("Normalizing...")
+            
+            if parameter["Input Range"].lower() == "true":
+                
+                in_range: tuple = (float(parameter["Input Min"]), float(parameter["Input Max"]))
+                
+            else:
+                
+                in_range: None = None
+                
+            if parameter["Output Range"].lower() == "true":
+                
+                out_range: tuple = (float(parameter["Output Min"]), float(parameter["Output Max"]))
+                
+            else:
+                
+                out_range: None = None
+                
+            im_array = pixels.normalize(im_array,
+                                        in_range = in_range,
+                                        out_range = out_range)
         
         elif parameter["Name"].find("Saturated") == 0:
             
             print("Saturating...")
+            
+            if parameter["Auto Normalize"].lower() == "true":
+                
+                auto_normalize: bool = True
+                
+            else:
+                
+                auto_normalize: bool = False
+                
+            im_array = pixels.saturate(im_array,
+                                       (float(parameter["Min Bound"]), float(parameter["Max Bound"])),
+                                       auto_normalize = auto_normalize)
         
         elif parameter["Name"].find("Equalized") == 0:
             
             print("Equalizing...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = pixels.equalize_histogram(im_array, parameter["Method"],
+                                                 mask_array = mask_array,
+                                                 radius = int(parameter["Local Radius"]),
+                                                 along_axis = along_axis,
+                                                 axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Inverted") == 0:
             
             print("Inverting...")
+            im_array = pixels.invert(im_array)
         
         elif parameter["Name"].find("Re-assigned") == 0:
             
             print("Re-assigning...")
+            im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])
         
         
         ########################

@@ -820,7 +820,7 @@ class ImageProcessor:
         param_layer_name = get_param_layer_name("Converted", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Type": Type,
+             "Type": Type.lower(),
              "Auto Normalize": Auto_Normalize,
              "Bounds": Bounds,
              "Min": Min,
