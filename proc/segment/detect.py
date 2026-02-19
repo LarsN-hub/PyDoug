@@ -22,7 +22,14 @@ from segment import thresh
 
 # Functions
 
-def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *, method: str = "sobel", sigma: float = 1.0, ksize: int = 3, alpha: float = 100, igg_sigma: float = 5, convert_type: bool = True, axis: int = None) -> np.ndarray:
+def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
+         method: str = "sobel",
+         sigma: float = 1.0,
+         ksize: int = 3,
+         alpha: float = 100,
+         igg_sigma: float = 5,
+         convert_type: bool = True,
+         axis: int = None) -> np.ndarray:
     
     if np.any(mask_array):
         
@@ -202,7 +209,15 @@ def watershed(im_array: np.ndarray, *, background: float | int = 0, mask_array: 
         
         return water_array
 
-def corners(im_array: np.ndarray, method = "fast", *, n: int = 12, threshold: float = 0.15, harris_method: str = "k", k: int = 0.05, eps: int = 0.000001, sigma: float = 1, window_size: int = 1, return_mode: str = "coords") -> np.ndarray:
+def corners(im_array: np.ndarray, method = "fast", *,
+            n: int = 12,
+            threshold: float = 0.15,
+            harris_method: str = "k",
+            k: int = 0.05,
+            eps: int = 0.000001,
+            sigma: float = 1,
+            window_size: int = 1,
+            return_mode: str = "coords") -> np.ndarray:
     
     corner_array: np.ndarray = np.empty(im_array.shape)
     
@@ -272,7 +287,7 @@ def corners(im_array: np.ndarray, method = "fast", *, n: int = 12, threshold: fl
     
     elif return_mode == "array":
         
-        return feature.corner_peaks(corner_array, indices = False)
+        return pixels.convert_im_type(feature.corner_peaks(corner_array, indices = False), "uint8")
 
 
 # Main

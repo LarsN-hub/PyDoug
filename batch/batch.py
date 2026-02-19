@@ -632,10 +632,36 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Edge Detection") == 0:
             
             print("\nDetecting edges...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                axis: int = int(parameter["Axis"])
+                
+            else:
+                
+                axis: None = None
+                
+            im_array = detect.edge(im_array,
+                                   method = parameter["Method"],
+                                   sigma = float(parameter["Sigma"]),
+                                   ksize = int(parameter["K Size"]),
+                                   alpha = float(parameter["Alpha"]),
+                                   igg_sigma = float(parameter["Sigma"]),
+                                   axis = axis)
         
         elif parameter["Name"].find("Corner Detection") == 0:
             
             print("\nDetecting corners...")
+            
+            im_array = detect.corners(im_array, parameter["Method"],
+                                      n = int(parameter["Fast N"]),
+                                      threshold = float(parameter["Fast Threshold"]),
+                                      harris_method = parameter["Harris Method"],
+                                      k = float(parameter["Harris K"]),
+                                      eps = float(parameter["Harris Epsilon"]),
+                                      sigma = float(parameter["Sigma"]),
+                                      window_size = int(parameter["Window Size"]),
+                                      return_mode = "array")
         
         elif parameter["Name"].find("Ring Removal") == 0:
             

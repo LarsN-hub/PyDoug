@@ -1561,7 +1561,6 @@ class ImageProcessor:
         Canny_or_IGG_Sigma: float = 1.0,
         IGG_Alpha: float = 100,
         Laplace_K_Size: int = 3,
-        Constant_Value: float = 0,
         Along_Axis: bool = False,
         Axis: str = "Z") -> None:
         
@@ -1574,17 +1573,27 @@ class ImageProcessor:
              "Sigma": Canny_or_IGG_Sigma,
              "Alpha": IGG_Alpha,
              "K Size": Laplace_K_Size,
-             "CVal": Constant_Value,
              "Along Axis": Along_Axis,
              "Axis": Axis})
         
         if Along_Axis:
             
-            self.viewer.add_image(detect.edge(Image.data, method = Method.lower(), sigma = Canny_or_IGG_Sigma, ksize = Laplace_K_Size, alpha = IGG_Alpha, igg_sigma = Canny_or_IGG_Sigma, axis = Axis), name = param_layer_name)
+            self.viewer.add_image(detect.edge(Image.data,
+                                              method = Method.lower(),
+                                              sigma = Canny_or_IGG_Sigma,
+                                              ksize = Laplace_K_Size,
+                                              alpha = IGG_Alpha,
+                                              igg_sigma = Canny_or_IGG_Sigma,
+                                              axis = Axis), name = param_layer_name)
             
         else:
             
-            self.viewer.add_image(detect.edge(Image.data, method = Method.lower(), sigma = Canny_or_IGG_Sigma, ksize = Laplace_K_Size, alpha = IGG_Alpha, igg_sigma = Canny_or_IGG_Sigma), name = param_layer_name)
+            self.viewer.add_image(detect.edge(Image.data,
+                                              method = Method.lower(),
+                                              sigma = Canny_or_IGG_Sigma,
+                                              ksize = Laplace_K_Size,
+                                              alpha = IGG_Alpha,
+                                              igg_sigma = Canny_or_IGG_Sigma), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": corner_detect_list},
@@ -1607,13 +1616,22 @@ class ImageProcessor:
              "Method": Method.lower(),
              "Fast N": Fast_N,
              "Fast Threshold": Fast_Threshold,
-             "Harris Method": Harris_Method,
+             "Harris Method": Harris_Method.lower(),
              "Harris K": Harris_K,
              "Harris Epsilon": Harris_Epsilon,
              "Sigma": Harris_or_Shi_Tomasi_Sigma,
              "Window Size": Moravec_Window_Size})
         
-        self.viewer.add_image(detect.corners(Image.data, method = Method.lower(), n = Fast_N, threshold = Fast_Threshold, harris_method = Harris_Method.lower(), k = Harris_K, eps = Harris_Epsilon, sigma = Harris_or_Shi_Tomasi_Sigma, window_size = Moravec_Window_Size, return_mode = "array"), name = param_layer_name)
+        self.viewer.add_image(detect.corners(Image.data,
+                                             method = Method.lower(),
+                                             n = Fast_N,
+                                             threshold = Fast_Threshold,
+                                             harris_method = Harris_Method.lower(),
+                                             k = Harris_K,
+                                             eps = Harris_Epsilon,
+                                             sigma = Harris_or_Shi_Tomasi_Sigma,
+                                             window_size = Moravec_Window_Size,
+                                             return_mode = "array"), name = param_layer_name)
         
     @magicgui(
         Method = {"choices": rr_list},
