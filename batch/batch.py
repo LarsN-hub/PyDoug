@@ -15,6 +15,8 @@ import pixels
 import trans
 
 from filtering import denoising
+from filtering import fourier
+from filtering import morph
 from segment import thresh
 from segment import detect
 
@@ -608,26 +610,104 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Remove Objects") == 0:
             
             print("\nRemoving objects...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = morph.remove_objects(im_array, float(parameter["Size Threshold"]),
+                                            parameter["Method"],
+                                            background = int(parameter["Background"]),
+                                            pixel_size = float(parameter["Pixel Size"]),
+                                            connectivity = int(parameter["Connectivity"]),
+                                            along_axis = along_axis,
+                                            axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Dilation") == 0:
             
             print("\nDilating...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = morph.dilation(im_array, int(parameter["Iterations"]),
+                                      along_axis = along_axis)
         
         elif parameter["Name"].find("Erosion") == 0:
             
             print("\nEroding...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = morph.erosion(im_array, int(parameter["Iterations"]),
+                                     along_axis = along_axis)
         
         elif parameter["Name"].find("Closing") == 0:
             
             print("\nClosing...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+            
+            im_array = morph.closing(im_array,
+                                     int(parameter["Dilations"]),
+                                     int(parameter["Erosions"]),
+                                     along_axis = along_axis)
         
         elif parameter["Name"].find("Opening") == 0:
             
             print("\nOpening...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+            
+            im_array = morph.opening(im_array,
+                                     int(parameter["Erosions"]),
+                                     int(parameter["Dilations"]),
+                                     along_axis = along_axis)
         
         elif parameter["Name"].find("Top Hat") == 0:
             
             print("\nTop hat...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+            
+            im_array = morph.tophat(im_array,
+                                    parameter["Method"],
+                                    int(parameter["Dilations"]),
+                                    int(parameter["Erosions"]),
+                                    along_axis = along_axis)
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
@@ -666,10 +746,46 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         elif parameter["Name"].find("Ring Removal") == 0:
             
             print("\nRemoving rings...")
+            
+            if parameter["Sorting"].lower() == "true":
+                
+                sorting: bool = True
+                
+            else:
+                
+                sorting: bool = False
+                
+            if parameter["Method"] == "FFT":
+                
+                im_array = fourier.fft_ring_removal(im_array,
+                                                    cutoff_freq = int(parameter["FFT Freq Cutoff"]),
+                                                    filter_order = int(parameter["FFT Filter Order"]),
+                                                    rows = int(parameter["FFT Rows"]),
+                                                    sorting = sorting,
+                                                    square_axis = int(parameter["Square Axis"]))
+            
+            elif parameter["Method"] == "Wavelet":
+                
+                im_array = fourier.wavelet_ring_removal(im_array,
+                                                        level = int(parameter["Wavelet Level"]),
+                                                        size = int(parameter["Wavelet Damping Size"]),
+                                                        wavelet = parameter["Wavelet"],
+                                                        sorting = sorting,
+                                                        square_axis = int(parameter["Square Axis"]))
         
         elif parameter["Name"].find("FFT") == 0:
             
             print("\nComputing FFT...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = fourier.ft(im_array, along_axis)
         
         
         #######################

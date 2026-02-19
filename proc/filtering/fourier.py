@@ -58,7 +58,12 @@ def ift(im_array: np.ndarray, along_axis: bool = False) -> np.array:
         
             return fft.ifftn(fft.ifftshift(im_array))
         
-def fft_ring_removal(im_array: np.ndarray, *, cutoff_freq: int = 20, filter_order: int = 8, rows: int = 1, sorting: bool = False, square_axis: int = 0) -> np.ndarray:
+def fft_ring_removal(im_array: np.ndarray, *,
+                     cutoff_freq: int = 20,
+                     filter_order: int = 8,
+                     rows: int = 1,
+                     sorting: bool = False,
+                     square_axis: int = 0) -> np.ndarray:
     
     if util.check_if_square(im_array):
         
@@ -93,7 +98,12 @@ def fft_ring_removal(im_array: np.ndarray, *, cutoff_freq: int = 20, filter_orde
         
         print("Array not square!")
         
-def wavelet_ring_removal(im_array: np.ndarray, *, level: int = 5, size: int = 1, wavelet: str = "db9", sorting: bool = False, square_axis: int = 0) -> np.ndarray:
+def wavelet_ring_removal(im_array: np.ndarray, *,
+                         level: int = 5,
+                         size: int = 1,
+                         wavelet: str = "db9",
+                         sorting: bool = False,
+                         square_axis: int = 0) -> np.ndarray:
     
     if util.check_if_square(im_array):
         

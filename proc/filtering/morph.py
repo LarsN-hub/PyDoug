@@ -90,7 +90,14 @@ class Footprint:
 
 # Functions
 
-def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particles", *, mask_array: np.ndarray = None, background: float | int = 0, pixel_size: float | int = 1.0, connectivity: int = None, along_axis: bool = False, axis: int = 0) -> np.ndarray:
+def remove_objects(im_array: np.ndarray, size: float | int,
+                   mode: str = "particles", *,
+                   mask_array: np.ndarray = None,
+                   background: float | int = 0,
+                   pixel_size: float | int = 1.0,
+                   connectivity: int = None,
+                   along_axis: bool = False,
+                   axis: int = 0) -> np.ndarray:
     
     if im_array.dtype != np.int64 and mode == "particles":
         
@@ -157,7 +164,9 @@ def remove_objects(im_array: np.ndarray, size: float | int, mode: str = "particl
         
         return rem_array
 
-def dilation(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def dilation(im_array: np.ndarray, n_iterations: int = 1, *,
+             footprint: np.ndarray = None,
+             along_axis: bool = False) -> np.ndarray:
     
     dil_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
     
@@ -191,7 +200,9 @@ def dilation(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarr
                 
     return dil_array
 
-def erosion(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def erosion(im_array: np.ndarray, n_iterations: int = 1, *,
+            footprint: np.ndarray = None,
+            along_axis: bool = False) -> np.ndarray:
     
     ero_array: np.ndarray = np.empty(im_array.shape, im_array.dtype)
     
@@ -225,7 +236,9 @@ def erosion(im_array: np.ndarray, n_iterations: int = 1, *, footprint: np.ndarra
                 
     return ero_array
 
-def opening(im_array: np.ndarray, n_erosions: int = 1, n_dilations: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def opening(im_array: np.ndarray, n_erosions: int = 1, n_dilations: int = 1, *,
+            footprint: np.ndarray = None,
+            along_axis: bool = False) -> np.ndarray:
     
     open_array: np.ndarray = np.copy(im_array)
     open_array = erosion(open_array, n_erosions, footprint = footprint, along_axis = along_axis)
@@ -233,7 +246,9 @@ def opening(im_array: np.ndarray, n_erosions: int = 1, n_dilations: int = 1, *, 
         
     return open_array
 
-def closing(im_array: np.ndarray, n_dilations: int = 1, n_erosions: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def closing(im_array: np.ndarray, n_dilations: int = 1, n_erosions: int = 1, *,
+            footprint: np.ndarray = None,
+            along_axis: bool = False) -> np.ndarray:
     
     close_array: np.ndarray = np.copy(im_array)
     close_array = dilation(close_array, n_dilations, footprint = footprint, along_axis = along_axis)
@@ -241,7 +256,9 @@ def closing(im_array: np.ndarray, n_dilations: int = 1, n_erosions: int = 1, *, 
         
     return close_array
 
-def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_erosions: int = 1, *, footprint: np.ndarray = None, along_axis: bool = False) -> np.ndarray:
+def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_erosions: int = 1, *,
+           footprint: np.ndarray = None,
+           along_axis: bool = False) -> np.ndarray:
     
     if method == "Black":
         

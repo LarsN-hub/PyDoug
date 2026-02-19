@@ -1468,7 +1468,12 @@ class ImageProcessor:
              "Pixel Size": Pixel_Scale,
              "Along Axis": Along_Axis,
              "Axis": Axis})
-        self.viewer.add_image(morph.remove_objects(Image.data, Size_Threshold, Method.lower(), background = Background, pixel_size = Pixel_Scale, connectivity = Connectivity, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+        self.viewer.add_image(morph.remove_objects(Image.data, Size_Threshold, Method.lower(),
+                                                   background = Background,
+                                                   pixel_size = Pixel_Scale,
+                                                   connectivity = Connectivity,
+                                                   along_axis = Along_Axis,
+                                                   axis = Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "Dilate")
@@ -1660,17 +1665,27 @@ class ImageProcessor:
              "FFT Rows": FFT_Rows,
              "Wavelet": Wavelet,
              "Wavelet Level": Wavelet_Level,
-             "Wavelet Damping_Size": Wavelet_Damping_Size,
+             "Wavelet Damping Size": Wavelet_Damping_Size,
              "Sorting": Sorting,
              "Square Axis": Square_Axis})
         
         if Method == "FFT":
             
-            self.viewer.add_image(fourier.fft_ring_removal(Image.data, cutoff_freq = FFT_Freq_Cutoff, filter_order = FFT_Filter_Order, rows = FFT_Rows, sorting = Sorting, square_axis = Square_Axis), name = param_layer_name)
+            self.viewer.add_image(fourier.fft_ring_removal(Image.data,
+                                                           cutoff_freq = FFT_Freq_Cutoff,
+                                                           filter_order = FFT_Filter_Order,
+                                                           rows = FFT_Rows,
+                                                           sorting = Sorting,
+                                                           square_axis = Square_Axis), name = param_layer_name)
             
         elif Method == "Wavelet":
             
-            self.viewer.add_image(fourier.wavelet_ring_removal(Image.data, level = Wavelet_Level, size = Wavelet_Damping_Size, wavelet = Wavelet, sorting = Sorting, square_axis = Square_Axis), name = param_layer_name)
+            self.viewer.add_image(fourier.wavelet_ring_removal(Image.data,
+                                                               level = Wavelet_Level,
+                                                               size = Wavelet_Damping_Size,
+                                                               wavelet = Wavelet,
+                                                               sorting = Sorting,
+                                                               square_axis = Square_Axis), name = param_layer_name)
     
     @magicgui(
         call_button = "FFT")
