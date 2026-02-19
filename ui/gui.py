@@ -1395,7 +1395,7 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Beta": Beta,
              "Lower Percentile": Lower_Percentile,
-             "Upper Percentile": Lower_Percentile})
+             "Upper Percentile": Upper_Percentile})
         self.viewer.add_image(detect.random_walk(Image.data,
                                                  (Lower_Percentile, Upper_Percentile),
                                                  Beta), name = param_layer_name)
