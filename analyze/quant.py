@@ -55,7 +55,8 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None, pr
     
     return pd.DataFrame([im_stats])
 
-def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *, mask_array: np.ndarray = None) -> pd.DataFrame:
+def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
+                         mask_array: np.ndarray = None) -> pd.DataFrame:
     
     ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
@@ -161,7 +162,9 @@ def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict[int, pd
     
     return axial_stats
 
-def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_array: np.ndarray = None, cdf_df: pd.DataFrame = None) -> tuple:
+def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *,
+                            mask_array: np.ndarray = None,
+                            cdf_df: pd.DataFrame = None) -> tuple:
     
     if max(percentages) > 1:
         
@@ -184,9 +187,10 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *, mask_ar
     
     return (low_bin, high_bin)
 
-def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], np.ndarray],
+def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray],np.ndarray],
                          parameters: dict[str, np.ndarray], *,
-                         stride: int = 4, approximate_loss: bool = True) -> dict[str, list]:
+                         stride: int = 4,
+                         approximate_loss: bool = True) -> dict[str, list]:
     
     _, (parameters_tested, losses) = denoising.calibrate_function(im_array, denoiser, parameters, stride = stride,
                                                                   approximate_loss = approximate_loss,
@@ -195,7 +199,9 @@ def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray], 
     
     return {"parameters": parameters_tested, "losses": losses}
 
-def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_array: np.ndarray = None) -> np.ndarray:
+def get_corner_orientations(im_array: np.ndarray,
+                            corners: np.ndarray,
+                            mask_array: np.ndarray = None) -> np.ndarray:
     
     if not mask_array:
         
@@ -219,7 +225,11 @@ def get_corner_orientations(im_array: np.ndarray, corners: np.ndarray, mask_arra
         
         return feature.corner_orientations(im_array, corners, mask_array)
     
-def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = None, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> np.ndarray:
+def __vol_area_precondition(im_array: np.ndarray, *,
+                            mask_array: np.ndarray = None,
+                            include_background: bool = False,
+                            background: float | int = 0,
+                            normalize: bool = False) -> np.ndarray:
     
     if im_array.dtype == np.int64:
         
@@ -281,7 +291,7 @@ def __vol_area_precondition(im_array: np.ndarray, *, mask_array: np.ndarray = No
             
             count_array[:, 1] = count_array[:, 1] / (np.sum(count_array[:, 1]) + background_counts)
     
-    return count_array        
+    return count_array.T    
     
 def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
     
@@ -289,13 +299,17 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background, normalize = normalize)
+    count_array = __vol_area_precondition(im_array,
+                                          mask_array = mask_array,
+                                          include_background = include_background,
+                                          background = background,
+                                          normalize = normalize)
     
     if not normalize:
         
-        count_array[:, 1] = count_array[:, 1] * (scale ** 3)
+        count_array[1:, :] = count_array[1:, :] * (scale ** 3)
         
-    vol_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Volume"])
+    vol_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
     
     if not normalize:
         
@@ -305,17 +319,17 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
     
     if normalize:
         
-        for row in range(0, len(vol_df)):
+        for col in vol_df:
             
-            current_str: str = str(vol_df.loc[row]["Gray Value"]) + ":"
-            print(f"{current_str:<16} {vol_df.loc[row]["Volume"]}")
+            current_str: str = str(col) + ":"
+            print(f"{current_str:<16} {vol_df[col][0]}")
     
     else:
     
-        for row in range(0, len(vol_df)):
+        for col in vol_df:
             
-            current_str: str = str(vol_df.loc[row]["Gray Value"]) + ":"
-            print(f"{current_str:<16} {vol_df.loc[row]["Volume"]} {vol_df.attrs["units"]}")
+            current_str: str = str(col) + ":"
+            print(f"{current_str:<16} {vol_df[col][0]} {vol_df.attrs["units"]}")
     
     return vol_df
 
@@ -325,13 +339,17 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array, mask_array = mask_array, include_background = include_background, background = background, normalize = normalize)
+    count_array = __vol_area_precondition(im_array,
+                                          mask_array = mask_array,
+                                          include_background = include_background,
+                                          background = background,
+                                          normalize = normalize)
     
     if not normalize:
         
-        count_array[:, 1] = count_array[:, 1] * (scale ** 2)
+        count_array[1:, :] = count_array[1:, :] * (scale ** 2)
         
-    area_df: pd.DataFrame = pd.DataFrame(count_array, columns = ["Gray Value", "Area"])
+    area_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
     
     if not normalize:
         
@@ -341,17 +359,17 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
     
     if normalize:
         
-        for row in range(0, len(area_df)):
+        for col in area_df:
             
-            current_str: str = str(area_df.loc[row]["Gray Value"]) + ":"
-            print(f"{current_str:<16} {area_df.loc[row]["Area"]}")
+            current_str: str = str(col) + ":"
+            print(f"{current_str:<16} {area_df[col][0]}")
     
     else:
     
-        for row in range(0, len(area_df)):
+        for col in area_df:
             
-            current_str: str = str(area_df.loc[row]["Gray Value"]) + ":"
-            print(f"{current_str:<16} {area_df.loc[row]["Area"]} {area_df.attrs["units"]}")
+            current_str: str = str(col) + ":"
+            print(f"{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
     
     return area_df
 

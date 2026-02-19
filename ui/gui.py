@@ -409,16 +409,17 @@ class ImageProcessor:
         rw.write_parameters(parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
         
     @magicgui(
-        Image_Format = {"choices": ["2D", "3D"]},
+        Image_Format = {"choices": ["Singles", "Stacks"]},
         Stack_Format = {"choices": ["Multi-Page", "Sequence"]},
         call_button = "Run Batch Script")
     def batch_widget(self,
-        Image_Format: str = "3D",
+        Image_Format: str = "Stacks",
         Stack_Format: str = "Multi-Page",
+        Export_Images: bool = True,
         Export_Multi_Page: bool = True,
         Copy_Parameters: bool = True) -> None:
         
-        batch.main(Image_Format, Stack_Format, Export_Multi_Page, Copy_Parameters)
+        batch.main(Image_Format, Stack_Format, Export_Images, Export_Multi_Page, Copy_Parameters)
             
             
     ######################
@@ -888,11 +889,23 @@ class ImageProcessor:
         Auto_Normalize: bool = False,
         Bounds_as_Percentages: bool = True,
         Min_Bound: float = 0,
-        Max_Bound: float = 100) -> None:
+        Max_Bound: float = 100,
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name: str = Mask.name
+            
+        else:
+            
+            mask_array: None = None
+            mask_name: None = None
         
         if Bounds_as_Percentages:
             
-            bounds = quant.get_percent_intensities(Image.data, (Min_Bound, Max_Bound))
+            bounds = quant.get_percent_intensities(Image.data, (Min_Bound, Max_Bound), mask_array = mask_array)
             
         else:
             
@@ -903,7 +916,9 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Auto Normalize": Auto_Normalize,
              "Min Bound": min(bounds),
-             "Max Bound": max(bounds)})
+             "Max Bound": max(bounds),
+             "Apply Mask": Apply_Mask,
+             "Mask Used": mask_name})
         self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = False), name = param_layer_name)
 
     @magicgui(Method = {"choices": equalize_list},
@@ -1896,25 +1911,45 @@ class ImageProcessor:
         
         elif Method == "Percent Intensities":
             
-            _ = quant.get_percent_intensities(Image.data, (Min_Percent, Max_Percent), mask_array = mask_array)
+            _ = quant.get_percent_intensities(Image.data,
+                                              (Min_Percent, Max_Percent),
+                                              mask_array = mask_array)
         
         elif Method == "Volume/Area":
             
             if util.is_3d_rgb(Image.data)["3D"]:
                 
-                _ = quant.get_volume(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)
+                _ = quant.get_volume(Image.data,
+                                     mask_array = mask_array,
+                                     scale = Pixel_Scale,
+                                     units = Units,
+                                     include_background = Include_Background,
+                                     background = Background,
+                                     normalize = Normalize)
                 
             else:
                 
-                _ = quant.get_area(Image.data, mask_array = mask_array, scale = Pixel_Scale, units = Units, include_background = Include_Background, background = Background, normalize = Normalize)          
+                _ = quant.get_area(Image.data,
+                                   mask_array = mask_array,
+                                   scale = Pixel_Scale,
+                                   units = Units,
+                                   include_background = Include_Background,
+                                   background = Background,
+                                   normalize = Normalize)          
         
         elif Method == "Surface Perimeter/Area":
             
-            _ = quant.get_surface_contact(Image.data, Surface_Phase, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units)
+            _ = quant.get_surface_contact(Image.data, Surface_Phase,
+                                          mask_array = mask_array,
+                                          pixel_size = Pixel_Scale,
+                                          units = Units)
 
         elif Method == "Contact Perimeter/Area":
             
-            _ = quant.get_surface_contact(Image.data, (Contact_Phase_1, Contact_Phase_2), mask_array = mask_array, pixel_size = Pixel_Scale, units = Units)
+            _ = quant.get_surface_contact(Image.data, (Contact_Phase_1, Contact_Phase_2),
+                                          mask_array = mask_array,
+                                          pixel_size = Pixel_Scale,
+                                          units = Units)
 
     @magicgui(
         Type = {"choices": domain_size_types_list},

@@ -5,6 +5,7 @@ Module for batch processing of images from pre-made parameters
 
 # Imports
 
+import pandas as pd
 import numpy as np
 import shutil
 import os
@@ -13,6 +14,8 @@ import readwrite as rw
 import cropclip as cc
 import pixels
 import trans
+import quant
+import util
 
 from filtering import denoising
 from filtering import fourier
@@ -23,7 +26,10 @@ from segment import detect
 
 # Functions
 
-def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.ndarray]) -> np.ndarray:
+def apply_parameters(im_array: np.ndarray,
+                     parameters_dict: dict[str, list, np.ndarray],
+                     file_name: str = None,
+                     save_dir: str = None) -> np.ndarray:
     
     parameters_log: list[dict] = parameters_dict["Parameters"]
     
@@ -806,7 +812,92 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             
-            print("\nPerforming calculations...")
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+            
+            if parameter["Method"] == "Stats":
+            
+                print("\nCalculating statistics...")
+                stats_df: pd.DataFrame = quant.global_statistics(im_array, mask_array = mask_array)
+                save_path: str = save_dir + "/Stats.csv"
+                
+                if not os.path.isfile(save_path):
+                    
+                    stats_df.to_csv(save_path, header = "column_names")
+                    
+                else:
+                    
+                    stats_df.to_csv(save_path, mode = "a", header = False)
+                
+            elif parameter["Method"] == "Percent Intensities":
+                
+                print("\nCalculating percentage intensities...")
+                ints_tuple: tuple = quant.get_percent_intensities(im_array,
+                                                                  percentages = (parameter["Min Percent"], parameter["Max Percent"]),
+                                                                  mask_array = mask_array)
+                
+            elif parameter["Method"] == "Volume/Area":
+                
+                print("\nCalculating volume/area...")
+                
+                if parameter["Include Background"].lower() == "true":
+                    
+                    include_background: bool = True
+                    
+                else:
+                    
+                    include_background: bool = False
+                    
+                if parameter["Normalize"].lower() == "true":
+                    
+                    auto_normalize: bool = True
+                
+                else:
+                    
+                    auto_normalize: bool = False
+                
+                if util.is_3d_rgb(im_array)["3D"]:
+                    
+                    vol_area_df: pd.DataFrame = quant.get_volume(im_array,
+                                                                 mask_array = mask_array,
+                                                                 scale = float(parameter["Pixel Size"]),
+                                                                 units = parameter["Units"],
+                                                                 include_background = include_background,
+                                                                 background = float(parameter["Background"]),
+                                                                 normalize = auto_normalize)
+                
+                else:
+                    
+                    vol_area_df: pd.DataFrame = quant.get_area(im_array,
+                                                               mask_array = mask_array,
+                                                               scale = float(parameter["Pixel Size"]),
+                                                               units = parameter["Units"],
+                                                               include_background = include_background,
+                                                               background = float(parameter["Background"]),
+                                                               normalize = auto_normalize)
+                
+            elif parameter["Method"] == "Surface Perimeter/Area":
+                
+                print("\nCalculating surface perimeter/area...")
+                surf_df: pd.DataFrame = quant.get_surface_contact(im_array,
+                                                                  float(parameter["Surface Phase"]),
+                                                                  mask_array = mask_array,
+                                                                  pixel_size = float(parameter["Pixel Size"]),
+                                                                  units = parameter["Units"])
+                
+            elif parameter["Method"] == "Contact Perimeter/Area":
+                
+                print("\nCalculating contact perimeter/area...")
+                cont_df: pd.DataFrame = quant.get_surface_contact(im_array,
+                                                                  (float(parameter["Contact Phase 1"]), float(parameter["Contact Phase 1"])),
+                                                                  mask_array = mask_array,
+                                                                  pixel_size = float(parameter["Pixel Size"]),
+                                                                  units = parameter["Units"])
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             
@@ -826,7 +917,11 @@ def apply_parameters(im_array: np.ndarray, parameters_dict: dict[str, list, np.n
 
 # Main
 
-def main(format: str = "3D", stack_format: str = "Multi-Page", export_multi_page: bool = True, copy_parameters: bool = True) -> None:
+def main(im_format: str = "Stacks",
+         stack_format: str = "Multi-Page",
+         export_images: bool = True,
+         export_multi_page: bool = True,
+         copy_parameters: bool = True) -> None:
     
     if stack_format == "Sequence":
         
@@ -860,23 +955,25 @@ def main(format: str = "3D", stack_format: str = "Multi-Page", export_multi_page
             
             file_name: str = im_path[(im_path.rfind("/") + 1):im_path.rfind(".")]
         
-        if format == "3D":
+        if im_format == "Stacks":
             
             im_array: np.ndarray = rw.read_stack(im_path)
         
-        elif format == "2D":
+        elif im_format == "Singles":
             
             im_array: np.ndarray = rw.read_im(im_path)
             
-        im_array = apply_parameters(im_array, parameters_dict)
+        im_array = apply_parameters(im_array, parameters_dict, file_name, save_dir)
         
-        if format == "3D":
-            
-            rw.write_stack(im_array, save_dir, file_name, multi_page = export_multi_page)
+        if export_images:
         
-        elif format == "2D":
+            if im_format == "Stacks":
+                
+                rw.write_stack(im_array, save_dir, file_name, multi_page = export_multi_page)
             
-            rw.write_im(im_array, save_dir, file_name)
+            elif im_format == "Singles":
+                
+                rw.write_im(im_array, save_dir, file_name)
             
     print("\nFinished batch processing!")
     
