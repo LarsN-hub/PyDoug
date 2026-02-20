@@ -35,6 +35,15 @@ def apply_parameters(im_array: np.ndarray,
                      save_dir: str = None) -> np.ndarray:
     
     parameters_log: list[dict] = parameters_dict["Parameters"]
+    stats_index: int = 0
+    vol_area_index: int = 0
+    surf_index: int = 0
+    cont_index: int = 0
+    hist_index: int = 0
+    gray_index: int = 0
+    axis_dist_index: int = 0
+    psd_index: int = 0
+    heat_index: int = 0
     
     for parameter in parameters_log:
         
@@ -863,15 +872,24 @@ def apply_parameters(im_array: np.ndarray,
                                         xlims = x_lims)
                 cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
                 
-            rw.write_plot(fig, f"{file_name}_histogram", save_dir)
-        
-        elif parameter["Name"].find("Line Scan") == 0:
-            
-            print("\nGenerating line scan...")
+            rw.write_plot(fig, f"{file_name}_histogram_{hist_index}", save_dir)
+            hist_index += 1
         
         elif parameter["Name"].find("Gray Level Plot") == 0:
             
             print("\nGenerating gray levels plot...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            fig = plots.gray_level(im_array, mask_array = mask_array)
+            rw.write_plot(fig, f"{file_name}_gray_levels_{gray_index}", save_dir)
+            gray_index += 1
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             
@@ -888,7 +906,7 @@ def apply_parameters(im_array: np.ndarray,
                 print("\nCalculating statistics...")
                 stats_df: pd.DataFrame = quant.global_statistics(im_array, mask_array = mask_array)
                 stats_df.insert(0, "File Name", file_name)
-                save_path: str = save_dir + "/Stats.csv"
+                save_path: str = save_dir + f"/Stats_{stats_index}.csv"
                 
                 if not os.path.isfile(save_path):
                     
@@ -897,13 +915,15 @@ def apply_parameters(im_array: np.ndarray,
                 else:
                     
                     stats_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    
+                stats_index += 1
                 
             elif parameter["Method"] == "Percent Intensities":
                 
                 print("\nCalculating percentage intensities...")
                 _ = quant.get_percent_intensities(im_array,
-                                                                  percentages = (float(parameter["Min Percent"]), float(parameter["Max Percent"])),
-                                                                  mask_array = mask_array)
+                                                  percentages = (float(parameter["Min Percent"]), float(parameter["Max Percent"])),
+                                                  mask_array = mask_array)
                 
             elif parameter["Method"] == "Volume/Area":
                 
@@ -947,7 +967,7 @@ def apply_parameters(im_array: np.ndarray,
                     
                 vol_area_df.insert(0, "File Name", file_name)
                 vol_area_df["Units"] = vol_area_df.attrs["units"]
-                save_path: str = save_dir + "/Volume_Area.csv"
+                save_path: str = save_dir + f"/Volume_Area_{vol_area_index}.csv"
                 
                 if not os.path.isfile(save_path):
                     
@@ -956,6 +976,8 @@ def apply_parameters(im_array: np.ndarray,
                 else:
                     
                     vol_area_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    
+                vol_area_index += 1
                 
             elif parameter["Method"] == "Surface Perimeter/Area":
                 
@@ -965,7 +987,7 @@ def apply_parameters(im_array: np.ndarray,
                                                                   mask_array = mask_array,
                                                                   pixel_size = float(parameter["Pixel Size"]),
                                                                   units = parameter["Units"])
-                save_path: str = save_dir + "/Surface_Area.csv"
+                save_path: str = save_dir + f"/Surface_Area_{surf_index}.csv"
                 surf_df.insert(0, "File Name", file_name)
                 surf_df["Units"] = surf_df.attrs["units"]
                 
@@ -976,6 +998,8 @@ def apply_parameters(im_array: np.ndarray,
                 else:
                     
                     surf_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    
+                surf_index += 1
                 
             elif parameter["Method"] == "Contact Perimeter/Area":
                 
@@ -985,7 +1009,7 @@ def apply_parameters(im_array: np.ndarray,
                                                                   mask_array = mask_array,
                                                                   pixel_size = float(parameter["Pixel Size"]),
                                                                   units = parameter["Units"])
-                save_path: str = save_dir + "/Contact_Area.csv"
+                save_path: str = save_dir + f"/Contact_Area_{cont_index}.csv"
                 cont_df.insert(0, "File Name", file_name)
                 cont_df["Units"] = cont_df.attrs["units"]
                 
@@ -996,18 +1020,202 @@ def apply_parameters(im_array: np.ndarray,
                 else:
                     
                     cont_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    
+                cont_index += 1
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             
             print("\nGenerating axial distribution...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if float(parameter["X Max"]) == 0:
+                
+                x_lims: None = None
+                
+            else:
+                
+                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                
+            if float(parameter["Y Max"]) == 0:
+                
+                y_lims: None = None
+                
+            else:
+                
+                y_lims: tuple = (0, float(parameter["Y Max"]))
+                
+            if parameter["Remove Edges"].lower() == "true":
+                
+                ignore_edges: bool = True
+                
+            else:
+                
+                ignore_edges: bool = False
+                
+            if parameter["Normalize"].lower() == "true":
+                
+                normalize: bool = True
+                
+            else:
+                
+                normalize: bool = False
+                
+            if parameter["Include Background"].lower() == "true":
+                
+                include_background: bool = True
+                
+            else:
+                
+                include_background: bool = False
+                
+            if parameter["Domain Size"].lower() == "false":
+                
+                mode: str = "phase distrib"
+                
+            else:
+                
+                mode: str = "psd distrib"
+                
+            distrib_mode: str = parameter["Type"]
+                
+            if parameter["Time Series"].lower() == "true":
+                
+                mode: str = "time series"
+                temporal_scale = parameter["Time Scale"]
+                temporal_units = parameter["Time Units"]
+                
+                if parameter["Domain Size"].lower() == "true":
+                    
+                    distrib_mode: str = "size"
+                    
+            else:
+                
+                temporal_scale = None
+                temporal_units = None
+            
+            fig = plots.line(im_array, mode,
+                             distrib_mode = distrib_mode,
+                             size_mode = parameter["Type"],
+                             pixel_size = float(parameter["Pixel Size"]),
+                             units = parameter["Units"],
+                             mask_array = mask_array,
+                             temporal_scale = temporal_scale,
+                             temporal_units = temporal_units,
+                             axis = int(parameter["Axis"]),
+                             include_background = include_background,
+                             background = float(parameter["Background"]),
+                             connectivity = int(parameter["Connectivity"]),
+                             ignore_edges = ignore_edges,
+                             normalize = normalize,
+                             xlims = x_lims,
+                             ylims = y_lims)
+            rw.write_plot(fig, f"{file_name}_axial_distribution_{axis_dist_index}", save_dir)
+            axis_dist_index += 1
         
         elif parameter["Name"].find("Domain Size Distribution Plot") == 0:
             
             print("\nGenerating domain size distribution...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if float(parameter["X Max"]) == 0:
+                
+                x_lims: None = None
+                
+            else:
+                
+                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                
+            if float(parameter["Y Max"]) == 0:
+                
+                y_lims: None = None
+                
+            else:
+                
+                y_lims: tuple = (0, float(parameter["Y Max"]))
+                
+            if parameter["Remove Edges"].lower() == "true":
+                
+                ignore_edges: bool = True
+                
+            else:
+                
+                ignore_edges: bool = False
+                
+            if parameter["Normalize"].lower() == "true":
+                
+                normalize: bool = True
+                
+            else:
+                
+                normalize: bool = False
+            
+            fig = plots.size_distribution(im_array,
+                                          mode = parameter["Type"],
+                                          units = parameter["Units"],
+                                          mask_array = mask_array,
+                                          xlims = x_lims,
+                                          ylims = y_lims,
+                                          normalize = normalize,
+                                          ignore_edges = ignore_edges,
+                                          connectivity = int(parameter["Connectivity"]),
+                                          background = float(parameter["Background"]))
+            rw.write_plot(fig, f"{file_name}_size_distribution_{psd_index}", save_dir)
+            psd_index += 1
         
         elif parameter["Name"].find("Heat Map") == 0:
             
             print("\nGenerating heat map...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+            
+            if parameter["Alternate Colorbar Label"].lower() == "true":
+                
+                colorbar_label: str = parameter["Colorbar Label"]
+                
+            else:
+                
+                colorbar_label: None = None
+                
+            if parameter["Define Limits"].lower() == "true":
+                
+                clim: tuple = (float(parameter["Min Value"]), float(parameter["Max Value"]))
+                
+            else:
+                
+                clim: None = None
+                
+            fig = plots.heat_map(im_array,
+                                 mode = parameter["Method"],
+                                 cmap = parameter["Color Map"],
+                                 clim = clim,
+                                 mask_array = mask_array,
+                                 pixel_size = float(parameter["Pixel Size"]),
+                                 units = parameter["Units"],
+                                 axis = int(parameter["Axis"]),
+                                 height_orientation = parameter["Height Direction"],
+                                 cbar_label = colorbar_label)
+            rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
+            heat_index += 1
         
     
     return im_array

@@ -24,6 +24,10 @@ def get_histogram(im_array: np.ndarray, *,
                   normalize: bool = False) -> pd.DataFrame:
     
     if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
         counts, bin_centers = exposure.histogram(im_array[np.bool(mask_array)], normalize = normalize)
         
@@ -39,6 +43,10 @@ def get_cdf(im_array: np.ndarray, *,
             mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
         im_cdf, bin_centers = exposure.cumulative_distribution(im_array[np.bool(mask_array)])
         
@@ -84,6 +92,12 @@ def get_position_distribution(im_array: np.ndarray, *,
         
     pos_array: np.ndarray = np.zeros((im_array.shape[axis], 1 + len(phases)))
     
+    if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
+    
     for slice_index in range(0, im_array.shape[axis]):
         
         pos_array[slice_index, 0] = slice_index * pos_scale
@@ -128,7 +142,7 @@ def get_position_distribution(im_array: np.ndarray, *,
                                                               mask_array = int_mask_array,
                                                               include_background = include_background,
                                                               background = background,
-                                                              normalize = normalize)
+                                                              normalize = normalize).T
         
         for index, gray_value in enumerate(int_array[:, 0]):
             
@@ -209,6 +223,10 @@ def __get_size_distribution(im_array: np.ndarray, *,
         units = "\u00b5m"
     
     if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
         counts, labels = exposure.histogram(im_array[np.bool(mask_array)])
         counts = np.delete(counts, np.argwhere(counts == 0))
@@ -514,6 +532,10 @@ def get_heat_map(im_array: np.ndarray, mode: str = "thickness", *,
             bool_array: np.ndarray = np.copy(im_array)
             
         if np.any(mask_array):
+            
+            if mask_array.ndim < im_array.ndim:
+                
+                mask_array = cc.project_mask(mask_array, im_array.shape[0])
             
             bool_array[np.logical_not(np.bool(mask_array))] = False
             

@@ -11,6 +11,7 @@ import numpy as np
 from skimage import feature
 from typing import Callable
 
+import cropclip as cc
 import distrib
 import util
 
@@ -24,6 +25,10 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None, pr
     im_stats: dict = {}
     
     if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
             
         mask_array = np.bool(mask_array)
         im_stats["Mean"] = np.mean(im_array[mask_array])
@@ -61,6 +66,10 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
     ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
     if np.any(mask_array):
+        
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
         mask_array = np.bool(mask_array)
         
@@ -245,6 +254,10 @@ def __vol_area_precondition(im_array: np.ndarray, *,
     if im_array.dtype == np.int64:
         
         if np.any(mask_array):
+            
+            if mask_array.ndim < im_array.ndim:
+                
+                mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
             count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array[np.bool(mask_array)] > 0)]), 0)
             background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
@@ -273,6 +286,10 @@ def __vol_area_precondition(im_array: np.ndarray, *,
         count_array: np.ndarray = np.empty(phase_array.shape)
         
         if np.any(mask_array):
+            
+            if mask_array.ndim < im_array.ndim:
+                
+                mask_array = cc.project_mask(mask_array, im_array.shape[0])
             
             background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
             
@@ -411,6 +428,10 @@ def get_contact_count(im_array: np.ndarray, phase_ints: tuple[int] | int | None 
         
     if np.any(mask_array):
         
+        if mask_array.ndim < im_array.ndim:
+            
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
+        
         max_array[np.logical_not(mask_array)] = False
         min_array[np.logical_not(mask_array)] = False
     
@@ -447,7 +468,10 @@ def get_contact_count(im_array: np.ndarray, phase_ints: tuple[int] | int | None 
         
     return contact_count
 
-def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *, pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None) -> pd.DataFrame:
+def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
+                        pixel_size: float = 1.0,
+                        units: str = "pix",
+                        mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if units == "um":
         

@@ -1819,14 +1819,7 @@ class ImageProcessor:
         call_button = "Plot Line Scan")
     def line_scan_widget(self,
         Image: napari.layers.Image,
-        Shapes: napari.layers.Shapes,
-        Add_as_Parameter: bool = False) -> None:
-        
-        if Add_as_Parameter:
-            
-            param_layer_name = get_param_layer_name("Line Scan", self.operation_count)
-            parameters_log.append(
-                {"Name": param_layer_name})
+        Shapes: napari.layers.Shapes) -> None:
         
         if util.is_3d_rgb(Image.data)["3D"]:
             
@@ -2008,22 +2001,6 @@ class ImageProcessor:
             
             Domain_Size_Connectivity = 2
             
-        if X_Max == 0:
-            
-            x_lims = None
-            
-        else:
-            
-            x_lims = (X_Min, X_Max)
-            
-        if Y_Max == 0:
-            
-            y_lims = None
-            
-        else:
-            
-            y_lims = (0, Y_Max)
-        
         if not Apply_Mask:
             
             mask_name = None
@@ -2058,6 +2035,22 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
+        if X_Max == 0:
+            
+            x_lims = None
+            
+        else:
+            
+            x_lims = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            
+            y_lims = None
+            
+        else:
+            
+            y_lims = (0, Y_Max)
+            
         if not Domain_Size:
             
             mode: str = "phase distrib"
@@ -2083,11 +2076,42 @@ class ImageProcessor:
             
         if Apply_Mask:
             
-            _ = plots.line(Image.data, mode = mode, distrib_mode = distrib_mode, size_mode = Type.lower(), pixel_size = Pixel_Scale, units = Pixel_Units, mask_array = Mask.data, temporal_scale = Time_Scale, temporal_units = Time_Units, axis = Axis, include_background = Include_Background, background = Background, connectivity = Domain_Size_Connectivity, ignore_edges = Remove_Edges, normalize = Normalize, xlims = x_lims, ylims = y_lims)
+            _ = plots.line(Image.data,
+                           mode = mode,
+                           distrib_mode = distrib_mode,
+                           size_mode = Type.lower(),
+                           pixel_size = Pixel_Scale,
+                           units = Pixel_Units,
+                           mask_array = Mask.data,
+                           temporal_scale = Time_Scale,
+                           temporal_units = Time_Units,
+                           axis = Axis,
+                           include_background = Include_Background,
+                           background = Background,
+                           connectivity = Domain_Size_Connectivity,
+                           ignore_edges = Remove_Edges,
+                           normalize = Normalize,
+                           xlims = x_lims,
+                           ylims = y_lims)
             
         else:
             
-            _ = plots.line(Image.data, mode = mode, distrib_mode = distrib_mode, size_mode = Type.lower(), pixel_size = Pixel_Scale, units = Pixel_Units, temporal_scale = Time_Scale, temporal_units = Time_Units, axis = Axis, include_background = Include_Background, background = Background, connectivity = Domain_Size_Connectivity, ignore_edges = Remove_Edges, normalize = Normalize, xlims = x_lims, ylims = y_lims)
+            _ = plots.line(Image.data,
+                           mode = mode,
+                           distrib_mode = distrib_mode,
+                           size_mode = Type.lower(),
+                           pixel_size = Pixel_Scale,
+                           units = Pixel_Units,
+                           temporal_scale = Time_Scale,
+                           temporal_units = Time_Units,
+                           axis = Axis,
+                           include_background = Include_Background,
+                           background = Background,
+                           connectivity = Domain_Size_Connectivity,
+                           ignore_edges = Remove_Edges,
+                           normalize = Normalize,
+                           xlims = x_lims,
+                           ylims = y_lims)
             
         plt.show()
         
@@ -2119,22 +2143,6 @@ class ImageProcessor:
         if Connectivity > Image.data.ndim:
             
             Connectivity = 2
-            
-        if X_Max == 0:
-            
-            x_lims = None
-            
-        else:
-            
-            x_lims = (X_Min, X_Max)
-            
-        if Y_Max == 0:
-            
-            y_lims = None
-            
-        else:
-            
-            y_lims = (0, Y_Max)
         
         if not Apply_Mask:
             
@@ -2162,13 +2170,46 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
-        if Apply_Mask:
+        if X_Max == 0:
             
-            _ = plots.size_distribution(Image.data, mode = Type.lower(), units = Units, mask_array = Mask.data, xlims = x_lims, ylims = y_lims, normalize = Normalize, ignore_edges = Remove_Edges, connectivity = Connectivity, background = Background)
+            x_lims = None
             
         else:
             
-            _ = plots.size_distribution(Image.data, mode = Type.lower(), units = Units, xlims = x_lims, ylims = y_lims, normalize = Normalize, ignore_edges = Remove_Edges, connectivity = Connectivity, background = Background)
+            x_lims = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            
+            y_lims = None
+            
+        else:
+            
+            y_lims = (0, Y_Max)
+            
+        if Apply_Mask:
+            
+            _ = plots.size_distribution(Image.data,
+                                        mode = Type.lower(),
+                                        units = Units,
+                                        mask_array = Mask.data,
+                                        xlims = x_lims,
+                                        ylims = y_lims,
+                                        normalize = Normalize,
+                                        ignore_edges = Remove_Edges,
+                                        connectivity = Connectivity,
+                                        background = Background)
+            
+        else:
+            
+            _ = plots.size_distribution(Image.data,
+                                        mode = Type.lower(),
+                                        units = Units,
+                                        xlims = x_lims,
+                                        ylims = y_lims,
+                                        normalize = Normalize,
+                                        ignore_edges = Remove_Edges,
+                                        connectivity = Connectivity,
+                                        background = Background)
             
         plt.show()
     
@@ -2224,7 +2265,7 @@ class ImageProcessor:
                  "Define Limits": Define_Limits,
                  "Min Value": Min_Value,
                  "Max Value": Max_Value,
-                 "Alternate Colorbar label": Alternate_Colorbar_Label,
+                 "Alternate Colorbar Label": Alternate_Colorbar_Label,
                  "Colorbar Label": Colorbar_Label,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
@@ -2248,12 +2289,31 @@ class ImageProcessor:
             
         if Return_Array:
             
-            _, heat_array = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label, return_array = True)
+            _, heat_array = plots.heat_map(Image.data,
+                                           mode = Method.lower(),
+                                           cmap = Color_Map,
+                                           clim = clim,
+                                           mask_array = mask_array,
+                                           pixel_size = Pixel_Scale,
+                                           units = Units,
+                                           axis = Axis,
+                                           height_orientation = Height_Direction.lower(),
+                                           cbar_label = Colorbar_Label,
+                                           return_array = True)
             self.viewer.add_image(heat_array, name = param_layer_name)
             
         else:
             
-            _ = plots.heat_map(Image.data, mode = Method.lower(), cmap = Color_Map, clim = clim, mask_array = mask_array, pixel_size = Pixel_Scale, units = Units, axis = Axis, height_orientation = Height_Direction.lower(), cbar_label = Colorbar_Label)
+            _ = plots.heat_map(Image.data,
+                               mode = Method.lower(),
+                               cmap = Color_Map,
+                               clim = clim,
+                               mask_array = mask_array,
+                               pixel_size = Pixel_Scale,
+                               units = Units,
+                               axis = Axis,
+                               height_orientation = Height_Direction.lower(),
+                               cbar_label = Colorbar_Label)
             
         plt.show()
         

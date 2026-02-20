@@ -276,25 +276,77 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
     
     return fig
 
-def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, ignore_edges: bool = False, connectivity: int = None, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
+def line_axis(data: np.ndarray | pd.DataFrame = None,
+              input_ax: plt.Axes = None,
+              mode: str = "line scan", *,
+              color_mode: str = "br",
+              viewer: napari.viewer.Viewer = None,
+              slice_range: tuple[int] = None,
+              distrib_mode: str = "vol",
+              size_mode: str = "area",
+              pixel_size: float = 1.0,
+              units: str = "pix",
+              mask_array: np.ndarray = None,
+              temporal_scale: float | int = None,
+              temporal_units: str = "s",
+              axis: int = 0,
+              include_background: bool = False,
+              background: float | int = 0,
+              ignore_edges: bool = False,
+              connectivity: int = None,
+              normalize: bool = False,
+              xlims: tuple = None,
+              ylims: tuple = None) -> plt.Axes:
     
     if not isinstance(data, pd.DataFrame):
         
         if mode == "line scan":
             
-            line_df: pd.DataFrame = sv.quick_get_line_scan(viewer, slice_range, pixel_size = pixel_size, units = units)
+            line_df: pd.DataFrame = sv.quick_get_line_scan(viewer,
+                                                           slice_range,
+                                                           pixel_size = pixel_size,
+                                                           units = units)
         
         elif mode == "phase distrib":
             
-            line_df: pd.DataFrame = distrib.get_position_distribution(data, mode = distrib_mode, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, include_background = include_background, background = background, normalize = normalize)
+            line_df: pd.DataFrame = distrib.get_position_distribution(data,
+                                                                      mode = distrib_mode,
+                                                                      mask_array = mask_array,
+                                                                      pixel_size = pixel_size,
+                                                                      units = units,
+                                                                      axis = axis,
+                                                                      include_background = include_background,
+                                                                      background = background,
+                                                                      normalize = normalize)
         
         elif mode == "psd distrib":
             
-            line_df: pd.DataFrame = distrib.get_size_distribution(data, mask_array = mask_array, mode = distrib_mode, pixel_size = pixel_size, units = units, connectivity = connectivity, background = background, normalize = normalize, positional = True, temporal_scale = temporal_scale, temporal_units = temporal_units)
+            line_df: pd.DataFrame = distrib.get_size_distribution(data,
+                                                                  mask_array = mask_array,
+                                                                  mode = distrib_mode,
+                                                                  pixel_size = pixel_size,
+                                                                  units = units,
+                                                                  connectivity = connectivity,
+                                                                  background = background,
+                                                                  normalize = normalize,
+                                                                  positional = True,
+                                                                  temporal_scale = temporal_scale,
+                                                                  temporal_units = temporal_units)
             
         elif mode == "time series":
             
-            line_df: pd.DataFrame = distrib.get_time_series(data, mode = distrib_mode, size_mode = size_mode, mask_array = mask_array, pixel_size = pixel_size, spatial_units = units, temporal_scale = temporal_scale, temporal_units = temporal_units, connectivity = connectivity, background = background, include_background = include_background, normalize = normalize)
+            line_df: pd.DataFrame = distrib.get_time_series(data,
+                                                            mode = distrib_mode,
+                                                            size_mode = size_mode,
+                                                            mask_array = mask_array,
+                                                            pixel_size = pixel_size,
+                                                            spatial_units = units,
+                                                            temporal_scale = temporal_scale,
+                                                            temporal_units = temporal_units,
+                                                            connectivity = connectivity,
+                                                            background = background,
+                                                            include_background = include_background,
+                                                            normalize = normalize)
             
     else:
         
@@ -440,7 +492,26 @@ def line_axis(data: np.ndarray | pd.DataFrame = None, input_ax: plt.Axes = None,
         
     return line_ax
 
-def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode: str = "br", viewer: napari.viewer.Viewer = None, slice_range: tuple[int] = None, distrib_mode: str = "vol", size_mode: str = "area", pixel_size: float = 1.0, units: str = "pix", mask_array: np.ndarray = None, temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, connectivity: int = None, ignore_edges: bool = False, normalize: bool = False, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
+def line(data: np.ndarray | pd.DataFrame,
+         mode: str = "line scan", *,
+         color_mode: str = "br",
+         viewer: napari.viewer.Viewer = None,
+         slice_range: tuple[int] = None,
+         distrib_mode: str = "vol",
+         size_mode: str = "area",
+         pixel_size: float = 1.0,
+         units: str = "pix",
+         mask_array: np.ndarray = None,
+         temporal_scale: float | int = None,
+         temporal_units: str = "s",
+         axis: int = 0,
+         include_background: bool = False,
+         background: float | int = 0,
+         connectivity: int = None,
+         ignore_edges: bool = False,
+         normalize: bool = False,
+         xlims: tuple = None,
+         ylims: tuple = None) -> plt.Figure:
     
     # if mode == "psd distrib":
         
@@ -451,7 +522,27 @@ def line(data: np.ndarray | pd.DataFrame, mode: str = "line scan", *, color_mode
     #     c_label: str = f"Height ({units})"
     
     fig, line_ax = plt.subplots()
-    line_ax = line_axis(data, line_ax, mode = mode, color_mode = color_mode, viewer = viewer, slice_range = slice_range, distrib_mode = distrib_mode, size_mode = size_mode, pixel_size = pixel_size, units = units, mask_array = mask_array, temporal_scale = temporal_scale, temporal_units = temporal_units, axis = axis, include_background = include_background, background = background, connectivity = connectivity, ignore_edges = ignore_edges, normalize = normalize, xlims = xlims, ylims = ylims)
+    line_ax = line_axis(data,
+                        line_ax,
+                        mode = mode,
+                        color_mode = color_mode,
+                        viewer = viewer,
+                        slice_range = slice_range,
+                        distrib_mode = distrib_mode,
+                        size_mode = size_mode,
+                        pixel_size = pixel_size,
+                        units = units,
+                        mask_array = mask_array,
+                        temporal_scale = temporal_scale,
+                        temporal_units = temporal_units,
+                        axis = axis,
+                        include_background = include_background,
+                        background = background,
+                        connectivity = connectivity,
+                        ignore_edges = ignore_edges,
+                        normalize = normalize,
+                        xlims = xlims,
+                        ylims = ylims)
     # fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     # fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
     
@@ -486,22 +577,25 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         hist_df: pd.DataFrame = data.copy()
         
     hist_mean: float = np.sum((hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
-    ext_bin_centers: np.ndarray = np.empty((1, int(np.sum(hist_df["Counts"]))))
-    index: int = 0
-    bin_loc: int = 0
-    
-    for bin_center in hist_df["Bin Centers"]:
-        
-        for count in range(0, int(hist_df["Counts"][bin_loc])):
-            
-            ext_bin_centers[0, index] = bin_center
-            index += 1
-            
-        bin_loc += 1
-        
-    hist_std: float = np.std(ext_bin_centers)
     print(f"\n{"Histogram Mean:":<16} {hist_mean}")
-    print(f"{"Histogram StDv:":<16} {hist_std}")
+    
+    if not normalize:
+        
+        ext_bin_centers: np.ndarray = np.empty((1, int(np.sum(hist_df["Counts"]))))
+        index: int = 0
+        bin_loc: int = 0
+        
+        for bin_center in hist_df["Bin Centers"]:
+            
+            for count in range(0, int(hist_df["Counts"][bin_loc])):
+                
+                ext_bin_centers[0, index] = bin_center
+                index += 1
+                
+            bin_loc += 1
+            
+        hist_std: float = np.std(ext_bin_centers)
+        print(f"{"Histogram StDv:":<16} {hist_std}")
         
     if ignore_edges:
         
