@@ -10,11 +10,14 @@ import numpy as np
 import shutil
 import os
 
+from matplotlib import pyplot as plt
+
 import readwrite as rw
 import cropclip as cc
 import pixels
 import trans
 import quant
+import plots
 import util
 
 from filtering import denoising
@@ -801,6 +804,66 @@ def apply_parameters(im_array: np.ndarray,
         elif parameter["Name"].find("Histogram Plot") == 0:
             
             print("\nGenerating histogram...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if float(parameter["X Max"]) == 0:
+                
+                x_lims: None = None
+                
+            else:
+                
+                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                
+            if float(parameter["Y Max"]) == 0:
+                
+                y_lims: None = None
+                
+            else:
+                
+                y_lims: tuple = (0, float(parameter["Y Max"]))
+                
+            if parameter["Remove Edges"].lower() == "true":
+                
+                ignore_edges: bool = True
+                
+            else:
+                
+                ignore_edges: bool = False
+                
+            if parameter["Normalize"].lower() == "true":
+                
+                normalize: bool = True
+                
+            else:
+                
+                normalize: bool = False
+                
+            fig, hist_ax = plt.subplots()
+            hist_ax: plt.Axes = plots.histogram_axis(im_array, hist_ax,
+                                                     x_label = "Gray Value",
+                                                     mask_array = mask_array,
+                                                     xlims = x_lims,
+                                                     ylims = y_lims,
+                                                     ignore_edges = ignore_edges,
+                                                     normalize = normalize)
+            
+            if parameter["Add CDF"].lower() == "true":
+                
+                cdf_ax: plt.Axes = hist_ax.twinx()
+                cdf_ax = plots.cdf_axis(im_array, cdf_ax,
+                                        x_label = "Gray Value",
+                                        mask_array = mask_array,
+                                        xlims = x_lims)
+                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+                
+            rw.write_plot(fig, f"{file_name}_histogram", save_dir)
         
         elif parameter["Name"].find("Line Scan") == 0:
             

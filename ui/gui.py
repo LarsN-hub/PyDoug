@@ -1777,22 +1777,40 @@ class ImageProcessor:
         
         if Apply_Mask:
             
-            hist_ax: plt.Axes = plots.histogram_axis(Image.data, hist_ax, x_label = "Gray Value", mask_array = Mask.data, xlims = x_lims, ylims = y_lims, ignore_edges = Remove_Edges, normalize = Normalize)
+            hist_ax: plt.Axes = plots.histogram_axis(Image.data,
+                                                     hist_ax,
+                                                     x_label = "Gray Value",
+                                                     mask_array = Mask.data,
+                                                     xlims = x_lims,
+                                                     ylims = y_lims,
+                                                     ignore_edges = Remove_Edges,
+                                                     normalize = Normalize)
             
             if Add_CDF:
                 
                 cdf_ax: plt.Axes = hist_ax.twinx()
-                cdf_ax = plots.cdf_axis(Image.data, cdf_ax, x_label = "Gray Value", mask_array = Mask.data, xlims = x_lims)
+                cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
+                                        x_label = "Gray Value",
+                                        mask_array = Mask.data,
+                                        xlims = x_lims)
                 cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
             
         else:
             
-            hist_ax = plots.histogram_axis(Image.data, hist_ax, x_label = "Gray Value", xlims = x_lims, ylims = y_lims, ignore_edges = Remove_Edges, normalize = Normalize)
+            hist_ax = plots.histogram_axis(Image.data,
+                                           hist_ax,
+                                           x_label = "Gray Value",
+                                           xlims = x_lims,
+                                           ylims = y_lims,
+                                           ignore_edges = Remove_Edges,
+                                           normalize = Normalize)
             
             if Add_CDF:
             
                 cdf_ax: plt.Axes = hist_ax.twinx()
-                cdf_ax = plots.cdf_axis(Image.data, cdf_ax, x_label = "Gray Value", xlims = x_lims)
+                cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
+                                        x_label = "Gray Value",
+                                        xlims = x_lims)
                 cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
                 
         plt.show()
