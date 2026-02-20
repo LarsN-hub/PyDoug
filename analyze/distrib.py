@@ -19,7 +19,9 @@ import quant
 
 # Functions
 
-def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None, normalize: bool = False) -> pd.DataFrame:
+def get_histogram(im_array: np.ndarray, *,
+                  mask_array: np.ndarray = None,
+                  normalize: bool = False) -> pd.DataFrame:
     
     if np.any(mask_array):
     
@@ -33,7 +35,8 @@ def get_histogram(im_array: np.ndarray, *, mask_array: np.ndarray = None, normal
     
     return pd.DataFrame(np.stack((bin_centers, counts), 1), columns = ["Bin Centers", "Counts"])
 
-def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFrame:
+def get_cdf(im_array: np.ndarray, *,
+            mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if np.any(mask_array):
     
@@ -47,7 +50,17 @@ def get_cdf(im_array: np.ndarray, *, mask_array: np.ndarray = None) -> pd.DataFr
         
     return pd.DataFrame(np.stack((bin_centers, im_cdf), 1), columns = ["Bin Centers", "Probability"])
 
-def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", temporal_scale: float | int = None, temporal_units: str = "s", axis: int = 0, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def get_position_distribution(im_array: np.ndarray, *,
+                              mask_array: np.ndarray = None,
+                              mode: str = "vol",
+                              pixel_size: float = 1.0,
+                              units: str = "pix",
+                              temporal_scale: float | int = None,
+                              temporal_units: str = "s",
+                              axis: int = 0,
+                              include_background: bool = False,
+                              background: float | int = 0,
+                              normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -111,7 +124,11 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
                 
                 int_mask_array = None
             
-        int_array: np.ndarray = quant.__vol_area_precondition(int_im_array, mask_array = int_mask_array, include_background = include_background, background = background, normalize = normalize)
+        int_array: np.ndarray = quant.__vol_area_precondition(int_im_array,
+                                                              mask_array = int_mask_array,
+                                                              include_background = include_background,
+                                                              background = background,
+                                                              normalize = normalize)
         
         for index, gray_value in enumerate(int_array[:, 0]):
             
@@ -148,6 +165,10 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         if not normalize:
             
             pos_df.attrs["vol_units"] = f"{units}\u00b3"
+            
+        else:
+            
+            pos_df.attrs["vol_units"] = "dimensionless"
         
     elif mode == "area":
         
@@ -168,10 +189,20 @@ def get_position_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = 
         if not normalize:
             
             pos_df.attrs["area_units"] = f"{units}\u00b2"
+            
+        else:
+            
+            pos_df.attrs["area_units"] = "dimensionless"
         
     return pos_df
 
-def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def __get_size_distribution(im_array: np.ndarray, *,
+                            mask_array: np.ndarray = None,
+                            mode: str = "vol",
+                            pixel_size: float = 1.0,
+                            units: str = "pix",
+                            background: float | int = 0,
+                            normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -213,21 +244,47 @@ def __get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = No
     
     size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
-    if mode == "vol":
+    if not normalize:
         
-        size_df.attrs = {"units": f"{units}\u00b3"}
+        if mode == "vol":
         
-    elif mode == "area":
+            size_df.attrs = {"units": f"{units}\u00b3"}
         
-        size_df.attrs = {"units": f"{units}\u00b2"}
+        elif mode == "area":
         
-    elif mode == "diam":
+            size_df.attrs = {"units": f"{units}\u00b2"}
         
-        size_df.attrs = {"units": f"{units}"}
+        elif mode == "diam":
+        
+            size_df.attrs = {"units": f"{units}"}
+            
+    else:
+        
+        if mode == "vol":
+        
+            size_df.attrs = {"units": "dimensionless"}
+        
+        elif mode == "area":
+        
+            size_df.attrs = {"units": "dimensionless"}
+        
+        elif mode == "diam":
+        
+            size_df.attrs = {"units": "dimensionless"}
         
     return size_df
 
-def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None, mode: str = "vol", pixel_size: float = 1.0, units: str = "pix", connectivity: int = None, background: float | int = 0, normalize: bool = False, positional: bool = False, temporal_scale: float | int = None, temporal_units: str = "s") -> pd.DataFrame:
+def get_size_distribution(im_array: np.ndarray, *,
+                          mask_array: np.ndarray = None,
+                          mode: str = "vol",
+                          pixel_size: float = 1.0,
+                          units: str = "pix",
+                          connectivity: int = None,
+                          background: float | int = 0,
+                          normalize: bool = False,
+                          positional: bool = False,
+                          temporal_scale: float | int = None,
+                          temporal_units: str = "s") -> pd.DataFrame:
     
     if units == "um":
         
@@ -244,11 +301,23 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
         if im_array.dtype != np.int64:
             
             lab_array = thresh.label(im_array, connectivity = connectivity, background = background)
-            size_df: pd.DataFrame = __get_size_distribution(lab_array, mask_array = mask_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
+            size_df: pd.DataFrame = __get_size_distribution(lab_array,
+                                                            mask_array = mask_array,
+                                                            mode = mode,
+                                                            pixel_size = pixel_size,
+                                                            units = units,
+                                                            background = background,
+                                                            normalize = normalize)
             
         else:
             
-            size_df: pd.DataFrame = __get_size_distribution(im_array, mask_array = mask_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
+            size_df: pd.DataFrame = __get_size_distribution(im_array,
+                                                            mask_array = mask_array,
+                                                            mode = mode,
+                                                            pixel_size = pixel_size,
+                                                            units = units,
+                                                            background = background,
+                                                            normalize = normalize)
             
         return size_df
     
@@ -339,39 +408,56 @@ def get_size_distribution(im_array: np.ndarray, *, mask_array: np.ndarray = None
             
         size_df: pd.DataFrame = pd.DataFrame(size_array, columns = columns)
         
-        if mode == "vol":
+        if temporal_scale:
             
-            if temporal_scale:
-                
-                size_df.attrs = {"time_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
-                
-            else:
-                
-                size_df.attrs = {"pos_units": f"{pos_units}", "vol_units": f"{units}\u00b3"}
+            size_df.attrs = {"time_units": f"{pos_units}"}
             
-        elif mode == "area":
-
-            if temporal_scale:
-                
-                size_df.attrs = {"time_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
-                
-            else:
-                
-                size_df.attrs = {"pos_units": f"{pos_units}", "area_units": f"{units}\u00b2"}
-                
-        elif mode == "diam":
+        else:
             
-            if temporal_scale:
+            size_df.attrs = {"pos_units": f"{pos_units}"}
+        
+        if not normalize:
+            
+            if mode == "vol":
                 
-                size_df.attrs = {"time_units": f"{pos_units}", "diam_units": f"{units}"}
+                size_df.attrs["vol_units"] = f"{units}\u00b3"
                 
-            else:
+            elif mode == "area":
+    
+                size_df.attrs["area_units"] = f"{units}\u00b2"
+                    
+            elif mode == "diam":
                 
-                size_df.attrs = {"pos_units": f"{pos_units}", "diam_units": f"{units}"}
+                size_df.attrs["diam_units"] = f"{units}"
+                
+        else:
+            
+            if mode == "vol":
+                
+                size_df.attrs["vol_units"] = "dimensionless"
+                
+            elif mode == "area":
+    
+                size_df.attrs["area_units"] = "dimensionless"
+                    
+            elif mode == "diam":
+                
+                size_df.attrs["diam_units"] = "dimensionless"
             
         return size_df
 
-def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.ndarray = None, size_mode: str = "area", pixel_size: float | int = 1.0, spatial_units: str = "pix", temporal_units: str = "s", temporal_scale: float | int = 1.0, connectivity: int = None, axis: int = 0, include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def get_time_series(im_array: np.ndarray, mode: str = "vol", *,
+                    mask_array: np.ndarray = None,
+                    size_mode: str = "area",
+                    pixel_size: float | int = 1.0,
+                    spatial_units: str = "pix",
+                    temporal_units: str = "s",
+                    temporal_scale: float | int = 1.0,
+                    connectivity: int = None,
+                    axis: int = 0,
+                    include_background: bool = False,
+                    background: float | int = 0,
+                    normalize: bool = False) -> pd.DataFrame:
     
     if spatial_units == "um":
         
@@ -379,15 +465,39 @@ def get_time_series(im_array: np.ndarray, mode: str = "vol", *, mask_array: np.n
     
     if mode == "size":
         
-        time_df: pd.DataFrame = get_size_distribution(im_array, mask_array = mask_array, mode = size_mode, pixel_size = pixel_size, units = spatial_units, connectivity = connectivity, background = background, positional = True, temporal_scale = temporal_scale, temporal_units = temporal_units, normalize = normalize)
+        time_df: pd.DataFrame = get_size_distribution(im_array,
+                                                      mask_array = mask_array,
+                                                      mode = size_mode,
+                                                      pixel_size = pixel_size,
+                                                      units = spatial_units,
+                                                      connectivity = connectivity,
+                                                      background = background,
+                                                      positional = True,
+                                                      temporal_scale = temporal_scale,
+                                                      temporal_units = temporal_units,
+                                                      normalize = normalize)
     
     else:
         
-        time_df: pd.DataFrame = get_position_distribution(im_array, mode = mode, mask_array = mask_array, pixel_size = pixel_size, units = spatial_units, temporal_units = temporal_units, temporal_scale = temporal_scale, axis = axis, include_background = include_background, background = background, normalize = normalize)
+        time_df: pd.DataFrame = get_position_distribution(im_array,
+                                                          mode = mode,
+                                                          mask_array = mask_array,
+                                                          pixel_size = pixel_size,
+                                                          units = spatial_units,
+                                                          temporal_units = temporal_units,
+                                                          temporal_scale = temporal_scale,
+                                                          axis = axis,
+                                                          include_background = include_background,
+                                                          background = background,
+                                                          normalize = normalize)
 
     return time_df
 
-def get_heat_map(im_array: np.ndarray, mode: str = "thickness", *, mask_array: np.ndarray = None, pixel_size: float = 1.0, axis: int = 0, height_orientation: str = "near") -> np.ndarray:
+def get_heat_map(im_array: np.ndarray, mode: str = "thickness", *,
+                 mask_array: np.ndarray = None,
+                 pixel_size: float = 1.0,
+                 axis: int = 0,
+                 height_orientation: str = "near") -> np.ndarray:
     
     if im_array.ndim == 2:
         

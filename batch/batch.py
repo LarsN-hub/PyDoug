@@ -824,21 +824,22 @@ def apply_parameters(im_array: np.ndarray,
             
                 print("\nCalculating statistics...")
                 stats_df: pd.DataFrame = quant.global_statistics(im_array, mask_array = mask_array)
+                stats_df.insert(0, "File Name", file_name)
                 save_path: str = save_dir + "/Stats.csv"
                 
                 if not os.path.isfile(save_path):
                     
-                    stats_df.to_csv(save_path, header = "column_names")
+                    stats_df.to_csv(save_path, header = "column_names", index = False)
                     
                 else:
                     
-                    stats_df.to_csv(save_path, mode = "a", header = False)
+                    stats_df.to_csv(save_path, mode = "a", header = False, index = False)
                 
             elif parameter["Method"] == "Percent Intensities":
                 
                 print("\nCalculating percentage intensities...")
-                ints_tuple: tuple = quant.get_percent_intensities(im_array,
-                                                                  percentages = (parameter["Min Percent"], parameter["Max Percent"]),
+                _ = quant.get_percent_intensities(im_array,
+                                                                  percentages = (float(parameter["Min Percent"]), float(parameter["Max Percent"])),
                                                                   mask_array = mask_array)
                 
             elif parameter["Method"] == "Volume/Area":
@@ -880,6 +881,18 @@ def apply_parameters(im_array: np.ndarray,
                                                                include_background = include_background,
                                                                background = float(parameter["Background"]),
                                                                normalize = auto_normalize)
+                    
+                vol_area_df.insert(0, "File Name", file_name)
+                vol_area_df["Units"] = vol_area_df.attrs["units"]
+                save_path: str = save_dir + "/Volume_Area.csv"
+                
+                if not os.path.isfile(save_path):
+                    
+                    vol_area_df.to_csv(save_path, header = "column_names", index = False)
+                    
+                else:
+                    
+                    vol_area_df.to_csv(save_path, mode = "a", header = False, index = False)
                 
             elif parameter["Method"] == "Surface Perimeter/Area":
                 
@@ -889,15 +902,37 @@ def apply_parameters(im_array: np.ndarray,
                                                                   mask_array = mask_array,
                                                                   pixel_size = float(parameter["Pixel Size"]),
                                                                   units = parameter["Units"])
+                save_path: str = save_dir + "/Surface_Area.csv"
+                surf_df.insert(0, "File Name", file_name)
+                surf_df["Units"] = surf_df.attrs["units"]
+                
+                if not os.path.isfile(save_path):
+                    
+                    surf_df.to_csv(save_path, header = "column_names", index = False)
+                    
+                else:
+                    
+                    surf_df.to_csv(save_path, mode = "a", header = False, index = False)
                 
             elif parameter["Method"] == "Contact Perimeter/Area":
                 
                 print("\nCalculating contact perimeter/area...")
                 cont_df: pd.DataFrame = quant.get_surface_contact(im_array,
-                                                                  (float(parameter["Contact Phase 1"]), float(parameter["Contact Phase 1"])),
+                                                                  (float(parameter["Contact Phase 1"]), float(parameter["Contact Phase 2"])),
                                                                   mask_array = mask_array,
                                                                   pixel_size = float(parameter["Pixel Size"]),
                                                                   units = parameter["Units"])
+                save_path: str = save_dir + "/Contact_Area.csv"
+                cont_df.insert(0, "File Name", file_name)
+                cont_df["Units"] = cont_df.attrs["units"]
+                
+                if not os.path.isfile(save_path):
+                    
+                    cont_df.to_csv(save_path, header = "column_names", index = False)
+                    
+                else:
+                    
+                    cont_df.to_csv(save_path, mode = "a", header = False, index = False)
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             

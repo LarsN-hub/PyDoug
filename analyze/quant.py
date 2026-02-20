@@ -177,7 +177,18 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *,
     im_cdf: pd.Series = np.squeeze(np.array([cdf_df["Probability"]]))
     bin_centers: pd.Series = np.squeeze(np.array([cdf_df["Bin Centers"]]))
     low_index = util.quick_get_first_index(im_cdf, min(percentages), "greater or equal")
-    high_index = len(im_cdf) - util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal") - 1
+    
+    if not low_index:
+        
+        low_index = 0
+        
+    high_sub: int = util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal")
+    
+    if not high_sub:
+        
+        high_sub = 0
+        
+    high_index = len(im_cdf) - 1 - high_sub
     low_bin = np.astype(bin_centers[low_index], im_array.dtype)
     high_bin = np.astype(bin_centers[high_index], im_array.dtype)
     low_str: str = str(min(percentages) * 100) + "%:"
@@ -315,6 +326,10 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
         
         vol_df.attrs = {"units": f"{units}\u00b3"}
         
+    else:
+        
+        vol_df.attrs = {"units": "dimensionless"}
+        
     print("\n")
     
     if normalize:
@@ -354,6 +369,10 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
     if not normalize:
         
         area_df.attrs = {"units": f"{units}\u00b2"}
+        
+    else:
+        
+        area_df.attrs = {"units": "dimensionless"}
         
     print("\n")
     
