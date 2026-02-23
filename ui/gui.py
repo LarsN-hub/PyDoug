@@ -428,6 +428,12 @@ class ImageProcessor:
     
     @magicgui(
         Method = {"choices": trim_pad_list},
+        X_Min = {"max": 10000},
+        X_Max = {"max": 10000},
+        Y_Min = {"max": 10000},
+        Y_Max = {"max": 10000},
+        Z_Min = {"max": 10000},
+        Z_Max = {"max": 10000},
         Padded_Color = {"choices": out_of_mask_list},
         call_button = "Trim / Pad")
     def trim_pad_widget(self,
