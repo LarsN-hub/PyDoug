@@ -21,6 +21,10 @@ axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0, "Z": -1}
 
 # Functions
 
+def find_order_of_mag(value: float | int) -> float | int:
+    
+    return math.floor(math.log10(value))
+
 def check_if_square(im_array: np.ndarray) -> bool:
     
     if im_array.ndim == 2:

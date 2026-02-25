@@ -28,9 +28,16 @@ plt.rcParams["font.sans-serif"] = "Arial"
 
 # Functions
 
-def get_basic_colors() -> tuple[str]:
+def get_basic_colors() -> list[np.ndarray]:
     
-    return ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
+    return (np.array([0, 0, 1]),
+            np.array([0, 0.5, 0]),
+            np.array([1, 0, 0]),
+            np.array([0, 0.75, 0.75]),
+            np.array([0.75, 0, 0.75]),
+            np.array([0.75, 0.75, 0]),
+            np.array([0, 0, 0]),
+            np.array([0.5, 0.5, 0.5]))
 
 def get_color_list(mode: str = "br", num_colors: int = 2) -> list[np.ndarray]:
     
@@ -169,19 +176,23 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                x_label: str = "Categories",
                y_units: str = None,
                x_units: str = None,
-               width: float = 0.8,
+               width: float = 1,
                labels: tuple[str] = None,
                ymax: float = None,
                xlims: tuple[float] = None,
-               colors: tuple = None,
+               colors: tuple | np.ndarray | str = np.array([0.125, 0.469, 0.707]),
                add_lines: bool | tuple[bool] = False,
+               logx: bool = False,
+               logy: bool = False,
                axis2: bool = False,
                x2: np.ndarray = None,
                y2: np.ndarray = None,
                y2_label: str = "Values",
                y2_units: str = None,
                colors2: tuple = None,
-               add_lines2: bool = False) -> plt.Figure:
+               add_lines2: bool = False,
+               logx2: bool = False,
+               logy2: bool = False) -> plt.Figure:
     
     if x_units == "um":
         
@@ -211,15 +222,43 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
     if y.ndim > 1:
         
-        if y.shape[0] % 2 != 0:
-            
-            offset_start: float = -math.floor(y.shape[0] / 2) * width
+        if not logx:
+        
+            if y.shape[0] % 2 != 0:
+                
+                offset_start: float = -math.floor(y.shape[0] / 2) * width
+                
+            else:
+                
+                offset_start: float = (-math.floor(y.shape[0] / 2) * width) / 2
+                
+            offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y.shape[0] * width), width)
             
         else:
             
-            offset_start: float = (-math.floor(y.shape[0] / 2) * width) / 2
+            offset_starts: np.ndarray = np.zeros((y.shape[0], y.shape[1]))
+            widths: np.ndarray = np.copy(offset_starts)
+            offset_indices: np.ndarray = np.arange(0, y.shape[0])
+            offset_indices = offset_indices - math.floor((y.shape[0] / 2))
             
-        offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y.shape[1] * width), width)
+            if y.shape[0] % 2 != 0:
+                        
+                align: str = "center"
+                    
+            else:
+                        
+                align: str = "edge"
+                
+            for x_index, x_value in enumerate(x):
+                
+                x_log_left: np.ndarray = np.logspace(math.log10(x_value) - 1, math.log10(x_value), round(10 * (1 / width)))
+                x_log_right: np.ndarray = np.logspace(math.log10(x_value), math.log10(x_value) + 1, round(10 * (1 / width)))
+                x_log_range: np.ndarray = np.concat((x_log_left, x_log_right[1:]))
+                
+                for y_index in range(0, y.shape[0]):
+                    
+                    offset_starts[y_index, x_index] = x_log_range[9 + offset_indices[y_index]]
+                    widths[y_index, x_index] = x_log_range[9 + offset_indices[y_index] + 1] - x_log_range[9 + offset_indices[y_index]]
         
         for y_index in range(0, y.shape[0]):
             
@@ -230,14 +269,26 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             else:
                 
                 color = get_basic_colors()[y_index]
-            
-            if labels:
-            
-                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color, label = labels[y_index])
                 
+            if logx:
+                                
+                if labels:
+                
+                    bar_ax.bar(offset_starts[y_index, :], y[y_index, :], width = widths[y_index, :], color = color, label = labels[y_index], align = align)
+                    
+                else:
+                    
+                    bar_ax.bar(offset_starts[y_index, :], y[y_index, :], width = widths[y_index, :], color = color, align = align)
+            
             else:
                 
-                bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color)
+                if labels:
+                
+                    bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color, label = labels[y_index])
+                    
+                else:
+                    
+                    bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color)
                 
             if add_lines:
                 
@@ -253,22 +304,54 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
     
     else:
         
-        bar_ax.bar(x, y, width = width)
+        if logx:
+            
+            widths: list[float] = []
+            
+            for x_value in x:
+                
+                widths.append(width * np.diff(np.logspace(math.log10(x_value), math.log10(x_value) + 1, 10))[0])
+                
+            bar_ax.bar(x, y, width = widths, color = colors)
+        
+        else:
+        
+            bar_ax.bar(x, y, width = width, color = colors)
         
         if add_lines:
             
-            bar_ax.plot(x, y)
+            bar_ax.plot(x, y, color = colors / 2)
     
     bar_ax.set_xlabel(x_title)
     bar_ax.set_ylabel(y_title)
-    
-    if ymax:
         
-        bar_ax.set_ylim(0, ymax)
+    if logx:
         
-    if xlims:
+        bar_ax.set_xscale("log")
         
-        bar_ax.set_xlim(min(xlims), max(xlims))
+        if xlims:
+            
+            bar_ax.set_xlim(min(xlims), max(xlims))
+            
+    else:
+        
+        if xlims:
+            
+            bar_ax.set_xlim(min(xlims), max(xlims))
+        
+    if logy:
+        
+        bar_ax.set_yscale("log")
+        
+        if ymax:
+            
+            bar_ax.set_ylim(0, ymax)
+            
+    else:
+        
+        if ymax:
+            
+            bar_ax.set_ylim(0, ymax)
     
     if labels:
         
