@@ -171,44 +171,41 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
-def simple_bar(x: np.ndarray, y: np.ndarray, *,
-               y_label: str = "Values",
-               x_label: str = "Categories",
-               y_units: str = None,
-               x_units: str = None,
-               width: float = 1,
-               labels: tuple[str] = None,
-               ymax: float = None,
-               xlims: tuple[float] = None,
-               colors: tuple | np.ndarray | str = np.array([0.125, 0.469, 0.707]),
-               add_lines: bool | tuple[bool] = False,
-               logx: bool = False,
-               logy: bool = False,
-               axis2: bool = False,
-               x2: np.ndarray = None,
-               y2: np.ndarray = None,
-               y2_label: str = "Values",
-               y2_units: str = None,
-               colors2: tuple = None,
-               add_lines2: bool = False,
-               logx2: bool = False,
-               logy2: bool = False) -> plt.Figure:
+def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
+             y_label: str = "Values",
+             x_label: str = "Categories",
+             y_units: str = None,
+             x_units: str = None,
+             width: float = 1,
+             labels: tuple[str] = None,
+             label_index: int = 0,
+             y_count: int = 1,
+             y_count_index: int = 0,
+             ymax: float = None,
+             xlims: tuple[float] = None,
+             colors: tuple | np.ndarray | str = None,
+             add_lines: bool | tuple[bool] = False,
+             logx: bool = False,
+             logy: bool = False,
+             second_axis: bool = False) -> plt.Axes:
     
-    if x_units == "um":
+    if not second_axis:
         
-        x_units = "\u00b5m"
+        if x_units == "um":
+            
+            x_units = "\u00b5m"
+            
+        if x_units:
+            
+            x_title: str = f"{x_label} ({x_units})"
+            
+        else:
+            
+            x_title: str = x_label
         
     if y_units == "um":
         
         y_units = "\u00b5m"
-    
-    if x_units:
-        
-        x_title: str = f"{x_label} ({x_units})"
-        
-    else:
-        
-        x_title: str = x_label
         
     if y_units:
         
@@ -218,30 +215,18 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
         y_title: str = y_label
         
-    fig, bar_ax = plt.subplots()
+    bar_ax: plt.Axes = input_ax
+    
+    if y_count > 1:
         
-    if y.ndim > 1:
-        
-        if not logx:
-        
-            if y.shape[0] % 2 != 0:
-                
-                offset_start: float = -math.floor(y.shape[0] / 2) * width
-                
-            else:
-                
-                offset_start: float = (-math.floor(y.shape[0] / 2) * width) / 2
-                
-            offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y.shape[0] * width), width)
+        if logx:
             
-        else:
-            
-            offset_starts: np.ndarray = np.zeros((y.shape[0], y.shape[1]))
+            offset_starts: np.ndarray = np.zeros((y_count, x.shape[0]))
             widths: np.ndarray = np.copy(offset_starts)
-            offset_indices: np.ndarray = np.arange(0, y.shape[0])
-            offset_indices = offset_indices - math.floor((y.shape[0] / 2))
+            offset_indices: np.ndarray = np.arange(0, y_count)
+            offset_indices = offset_indices - math.floor((y_count / 2))
             
-            if y.shape[0] % 2 != 0:
+            if y_count % 2 != 0:
                         
                 align: str = "center"
                     
@@ -251,20 +236,54 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                 
             for x_index, x_value in enumerate(x):
                 
-                x_log_left: np.ndarray = np.logspace(math.log10(x_value) - 1, math.log10(x_value), round(10 * (1 / width)))
-                x_log_right: np.ndarray = np.logspace(math.log10(x_value), math.log10(x_value) + 1, round(10 * (1 / width)))
+                x_log_left: np.ndarray = np.logspace(math.log10(x_value) - 1, math.log10(x_value), max(round(10 / width), y_count))
+                x_log_right: np.ndarray = np.logspace(math.log10(x_value), math.log10(x_value) + 1, max(round(10 / width), y_count))
                 x_log_range: np.ndarray = np.concat((x_log_left, x_log_right[1:]))
                 
-                for y_index in range(0, y.shape[0]):
+                for y_index in range(y_count_index, y_count):
                     
-                    offset_starts[y_index, x_index] = x_log_range[9 + offset_indices[y_index]]
-                    widths[y_index, x_index] = x_log_range[9 + offset_indices[y_index] + 1] - x_log_range[9 + offset_indices[y_index]]
-        
-        for y_index in range(0, y.shape[0]):
+                    offset_starts[y_index, x_index] = x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index]]
+                    widths[y_index, x_index] = x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index] + 1] - x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index]]
             
-            if colors:
+        else:
+        
+            if y_count % 2 != 0:
                 
-                color = colors[y_index]
+                offset_start: float = -math.floor(y_count / 2) * width
+                
+            else:
+                
+                offset_start: float = (-math.floor(y_count / 2) * width) / 2
+                
+            offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y_count * width), width)
+            
+        if y.ndim > 1:
+            
+            range_end: int = y.shape[0]
+            
+        else:
+            
+            range_end: int = 1
+
+        for y_index in range(0, range_end):
+            
+            if y.ndim > 1:
+                
+                cur_y: np.ndarray = y[y_index, :]
+                
+            else:
+                
+                cur_y: np.ndarray = y
+            
+            if np.any(colors):
+                
+                if isinstance(colors, tuple):
+                
+                    color = colors[y_index]
+                    
+                else:
+                    
+                    color = colors
                 
             else:
                 
@@ -274,21 +293,23 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                                 
                 if labels:
                 
-                    bar_ax.bar(offset_starts[y_index, :], y[y_index, :], width = widths[y_index, :], color = color, label = labels[y_index], align = align)
+                    bar_ax.bar(offset_starts[y_index + (y_count_index * second_axis), :], cur_y, width = widths[y_index + (y_count_index * second_axis), :], color = color, label = labels[label_index], align = align)
+                    label_index += 1
                     
                 else:
                     
-                    bar_ax.bar(offset_starts[y_index, :], y[y_index, :], width = widths[y_index, :], color = color, align = align)
+                    bar_ax.bar(offset_starts[y_index + (y_count_index * second_axis), :], cur_y, width = widths[y_index + (y_count_index * second_axis), :], color = color, align = align)
             
             else:
                 
                 if labels:
                 
-                    bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color, label = labels[y_index])
+                    bar_ax.bar(x + offset_incs[y_index + (y_count_index * second_axis)], cur_y, width = width, color = color, label = labels[label_index])
+                    label_index += 1
                     
                 else:
                     
-                    bar_ax.bar(x + offset_incs[y_index], y[y_index, :], width = width, color = color)
+                    bar_ax.bar(x + offset_incs[y_index + (y_count_index * second_axis)], cur_y, width = width, color = color)
                 
             if add_lines:
                 
@@ -296,11 +317,41 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                     
                     if add_lines[y_index]:
                         
-                        bar_ax.plot(x + offset_incs[y_index], y[y_index, :], color = color / 2)
+                        plot_line: bool = True
+                            
+                    else:
+                        
+                        plot_line: bool = False
         
                 else:
+                    
+                    plot_line: bool = True
+                    
+            else:
                 
-                    bar_ax.plot(x + offset_incs[y_index], y[y_index, :], color = color / 2)
+                plot_line: bool = False
+                
+            if plot_line:
+                    
+                if logx:
+                    
+                    if y_count % 2 != 0:
+                        
+                        bar_ax.plot(offset_starts[y_index + (y_count_index * second_axis), :], cur_y, color = color / 2)
+                        
+                    else:
+                        
+                        line_offset_starts: np.ndarray = np.zeros(offset_starts.shape[1])
+                        
+                        for index, offset in enumerate(offset_starts[y_index + (y_count_index * second_axis), :]):
+                            
+                            line_offset_starts[index] = offset + np.diff(np.logspace(math.log10(offset), math.log10(offset + widths[y_index + (y_count_index * second_axis), index]), 3))[0]
+                        
+                        bar_ax.plot(line_offset_starts, cur_y, color = color / 2)
+                    
+                else:
+                
+                    bar_ax.plot(x + offset_incs[y_index], cur_y, color = color / 2)
     
     else:
         
@@ -312,18 +363,37 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                 
                 widths.append(width * np.diff(np.logspace(math.log10(x_value), math.log10(x_value) + 1, 10))[0])
                 
-            bar_ax.bar(x, y, width = widths, color = colors)
+            if labels:
+                
+                bar_ax.bar(x, y, width = widths, color = colors, label = labels[label_index])
+                
+            else:
+                
+                bar_ax.bar(x, y, width = widths, color = colors)
         
         else:
         
-            bar_ax.bar(x, y, width = width, color = colors)
+            if labels:
+                
+                bar_ax.bar(x, y, width = width, color = colors, label = labels[label_index])
+                
+            else:
+                
+                bar_ax.bar(x, y, width = width, color = colors)
         
         if add_lines:
             
             bar_ax.plot(x, y, color = colors / 2)
     
-    bar_ax.set_xlabel(x_title)
     bar_ax.set_ylabel(y_title)
+    
+    if not second_axis:
+        
+        bar_ax.set_xlabel(x_title)
+        
+    else:
+        
+        bar_ax.set_ylabel(y_title, rotation = 270, va = "bottom")
         
     if logx:
         
@@ -353,9 +423,113 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             bar_ax.set_ylim(0, ymax)
     
+    return bar_ax, label_index
+
+def simple_bar(x: np.ndarray, y: np.ndarray, *,
+               y_label: str = "Values",
+               x_label: str = "Categories",
+               y_units: str = None,
+               x_units: str = None,
+               width: float = 1,
+               labels: tuple[str] = None,
+               ymax: float = None,
+               xlims: tuple[float] = None,
+               colors: tuple | np.ndarray | str = None,
+               add_lines: bool | tuple[bool] = False,
+               logx: bool = False,
+               logy: bool = False,
+               axis2: bool = False,
+               y2: np.ndarray = None,
+               y2_label: str = "Values",
+               y2_units: str = None,
+               y2max: float = None,
+               colors2: tuple = None,
+               add_lines2: bool = False,
+               logy2: bool = False,
+               legend_axis: int = 2) -> plt.Figure:
+    
+    if y.ndim > 1:
+        
+        y_count: int = y.shape[0]
+        
+    else:
+        
+        y_count: int = 1
+    
+    if axis2:
+        
+        if y2.ndim > 1:
+        
+            y_count += y2.shape[0]
+            
+        else:
+            
+            y_count += 1
+        
+    fig, bar_ax = plt.subplots()
+    bar_ax, label_index = bar_axis(x, y, bar_ax,
+                                   y_label = y_label,
+                                   x_label = x_label,
+                                   y_units = y_units,
+                                   x_units = x_units,
+                                   width = width,
+                                   labels = labels,
+                                   y_count = y_count,
+                                   y_count_index = 0,
+                                   ymax = ymax,
+                                   xlims = xlims,
+                                   colors = colors,
+                                   add_lines = add_lines,
+                                   logx = logx,
+                                   logy = logy)
+    
+    if axis2:
+        
+        bar_ax2 = bar_ax.twinx()
+        
+        if y.ndim > 1:
+            
+            y_count_index: int = y.shape[0]
+            
+        else:
+            
+            y_count_index: int = 1
+        
+        bar_ax2, _ = bar_axis(x, y2, bar_ax2,
+                              y_label = y2_label,
+                              y_units = y2_units,
+                              width = width,
+                              labels = labels,
+                              label_index = label_index,
+                              y_count = y_count,
+                              y_count_index = y_count_index,
+                              ymax = y2max,
+                              xlims = xlims,
+                              colors = colors2,
+                              add_lines = add_lines2,
+                              logx = logx,
+                              logy = logy2,
+                              second_axis = axis2)
+        
     if labels:
         
-        bar_ax.legend()
+        bars, bars_labels = bar_ax.get_legend_handles_labels()
+        
+        if axis2:
+            
+            bars2, bars_labels2 = bar_ax2.get_legend_handles_labels()
+            
+            if legend_axis == 2:
+                
+                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2)
+                
+            else:
+                
+                bar_ax.legend(bars + bars2, bars_labels + bars_labels2)
+            
+        else:
+            
+            bar_ax.legend(bars, bars_labels)
     
     return fig
 
@@ -679,6 +853,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
             
         hist_std: float = np.std(ext_bin_centers)
         print(f"{"Histogram StDv:":<16} {hist_std}")
+        print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
         
     if ignore_edges:
         

@@ -262,33 +262,17 @@ def __get_size_distribution(im_array: np.ndarray, *,
     
     size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
-    if not normalize:
+    if mode == "vol":
         
-        if mode == "vol":
+        size_df.attrs = {"units": f"{units}\u00b3"}
         
-            size_df.attrs = {"units": f"{units}\u00b3"}
+    elif mode == "area":
         
-        elif mode == "area":
+        size_df.attrs = {"units": f"{units}\u00b2"}
         
-            size_df.attrs = {"units": f"{units}\u00b2"}
+    elif mode == "diam":
         
-        elif mode == "diam":
-        
-            size_df.attrs = {"units": f"{units}"}
-            
-    else:
-        
-        if mode == "vol":
-        
-            size_df.attrs = {"units": "dimensionless"}
-        
-        elif mode == "area":
-        
-            size_df.attrs = {"units": "dimensionless"}
-        
-        elif mode == "diam":
-        
-            size_df.attrs = {"units": "dimensionless"}
+        size_df.attrs = {"units": units}
         
     return size_df
 
@@ -428,39 +412,23 @@ def get_size_distribution(im_array: np.ndarray, *,
         
         if temporal_scale:
             
-            size_df.attrs = {"time_units": f"{pos_units}"}
+            size_df.attrs = {"time_units": pos_units}
             
         else:
             
-            size_df.attrs = {"pos_units": f"{pos_units}"}
+            size_df.attrs = {"pos_units": pos_units}
         
-        if not normalize:
-            
-            if mode == "vol":
+        if mode == "vol":
                 
-                size_df.attrs["vol_units"] = f"{units}\u00b3"
+            size_df.attrs["vol_units"] = f"{units}\u00b3"
                 
-            elif mode == "area":
+        elif mode == "area":
     
-                size_df.attrs["area_units"] = f"{units}\u00b2"
+            size_df.attrs["area_units"] = f"{units}\u00b2"
                     
-            elif mode == "diam":
+        elif mode == "diam":
                 
-                size_df.attrs["diam_units"] = f"{units}"
-                
-        else:
-            
-            if mode == "vol":
-                
-                size_df.attrs["vol_units"] = "dimensionless"
-                
-            elif mode == "area":
-    
-                size_df.attrs["area_units"] = "dimensionless"
-                    
-            elif mode == "diam":
-                
-                size_df.attrs["diam_units"] = "dimensionless"
+            size_df.attrs["diam_units"] = units
             
         return size_df
 
