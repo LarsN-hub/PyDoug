@@ -50,13 +50,18 @@ def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None, pr
     im_stats["DType Max"] = dtype_dict["Max"]
     
     if print_results:
-        
-        print("\n")
     
-        for stat in list(im_stats.keys()):
+        for index, stat in enumerate(list(im_stats.keys())):
         
             current_str: str = stat + ":"
-            print(f"{current_str:<16} {im_stats[stat]}")
+            
+            if index == 0:
+                
+                print(f"\n{current_str:<16} {im_stats[stat]}")
+                
+            else:
+                
+                print(f"{current_str:<16} {im_stats[stat]}")
     
     return pd.DataFrame([im_stats])
 
@@ -346,22 +351,20 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
     else:
         
         vol_df.attrs = {"units": "dimensionless"}
-        
-    print("\n")
     
     if normalize:
         
         for col in vol_df:
             
             current_str: str = str(col) + ":"
-            print(f"{current_str:<16} {vol_df[col][0]}")
+            print(f"\n{current_str:<16} {vol_df[col][0]}")
     
     else:
     
         for col in vol_df:
             
             current_str: str = str(col) + ":"
-            print(f"{current_str:<16} {vol_df[col][0]} {vol_df.attrs["units"]}")
+            print(f"\n{current_str:<16} {vol_df[col][0]} {vol_df.attrs["units"]}")
     
     return vol_df
 
@@ -390,22 +393,20 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
     else:
         
         area_df.attrs = {"units": "dimensionless"}
-        
-    print("\n")
     
     if normalize:
         
         for col in area_df:
             
             current_str: str = str(col) + ":"
-            print(f"{current_str:<16} {area_df[col][0]}")
+            print(f"\n{current_str:<16} {area_df[col][0]}")
     
     else:
     
         for col in area_df:
             
             current_str: str = str(col) + ":"
-            print(f"{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
+            print(f"\n{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
     
     return area_df
 
