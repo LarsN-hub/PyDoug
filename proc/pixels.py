@@ -11,6 +11,7 @@ import numpy as np
 from skimage import util as skutil
 from skimage import exposure
 from skimage import filters
+from skimage import color
 
 import cropclip as cc
 import distrib
@@ -21,6 +22,22 @@ from filtering import morph
 
 
 # Functions
+
+def rgb_2_gray(im_array: np.ndarray) -> np.ndarray:
+    
+    if im_array.shape[-1] > 3:
+        
+        if im_array.ndim == 3:
+            
+            return color.rgb2gray(im_array[:, :, 0:3])
+        
+        elif im_array.ndim == 4:
+            
+            return color.rgb2gray(im_array[:, :, :, 0:3])
+        
+    else:
+    
+        return color.rgb2gray(im_array)
 
 def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: tuple | str = None) -> np.ndarray:
      

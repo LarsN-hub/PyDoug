@@ -17,6 +17,7 @@ import pixels
 import quant
 import util
 
+from filtering import morph
 from segment import thresh
 
 
@@ -119,7 +120,9 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
         
         return edge_array
     
-def level_set(array_shape: tuple, method: str = "checkerboard", *, square_size: int = 5, radius: float = 10) -> np.ndarray:
+def level_set(array_shape: tuple, method: str = "checkerboard", *,
+              square_size: int = 5,
+              radius: float = 10) -> np.ndarray:
     
     if method == "checkerboard":
         
@@ -129,7 +132,13 @@ def level_set(array_shape: tuple, method: str = "checkerboard", *, square_size: 
         
         return segmentation.disk_level_set(array_shape, radius = radius)
     
-def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *, square_size: int = 5, radius: float = 10, num_iter: int = 10, smoothing: int = 1, alpha: float = 100, sigma: float = 5) -> np.ndarray:
+def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *,
+                 square_size: int = 5,
+                 radius: float = 10,
+                 num_iter: int = 10,
+                 smoothing: int = 1,
+                 alpha: float = 100,
+                 sigma: float = 5) -> np.ndarray:
     
     init_levels: np.ndarray = level_set(im_array.shape, square_size = square_size, radius = radius)
     
@@ -152,7 +161,15 @@ def random_walk(im_array: np.ndarray, marker_percentiles: tuple, beta: float = 1
     
     return pixels.normalize(segmentation.random_walker(im_array, markers, beta))
 
-def watershed(im_array: np.ndarray, *, background: float | int = 0, mask_array: np.ndarray = None, water_line: bool = False, connectivity: int = 2, compactness: float = 0, along_axis: bool = False, axis: int = 0, randomize: bool = True) -> np.ndarray:
+def watershed(im_array: np.ndarray, *,
+              background: float | int = 0,
+              mask_array: np.ndarray = None,
+              water_line: bool = False,
+              connectivity: int = 2,
+              compactness: float = 0,
+              along_axis: bool = False,
+              axis: int = 0,
+              randomize: bool = True) -> np.ndarray:
     
     if np.any(mask_array):
         
@@ -217,77 +234,120 @@ def corners(im_array: np.ndarray, method = "fast", *,
             eps: int = 0.000001,
             sigma: float = 1,
             window_size: int = 1,
-            return_mode: str = "coords") -> np.ndarray:
+            return_mode: str = "coords",
+            orient_radius: int = 3) -> np.ndarray:
     
     corner_array: np.ndarray = np.empty(im_array.shape)
-    
+        
     if method == "fast":
-        
-        if len(im_array.shape) > 2:
-        
-            for slice_index in range(0, im_array.shape[0]):
             
+        if im_array.ndim > 2:
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
                 corner_array[slice_index] = feature.corner_fast(im_array[slice_index], n, threshold)
-                
+                    
         else:
-            
+                
             corner_array = feature.corner_fast(im_array, n, threshold)
-    
+        
     elif method == "harris":
-        
-        if len(im_array.shape) > 2:
-        
-            for slice_index in range(0, im_array.shape[0]):
             
+        if im_array.ndim > 2:
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
                 corner_array[slice_index] = feature.corner_harris(im_array[slice_index], harris_method, k, eps, sigma)
-                
+                    
         else:
-            
+                
             corner_array = feature.corner_harris(im_array, harris_method, k, eps, sigma)
-        
+            
     elif method == "kitchen rosenfeld":
-        
-        if len(im_array.shape) > 2:
-        
-            for slice_index in range(0, im_array.shape[0]):
             
+        if im_array.ndim > 2:
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
                 corner_array[slice_index] = feature.corner_kitchen_rosenfeld(im_array[slice_index], "reflect")
-                
+                    
         else:
-            
+                
             corner_array = feature.corner_kitchen_rosenfeld(im_array, "reflect")
-    
+        
     elif method == "moravec":
-        
-        if len(im_array.shape) > 2:
-        
-            for slice_index in range(0, im_array.shape[0]):
             
+        if im_array.ndim > 2:
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
                 corner_array[slice_index] = feature.corner_moravec(im_array[slice_index], window_size)
-                
+                    
         else:
-            
+                
             corner_array = feature.corner_moravec(im_array, window_size)
-    
+        
     elif method == "shi tomasi":
-        
-        if len(im_array.shape) > 2:
-        
-            for slice_index in range(0, im_array.shape[0]):
             
-                corner_array[slice_index] = feature.corner_shi_tomasi(im_array[slice_index], sigma)
+        if im_array.ndim > 2:
+            
+            for slice_index in range(0, im_array.shape[0]):
                 
+                corner_array[slice_index] = feature.corner_shi_tomasi(im_array[slice_index], sigma)
+                    
+        else:
+                
+            corner_array = feature.corner_shi_tomasi(im_array, sigma)
+            
+    if return_mode == "coords":
+            
+        return feature.corner_peaks(corner_array)
+        
+    elif return_mode == "peaks array":
+            
+        return pixels.convert_im_type(feature.corner_peaks(corner_array, indices = False), "uint8")
+    
+    else:
+        
+        footprint: morph.Footprint = morph.Footprint("disk")
+        footprint.radius = 3
+        footprint_array: np.ndarray = footprint.get_footprint()
+        coords_list: np.ndarray = feature.corner_peaks(corner_array)
+        
+        if util.is_3d_rgb(im_array)["3D"]:
+            
+            orients_list: np.ndarray = np.zeros((1, 1))
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
+                if np.any(coords_list[coords_list[:, 0] == slice_index]):
+                    
+                    orients_list = np.vstack((orients_list, np.expand_dims(feature.corner_orientations(im_array[slice_index], coords_list[coords_list[:, 0] == slice_index][:, 1:], footprint_array), 1)))
+                    
+            orients_list = orients_list[1:, :]
+            
         else:
             
-            corner_array = feature.corner_shi_tomasi(im_array, sigma)
+            orients_list: np.ndarray = feature.corner_orientations(im_array, coords_list, footprint_array)
         
-    if return_mode == "coords":
+        if return_mode == "orients":
+            
+            return orients_list
         
-        return feature.corner_peaks(corner_array)
-    
-    elif return_mode == "array":
-        
-        return pixels.convert_im_type(feature.corner_peaks(corner_array, indices = False), "uint8")
+        elif return_mode == "orients array":
+            
+            orients_array: np.ndarray = np.zeros(im_array.shape)
+            orients_list = np.abs(orients_list)
+            
+            if im_array.ndim == 2:
+                
+                pass
+            
+            else:
+                
+                orients_array[coords_list[:, 0], coords_list[:, 1], coords_list[:, 2]] = orients_list[:, 0]
+            
+            return orients_array
 
 
 # Main

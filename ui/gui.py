@@ -988,6 +988,16 @@ class ImageProcessor:
         new_array[new_array == Input_Intensity] = Output_Intensity
         self.viewer.add_image(new_array, name = param_layer_name)
         
+    @magicgui(
+        call_button = "Grayscale")
+    def grayscale_widget(self,
+        Image: napari.layers.Image) -> None:
+        
+        param_layer_name = get_param_layer_name("Grayscale", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name})
+        self.viewer.add_image(pixels.rgb_2_gray(Image.data), name = param_layer_name)
+        
     
     #####################
     # Denoising Widgets #
@@ -1624,6 +1634,7 @@ class ImageProcessor:
     @magicgui(
         Method = {"choices": corner_detect_list},
         Harris_Method = {"choices": harris_method_list},
+        Return_Mode = {"choices": ["Peaks", "Orientations"]},
         call_button = "Detect Corners")
     def corner_detect_widget(self,
         Image: napari.layers.Image,
@@ -1634,7 +1645,16 @@ class ImageProcessor:
         Harris_K: float = 0.05,
         Harris_Epsilon: float = 0.000001,
         Harris_or_Shi_Tomasi_Sigma: float = 1,
-        Moravec_Window_Size: int = 1) -> None:
+        Moravec_Window_Size: int = 1,
+        Return_Mode: str = "Peaks") -> None:
+        
+        if Return_Mode == "Peaks":
+            
+            Return_Mode: str = "peaks array"
+            
+        elif Return_Mode == "Orientations":
+            
+            Return_Mode: str = "orients array"
         
         param_layer_name = get_param_layer_name("Corner Detection", self.operation_count)
         parameters_log.append(
@@ -1646,7 +1666,8 @@ class ImageProcessor:
              "Harris K": Harris_K,
              "Harris Epsilon": Harris_Epsilon,
              "Sigma": Harris_or_Shi_Tomasi_Sigma,
-             "Window Size": Moravec_Window_Size})
+             "Window Size": Moravec_Window_Size,
+             "Return Mode": Return_Mode})
         
         self.viewer.add_image(detect.corners(Image.data,
                                              method = Method.lower(),
@@ -1657,7 +1678,7 @@ class ImageProcessor:
                                              eps = Harris_Epsilon,
                                              sigma = Harris_or_Shi_Tomasi_Sigma,
                                              window_size = Moravec_Window_Size,
-                                             return_mode = "array"), name = param_layer_name)
+                                             return_mode = Return_Mode), name = param_layer_name)
         
     @magicgui(
         Method = {"choices": rr_list},
@@ -2443,8 +2464,9 @@ def main() -> napari.viewer.Viewer:
     mod_equalize: widgets.Container = modify_funcgui(ui.equalize_widget, "Equalize Histogram")
     mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
     mod_reassign: widgets.Container = modify_funcgui(ui.reassign_widget, "Re-Assign Intensities")
+    mod_grayscale: widgets.Container = modify_funcgui(ui.grayscale_widget, "RGB to Grayscale")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign],
+        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign, mod_grayscale],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
     

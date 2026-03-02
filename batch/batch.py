@@ -326,6 +326,11 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nRe-assigning...")
             im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])
+            
+        elif parameter["Name"].find("Grayscale") == 0:
+            
+            print("\nConverting to grayscale...")
+            im_array = pixels.rgb_2_gray(im_array)
         
         
         ########################
@@ -759,7 +764,7 @@ def apply_parameters(im_array: np.ndarray,
                                       eps = float(parameter["Harris Epsilon"]),
                                       sigma = float(parameter["Sigma"]),
                                       window_size = int(parameter["Window Size"]),
-                                      return_mode = "array")
+                                      return_mode = parameter["Return Mode"])
         
         elif parameter["Name"].find("Ring Removal") == 0:
             
