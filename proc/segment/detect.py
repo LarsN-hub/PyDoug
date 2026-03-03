@@ -6,11 +6,13 @@ Module for detection-based image segmentation
 # Imports
 
 import numpy as np
+import math
 
 from scipy import ndimage as ndi
 from skimage import segmentation
 from skimage import filters
 from skimage import feature
+from skimage import measure
 
 import cropclip as cc
 import pixels
@@ -235,7 +237,8 @@ def corners(im_array: np.ndarray, method = "fast", *,
             sigma: float = 1,
             window_size: int = 1,
             return_mode: str = "coords",
-            orient_radius: int = 3) -> np.ndarray:
+            orient_radius: int = 3,
+            angles_radius: int = 5) -> np.ndarray:
     
     corner_array: np.ndarray = np.empty(im_array.shape)
         
@@ -307,7 +310,7 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
         return pixels.convert_im_type(feature.corner_peaks(corner_array, indices = False), "uint8")
     
-    else:
+    elif return_mode == "orients" or return_mode == "orients array":
         
         footprint: morph.Footprint = morph.Footprint("disk")
         footprint.radius = 3
@@ -332,22 +335,63 @@ def corners(im_array: np.ndarray, method = "fast", *,
         
         if return_mode == "orients":
             
-            return orients_list
+            return np.degrees(orients_list) + 180
         
         elif return_mode == "orients array":
             
             orients_array: np.ndarray = np.zeros(im_array.shape)
-            orients_list = np.abs(orients_list)
+            orients_list = np.degrees(orients_list) + 180
             
             if im_array.ndim == 2:
                 
-                pass
+                orients_array[coords_list[:, 0], coords_list[:, 1]] = orients_list[:, 0]
             
             else:
                 
                 orients_array[coords_list[:, 0], coords_list[:, 1], coords_list[:, 2]] = orients_list[:, 0]
             
             return orients_array
+        
+    elif return_mode == "angles" or return_mode == "angles array":
+        
+        coords_list: np.ndarray = feature.corner_peaks(corner_array)
+        angles: np.ndarray = np.zeros((coords_list.shape[0], 1))
+        
+        if im_array.ndim == 2:
+            
+            sobel_x: np.ndarray = filters.sobel_h(im_array)
+            sobel_y: np.ndarray = filters.sobel_v(im_array)
+            
+            for index, coords in enumerate(coords_list):
+                
+                r0: int = max(coords[0] - angles_radius, 0)
+                r1: int = min(coords[0] + angles_radius + 1, im_array.shape[0])
+                c0: int = max(coords[1] - angles_radius, 0)
+                c1: int = min(coords[1] + angles_radius + 1, im_array.shape[1])
+                gradient_x: np.ndarray = sobel_x[r0:r1, c0:c1]
+                gradient_y: np.ndarray = sobel_y[r0:r1, c0:c1]
+                
+        else:
+            
+            pass
+                
+        if return_mode == "angles":
+            
+            return angles
+        
+        elif return_mode == "angles array":
+            
+            angles_array: np.ndarray = np.zeros(im_array.shape)
+            
+            if im_array.ndim == 2:
+                
+                angles_array[coords_list[:, 0], coords_list[:, 1]] = angles[:, 0]
+            
+            else:
+                
+                angles_array[coords_list[:, 0], coords_list[:, 1], coords_list[:, 2]] = angles[:, 0]
+                
+            return angles_array
 
 
 # Main
