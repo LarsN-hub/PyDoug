@@ -1646,6 +1646,7 @@ class ImageProcessor:
         Harris_Epsilon: float = 0.000001,
         Harris_or_Shi_Tomasi_Sigma: float = 1,
         Moravec_Window_Size: int = 1,
+        Correct_Anomalies: bool = True,
         Return_Mode: str = "Peaks") -> None:
         
         if Return_Mode == "Peaks":
@@ -1667,8 +1668,8 @@ class ImageProcessor:
              "Harris Epsilon": Harris_Epsilon,
              "Sigma": Harris_or_Shi_Tomasi_Sigma,
              "Window Size": Moravec_Window_Size,
+             "Correct Anomalies": Correct_Anomalies,
              "Return Mode": Return_Mode})
-        
         self.viewer.add_image(detect.corners(Image.data,
                                              method = Method.lower(),
                                              n = Fast_N,
@@ -1678,7 +1679,20 @@ class ImageProcessor:
                                              eps = Harris_Epsilon,
                                              sigma = Harris_or_Shi_Tomasi_Sigma,
                                              window_size = Moravec_Window_Size,
+                                             correct_anomalies = Correct_Anomalies,
                                              return_mode = Return_Mode), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Measure Angles")
+    def angles_widget(self,
+        Image: napari.layers.Image,
+        Canny_Sigma: float = 1) -> None:
+        
+        param_layer_name = get_param_layer_name("Angle Measurement", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Canny Sigma": Canny_Sigma})
+        self.viewer.add_image(detect.opening_angles(Image.data, Canny_Sigma), name = param_layer_name)
         
     @magicgui(
         Method = {"choices": rr_list},
@@ -2510,10 +2524,11 @@ def main() -> napari.viewer.Viewer:
     mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
+    mod_angles: widgets.Container = modify_funcgui(ui.angles_widget, "Measure Angles")
     mod_ring_removal: widgets.Container = modify_funcgui(ui.ring_removal_widget, "Ring Removal")
     mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
     filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_ring_removal, mod_fft],
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_angles, mod_ring_removal, mod_fft],
         labels = False)
     tabs.addTab(filter_container.native, "Filters")
     

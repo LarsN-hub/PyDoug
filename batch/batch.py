@@ -756,6 +756,14 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nDetecting corners...")
             
+            if parameter["Correct Anomalies"].lower() == "true":
+                
+                correct_anomalies: bool = True
+                
+            else:
+                
+                correct_anomalies: bool = False
+            
             im_array = detect.corners(im_array, parameter["Method"],
                                       n = int(parameter["Fast N"]),
                                       threshold = float(parameter["Fast Threshold"]),
@@ -764,7 +772,13 @@ def apply_parameters(im_array: np.ndarray,
                                       eps = float(parameter["Harris Epsilon"]),
                                       sigma = float(parameter["Sigma"]),
                                       window_size = int(parameter["Window Size"]),
+                                      correct_anomalies = correct_anomalies,
                                       return_mode = parameter["Return Mode"])
+            
+        elif parameter["Name"].find("Angle Measurement") == 0:
+            
+            print("\nMeasuring angles...")
+            im_array = detect.opening_angles(im_array, float(parameter["Canny Sigma"]))
         
         elif parameter["Name"].find("Ring Removal") == 0:
             

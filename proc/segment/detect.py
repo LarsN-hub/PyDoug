@@ -6,7 +6,6 @@ Module for detection-based image segmentation
 # Imports
 
 import numpy as np
-import math
 
 from scipy import ndimage as ndi
 from skimage import segmentation
@@ -236,6 +235,7 @@ def corners(im_array: np.ndarray, method = "fast", *,
             eps: int = 0.000001,
             sigma: float = 1,
             window_size: int = 1,
+            correct_anomalies: bool = True,
             return_mode: str = "coords",
             orient_radius: int = 3,
             angles_radius: int = 5) -> np.ndarray:
@@ -302,20 +302,76 @@ def corners(im_array: np.ndarray, method = "fast", *,
                 
             corner_array = feature.corner_shi_tomasi(im_array, sigma)
             
+    corner_coords: np.ndarray = feature.corner_peaks(corner_array)
+    corner_array: np.ndarray = feature.corner_peaks(corner_array, indices = False)
+    
+    if correct_anomalies:
+        
+        if im_array.ndim == 2:
+        
+            for index, coords in enumerate(corner_coords):
+                
+                r0: int = max(coords[0] - 1, 0)
+                r1: int = min(coords[0] + 2, im_array.shape[0])
+                c0: int = max(coords[1] - 1, 0)
+                c1: int = min(coords[1] + 2, im_array.shape[1])
+                patch: np.ndarray = im_array[r0:r1, c0:c1]
+                
+                if np.unique(patch).shape[0] == 2:
+                    
+                    if index == 0:
+                        
+                        corrected_coords: np.ndarray = np.copy(coords)
+                        
+                    else:
+                        
+                        corrected_coords = np.vstack((corrected_coords, coords))
+                        
+                else:
+                    
+                    corner_array[coords[0], coords[1]] = 0
+                
+        else:
+            
+            for index, coords in enumerate(corner_coords):
+                
+                z0: int = max(coords[0] - 1, 0)
+                z1: int = min(coords[0] + 2, im_array.shape[0])
+                r0: int = max(coords[1] - 1, 0)
+                r1: int = min(coords[1] + 2, im_array.shape[0])
+                c0: int = max(coords[2] - 1, 0)
+                c1: int = min(coords[2] + 2, im_array.shape[1])
+                patch: np.ndarray = im_array[z0:z1, r0:r1, c0:c1]
+                
+                if np.unique(patch).shape[0] == 2:
+                    
+                    if index == 0:
+                        
+                        corrected_coords: np.ndarray = np.copy(coords)
+                        
+                    else:
+                        
+                        corrected_coords = np.vstack((corrected_coords, coords))
+                        
+                else:
+                    
+                    corner_array[coords[0], coords[1]] = 0
+        
+        corner_coords = np.copy(corrected_coords)
+            
     if return_mode == "coords":
             
-        return feature.corner_peaks(corner_array)
+        return corner_coords
         
     elif return_mode == "peaks array":
             
-        return pixels.convert_im_type(feature.corner_peaks(corner_array, indices = False), "uint8")
+        return pixels.convert_im_type(corner_array, "uint8")
     
     elif return_mode == "orients" or return_mode == "orients array":
         
         footprint: morph.Footprint = morph.Footprint("disk")
         footprint.radius = 3
         footprint_array: np.ndarray = footprint.get_footprint()
-        coords_list: np.ndarray = feature.corner_peaks(corner_array)
         
         if util.is_3d_rgb(im_array)["3D"]:
             
@@ -323,15 +379,15 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                if np.any(coords_list[coords_list[:, 0] == slice_index]):
+                if np.any(corner_coords[corner_coords[:, 0] == slice_index]):
                     
-                    orients_list = np.vstack((orients_list, np.expand_dims(feature.corner_orientations(im_array[slice_index], coords_list[coords_list[:, 0] == slice_index][:, 1:], footprint_array), 1)))
+                    orients_list = np.vstack((orients_list, np.expand_dims(feature.corner_orientations(im_array[slice_index], corner_coords[corner_coords[:, 0] == slice_index][:, 1:], footprint_array), 1)))
                     
             orients_list = orients_list[1:, :]
             
         else:
             
-            orients_list: np.ndarray = feature.corner_orientations(im_array, coords_list, footprint_array)
+            orients_list: np.ndarray = feature.corner_orientations(im_array, corner_coords, footprint_array)
         
         if return_mode == "orients":
             
@@ -344,55 +400,80 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             if im_array.ndim == 2:
                 
-                orients_array[coords_list[:, 0], coords_list[:, 1]] = orients_list[:, 0]
+                orients_array[corner_coords[:, 0], corner_coords[:, 1]] = orients_list[:, 0]
             
             else:
                 
-                orients_array[coords_list[:, 0], coords_list[:, 1], coords_list[:, 2]] = orients_list[:, 0]
+                orients_array[corner_coords[:, 0], corner_coords[:, 1], corner_coords[:, 2]] = orients_list[:, 0]
             
             return orients_array
         
-    elif return_mode == "angles" or return_mode == "angles array":
+def opening_angles(im_array: np.ndarray, canny_sigma: float = 1) -> np.ndarray:
+    
+    edge_array: np.ndarray = morph.remove_objects(feature.canny(im_array, canny_sigma), 1)
+    edge_coords: np.ndarray = np.argwhere(edge_array)
+    angles_array: np.ndarray = np.zeros(edge_array.shape)
+    
+    for coords in edge_coords:
         
-        coords_list: np.ndarray = feature.corner_peaks(corner_array)
-        angles: np.ndarray = np.zeros((coords_list.shape[0], 1))
+        r0: int = max(coords[0] - 1, 0)
+        r1: int = min(coords[0] + 2, edge_array.shape[0])
+        c0: int = max(coords[1] - 1, 0)
+        c1: int = min(coords[1] + 2, edge_array.shape[0])
+        local_r: int = coords[0] - r0
+        local_c: int = coords[1] - c0
+        patch: np.ndarray = np.copy(edge_array[r0:r1, c0:c1])
+        patch[local_r, local_c] = 0
+        indices: np.ndarray = np.argwhere(patch)
+        vecs: np.ndarray = indices - np.repeat(np.array([[1, 1]]), indices.shape[0], axis = 0)
+        magnitudes: np.ndarray = np.sqrt(np.sum((vecs ** 2), axis = 1))
         
-        if im_array.ndim == 2:
+        if np.count_nonzero(patch) == 2:
             
-            sobel_x: np.ndarray = filters.sobel_h(im_array)
-            sobel_y: np.ndarray = filters.sobel_v(im_array)
+            vec1: np.ndarray = indices[0, :] - np.array([1, 1])
+            vec2: np.ndarray = indices[1, :] - np.array([1, 1])
             
-            for index, coords in enumerate(coords_list):
-                
-                r0: int = max(coords[0] - angles_radius, 0)
-                r1: int = min(coords[0] + angles_radius + 1, im_array.shape[0])
-                c0: int = max(coords[1] - angles_radius, 0)
-                c1: int = min(coords[1] + angles_radius + 1, im_array.shape[1])
-                gradient_x: np.ndarray = sobel_x[r0:r1, c0:c1]
-                gradient_y: np.ndarray = sobel_y[r0:r1, c0:c1]
-                
+        elif np.count_nonzero(patch) > 2 and np.count_nonzero(magnitudes == 1) == 2:
+            
+            target_indices: np.ndarray = np.squeeze(indices[np.argwhere(magnitudes == 1), :])
+            vec1: np.ndarray = target_indices[0, :] - np.array([1, 1])
+            vec2: np.ndarray = target_indices[1, :] - np.array([1, 1])
+            
         else:
-            
-            pass
                 
-        if return_mode == "angles":
+            vec1: np.ndarray = np.array([0, 1])
+            vec2: np.ndarray = np.array([0, 1])
             
-            return angles
+        angle: int = round(np.degrees(np.arccos(np.dot(vec1, vec2) / (np.sqrt(np.sum(vec1 ** 2)) * np.sqrt(np.sum(vec2 ** 2))))))
         
-        elif return_mode == "angles array":
+        if angle == 45:
             
-            angles_array: np.ndarray = np.zeros(im_array.shape)
+            test_coords: np.ndarray = coords - vec1
             
-            if im_array.ndim == 2:
+            if im_array[test_coords[0], test_coords[1]] == 0:
                 
-                angles_array[coords_list[:, 0], coords_list[:, 1]] = angles[:, 0]
+                angle: int = 315
+        
+        elif angle == 90:
             
-            else:
+            test_coords: np.ndarray = coords + vec1 + vec2
+            
+            if im_array[test_coords[0], test_coords[1]] == 0:
                 
-                angles_array[coords_list[:, 0], coords_list[:, 1], coords_list[:, 2]] = angles[:, 0]
+                angle: int = 270
+        
+        elif angle == 135:
+            
+            test_coords: np.ndarray = coords + vec1 + vec2
+            
+            if im_array[test_coords[0], test_coords[1]] == 0:
                 
-            return angles_array
-
+                angle: int = 225
+                
+        angles_array[coords[0], coords[1]] = angle
+        
+    return angles_array
+                
 
 # Main
 
