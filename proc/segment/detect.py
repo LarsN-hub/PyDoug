@@ -11,7 +11,6 @@ from scipy import ndimage as ndi
 from skimage import segmentation
 from skimage import filters
 from skimage import feature
-from skimage import measure
 
 import cropclip as cc
 import pixels

@@ -13,12 +13,6 @@ from numba import jit
 import trans
 
 
-# Globals
-
-axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
-axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0, "Z": -1}
-
-
 # Functions
 
 def find_order_of_mag(value: float | int) -> float | int:
@@ -181,6 +175,9 @@ def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
     return {"3D": is_3d, "RGB": is_rgb}
 
 def convert_ax_str_to_int(im_array: np.ndarray, rgb: bool, axis: str) -> int:
+    
+    axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
+    axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0, "Z": -1}
     
     if im_array.ndim == 3 and not rgb:
         

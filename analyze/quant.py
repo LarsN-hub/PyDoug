@@ -20,7 +20,9 @@ from filtering import denoising
 
 # Functions
 
-def global_statistics(im_array: np.ndarray, *, mask_array: np.ndarray = None, print_results: bool = True) -> pd.DataFrame:
+def global_statistics(im_array: np.ndarray, *,
+                      mask_array: np.ndarray = None,
+                      print_results: bool = True) -> pd.DataFrame:
     
     im_stats: dict = {}
     
@@ -410,7 +412,9 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
     
     return area_df
 
-def get_contact_count(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *, mask_array: np.ndarray = None) -> int:
+def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
+                mask_array: np.ndarray = None,
+                return_mode: str = "count") -> int:
     
     if phase_ints == None:
         
@@ -478,7 +482,7 @@ def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | Non
         
         units = "\u00b5m"
     
-    contact_counts: int = get_contact_count(im_array, phase_ints, mask_array = mask_array)
+    contact_counts: int = get_contact(im_array, phase_ints, mask_array = mask_array)
     
     if phase_ints == None:
         

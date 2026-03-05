@@ -42,48 +42,6 @@ from segment import detect
 
 parameters_log: list[dict[str, dict]] = []
 
-export_list: list[str] = ["Tiff", "HDF5"]
-
-trim_pad_list: list[str] = ["Trim", "Pad"]
-shapes_list: list[str] = ["Ellipse", "Rectangle", "Polygon", "Line"]
-out_of_mask_list: list[str] = ["Black", "White", "Gray"]
-mask_method_list: list[str] = ["Out", "In"]
-mask_logic_list: list[str] = ["Union", "Subtract", "Intersect"]
-
-reslice_list: list[str] = ["Top", "Bottom", "Left", "Right", "Back"]
-axis_list: list[int] = ["X", "Y", "Z"]
-
-convert_type_list: list[str] = ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]
-equalize_list: list[str] = ["Global", "Local", "Adaptive"]
-
-bilateral_list: list[str] = ["Constant", "Edge", "Symmetric", "Reflect", "Wrap"]
-gaussian_list: list[str] = ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]
-wavelets_list: list[str] = pywt.wavelist()
-wave_modes_list: list[str] = ["Soft", "Hard"]
-wave_thresh_list: list[str] = ["BayesShrink", "VisuShrink"]
-
-hist_thresh_list: list[str] = ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]
-local_thresh_list: list[str] = ["Adaptive", "Niblack", "Savoula", "Rank"]
-connectivity_list: list[int] = [1, 2, 3]
-label_list: list[str] = ["Connectivity", "Watershed"]
-morph_snakes_list: list[str] = ["ACWE", "GAC"]
-
-remove_objects_list: list[str] = ["Particles", "Holes"]
-tophat_list: list[str] = ["Black", "White"]
-edge_detect_list: list[str] = ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]
-corner_detect_list: list[str] = ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]
-harris_method_list: list[str] = ["K", "Eps"]
-rr_list: list[str] = ["FFT", "Wavelet"]
-
-misc_calc_list: list[str] = ["Stats", "Percent Intensities", "Volume/Area", "Surface Perimeter/Area", "Contact Perimeter/Area"]
-domain_size_types_list: list[str] = ["Volume", "Area"]
-heat_method_list: list[str] = ["Thickness", "Height"]
-heat_colors_list: list[str] = list(colormaps)
-heat_direction_list: list[str] = ["Far", "Near"]
-
-axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
-axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0}
-
 
 # Classes
 
@@ -374,7 +332,7 @@ class ImageProcessor:
         self.viewer.add_image(rw.read_stack(str(Directory_Path)), name = "Image")
     
     @magicgui(
-        Method = {"choices": export_list},
+        Method = {"choices": ["Tiff", "HDF5"]},
         Save_Folder = {"mode": "d"},
         call_button = "Export Image(s)")
     def im_export_widget(self,
@@ -427,14 +385,14 @@ class ImageProcessor:
     ######################
     
     @magicgui(
-        Method = {"choices": trim_pad_list},
+        Method = {"choices": ["Trim", "Pad"]},
         X_Min = {"max": 10000},
         X_Max = {"max": 10000},
         Y_Min = {"max": 10000},
         Y_Max = {"max": 10000},
         Z_Min = {"max": 10000},
         Z_Max = {"max": 10000},
-        Padded_Color = {"choices": out_of_mask_list},
+        Padded_Color = {"choices": ["Black", "White", "Gray"]},
         call_button = "Trim / Pad")
     def trim_pad_widget(self,
         Image: napari.layers.Image,
@@ -548,7 +506,7 @@ class ImageProcessor:
                 self.viewer.add_image(cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec), name = param_layer_name)
     
     @magicgui(
-        Shape_Type = {"choices": shapes_list},
+        Shape_Type = {"choices": ["Ellipse", "Rectangle", "Polygon", "Line"]},
         call_button = "Add Shape")
     def add_shape_widget(self,
         Shape_Type: str = "Ellipse",
@@ -601,7 +559,7 @@ class ImageProcessor:
         mask_array = np.bool(mask_array)
         self.viewer.add_image(mask_array, name = param_layer_name, opacity = 0.5)
         
-    @magicgui(Method = {"choices": mask_logic_list},
+    @magicgui(Method = {"choices": ["Union", "Subtract", "Intersect"]},
         call_button = "Perform Operation")
     def mask_logic_widget(self,
         Mask_1: napari.layers.Image,
@@ -613,8 +571,8 @@ class ImageProcessor:
         self.viewer.add_image(cc.mask_logic(Mask_1.data, Mask_2.data, Method.lower()), name = param_layer_name, opacity = 0.5)
     
     @magicgui(
-        Mask_Method = {"choices": mask_method_list},
-        Masked_Color = {"choices": out_of_mask_list},
+        Mask_Method = {"choices": ["Out", "In"]},
+        Masked_Color = {"choices": ["Black", "White", "Gray"]},
         call_button = "Mask")
     def mask_widget(self,
         Image: napari.layers.Image,
@@ -648,7 +606,7 @@ class ImageProcessor:
         self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
     
     @magicgui(
-        Masked_Color = {"choices": out_of_mask_list},
+        Masked_Color = {"choices": ["Black", "White", "Gray"]},
         call_button = "Crop")
     def crop_widget(self,
         Image: napari.layers.Image,
@@ -690,7 +648,7 @@ class ImageProcessor:
             self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = param_layer_name)
             
     @magicgui(
-        Axis = {"choices": axis_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Split")
     def split_widget(self,
         Image: napari.layers.Image,
@@ -708,7 +666,7 @@ class ImageProcessor:
         self.viewer.add_image(split_arrays[1], name = f"{param_layer_name} - 2")
         
     @magicgui(
-        Axis = {"choices": axis_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Join")
     def join_widget(self,
         Image_1: napari.layers.Image,
@@ -745,7 +703,7 @@ class ImageProcessor:
     #####################
 
     @magicgui(
-        Orientation = {"choices": reslice_list},
+        Orientation = {"choices": ["Top", "Bottom", "Left", "Right", "Back"]},
         call_button = "Reslice")
     def reslice_widget(self,
         Image: napari.layers.Image,
@@ -783,7 +741,7 @@ class ImageProcessor:
             self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = param_layer_name)
         
     @magicgui(
-        Direction = {"choices": axis_list},
+        Direction = {"choices": ["X", "Y", "Z"]},
         call_button = "Mirror")
     def mirror_widget(self,
         Image: napari.layers.Image,
@@ -814,7 +772,7 @@ class ImageProcessor:
     ########################
 
     @magicgui(
-        Type = {"choices": convert_type_list},
+        Type = {"choices": ["Uint8", "Uint16", "Int16", "Float", "Float32", "Float64", "Bool"]},
         Min = {"max": 65535, "min": -65535},
         Max = {"max": 65535, "min": -65535},
         call_button = "Convert Type")
@@ -927,7 +885,7 @@ class ImageProcessor:
              "Mask Used": mask_name})
         self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = False), name = param_layer_name)
 
-    @magicgui(Method = {"choices": equalize_list},
+    @magicgui(Method = {"choices": ["Global", "Local", "Adaptive"]},
         call_button = "Equalize Histogram")
     def equalize_widget(self,
         Image: napari.layers.Image,
@@ -1004,8 +962,8 @@ class ImageProcessor:
     #####################
     
     @magicgui(
-        Axis = {"choices": axis_list},
-        Edges_Method = {"choices": bilateral_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
+        Edges_Method = {"choices": ["Constant", "Edge", "Symmetric", "Reflect", "Wrap"]},
         call_button = "Filter")
     def bilateral_widget(self,
         Image: napari.layers.Image,
@@ -1043,8 +1001,8 @@ class ImageProcessor:
                                                   cval = Constant_Value), name = param_layer_name)
         
     @magicgui(
-        Edges_Method = {"choices": gaussian_list},
-        Axis = {"choices": axis_list},
+        Edges_Method = {"choices": ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def gaussian_widget(self,
         Image: napari.layers.Image,
@@ -1074,7 +1032,7 @@ class ImageProcessor:
                                                  axis = Axis), name = param_layer_name)
         
     @magicgui(
-        Axis = {"choices": axis_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def nl_means_widget(self,
         Image: napari.layers.Image,
@@ -1117,7 +1075,56 @@ class ImageProcessor:
                                                           radius = Radius), name = param_layer_name)
         
     @magicgui(
-        Axis = {"choices": axis_list},
+        Method = {"choices": ["FFT", "Wavelet"]},
+        Wavelet = {"choices": pywt.wavelist()},
+        Square_Axis = {"choices": ["X", "Y", "Z"]},
+        call_button = "Remove Rings")
+    def ring_removal_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "FFT",
+        FFT_Freq_Cutoff: int = 20,
+        FFT_Filter_Order: int = 8,
+        FFT_Rows: int = 1,
+        Wavelet: str = "db9",
+        Wavelet_Level: int = 5,
+        Wavelet_Damping_Size: int = 1,
+        Sorting: bool = False,
+        Square_Axis: str = "Z") -> None:
+        
+        Square_Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Square_Axis)
+        param_layer_name = get_param_layer_name("Ring Removal", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method,
+             "FFT Freq Cutoff": FFT_Freq_Cutoff,
+             "FFT Filter Order": FFT_Filter_Order,
+             "FFT Rows": FFT_Rows,
+             "Wavelet": Wavelet,
+             "Wavelet Level": Wavelet_Level,
+             "Wavelet Damping Size": Wavelet_Damping_Size,
+             "Sorting": Sorting,
+             "Square Axis": Square_Axis})
+        
+        if Method == "FFT":
+            
+            self.viewer.add_image(fourier.fft_ring_removal(Image.data,
+                                                           cutoff_freq = FFT_Freq_Cutoff,
+                                                           filter_order = FFT_Filter_Order,
+                                                           rows = FFT_Rows,
+                                                           sorting = Sorting,
+                                                           square_axis = Square_Axis), name = param_layer_name)
+            
+        elif Method == "Wavelet":
+            
+            self.viewer.add_image(fourier.wavelet_ring_removal(Image.data,
+                                                               level = Wavelet_Level,
+                                                               size = Wavelet_Damping_Size,
+                                                               wavelet = Wavelet,
+                                                               sorting = Sorting,
+                                                               square_axis = Square_Axis), name = param_layer_name)
+        
+    @magicgui(
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def tv_bregman_widget(self,
         Image: napari.layers.Image,
@@ -1147,7 +1154,7 @@ class ImageProcessor:
                                                    axis = Axis), name = param_layer_name)
     
     @magicgui(
-        Axis = {"choices": axis_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def tv_chambolle_widget(self,
         Image: napari.layers.Image,
@@ -1174,10 +1181,10 @@ class ImageProcessor:
                                                      axis = Axis), name = param_layer_name)
         
     @magicgui(
-        Wavelet = {"choices": wavelets_list},
-        Mode = {"choices": wave_modes_list},
-        Threshold_Method = {"choices": wave_thresh_list},
-        Axis = {"choices": axis_list},
+        Wavelet = {"choices": pywt.wavelist()},
+        Mode = {"choices": ["Soft", "Hard"]},
+        Threshold_Method = {"choices": ["BayesShrink", "VisuShrink"]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def wavelet_widget(self,
         Image: napari.layers.Image,
@@ -1242,7 +1249,7 @@ class ImageProcessor:
         self.viewer.add_image(thresh.gui_threshold(Image.data, Range), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": hist_thresh_list},
+        Method = {"choices": ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]},
         call_button = "Segment")
     def hist_threshold_widget(self,
         Image: napari.layers.Image,
@@ -1276,7 +1283,7 @@ class ImageProcessor:
             self.viewer.add_image(thresh.hist(Image.data, method = Method.lower(), otsu_classes = Otsu_Classes), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": local_thresh_list},
+        Method = {"choices": ["Adaptive", "Niblack", "Savoula", "Rank"]},
         call_button = "Segment")
     def local_threshold_widget(self,
         Image: napari.layers.Image,
@@ -1329,9 +1336,9 @@ class ImageProcessor:
                                                r = Savoula_Sigma_Range), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": label_list},
-        Connectivity = {"choices": connectivity_list},
-        Axis = {"choices": axis_list},
+        Method = {"choices": ["Connectivity", "Watershed"]},
+        Connectivity = {"choices": [1, 2, 3]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Label Segmentation")
     def label_widget(self,
         Image: napari.layers.Image,
@@ -1432,7 +1439,7 @@ class ImageProcessor:
                                                  Beta), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": morph_snakes_list},
+        Method = {"choices": ["ACWE", "GAC"]},
         call_button = "Segment")
     def morph_snakes_widget(self,
         Image: napari.layers.Image,
@@ -1465,10 +1472,10 @@ class ImageProcessor:
     ##################
     
     @magicgui(
-        Method = {"choices": remove_objects_list},
-        Connectivity = {"choices": connectivity_list},
+        Method = {"choices": ["Particles", "Holes"]},
+        Connectivity = {"choices": [1, 2, 3]},
         Size_Threshold = {"max": 1000000000},
-        Axis = {"choices": axis_list},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Remove Objects")
     def remove_objects_widget(self,
         Image: napari.layers.Image,
@@ -1567,7 +1574,7 @@ class ImageProcessor:
         self.viewer.add_image(morph.opening(Image.data, Erosions, Dilations, along_axis = Along_Z_Axis), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": tophat_list},
+        Method = {"choices": ["Black", "White"]},
         call_button = "Top Hat")
     def tophat_widget(self,
         Image: napari.layers.Image,
@@ -1584,11 +1591,16 @@ class ImageProcessor:
              "Erosions": Erosions,
              "Along Axis": Along_Z_Axis})
         self.viewer.add_image(morph.tophat(Image.data, Method, Dilations, Erosions, along_axis = Along_Z_Axis), name = param_layer_name)
+        
+    
+    ###################
+    # Feature Widgets #
+    ###################
     
     @magicgui(
-        Method = {"choices": edge_detect_list},
-        Edges_Method = {"choices": gaussian_list},
-        Axis = {"choices": axis_list},
+        Method = {"choices": ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]},
+        Edges_Method = {"choices": ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Detect Edges")
     def edge_detect_widget(self,
         Image: napari.layers.Image,
@@ -1632,8 +1644,8 @@ class ImageProcessor:
                                               igg_sigma = Canny_or_IGG_Sigma), name = param_layer_name)
     
     @magicgui(
-        Method = {"choices": corner_detect_list},
-        Harris_Method = {"choices": harris_method_list},
+        Method = {"choices": ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]},
+        Harris_Method = {"choices": ["K", "Eps"]},
         Return_Mode = {"choices": ["Peaks", "Orientations"]},
         call_button = "Detect Corners")
     def corner_detect_widget(self,
@@ -1693,68 +1705,7 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Canny Sigma": Canny_Sigma})
         self.viewer.add_image(detect.opening_angles(Image.data, Canny_Sigma), name = param_layer_name)
-        
-    @magicgui(
-        Method = {"choices": rr_list},
-        Wavelet = {"choices": wavelets_list},
-        Square_Axis = {"choices": axis_list},
-        call_button = "Remove Rings")
-    def ring_removal_widget(self,
-        Image: napari.layers.Image,
-        Method: str = "FFT",
-        FFT_Freq_Cutoff: int = 20,
-        FFT_Filter_Order: int = 8,
-        FFT_Rows: int = 1,
-        Wavelet: str = "db9",
-        Wavelet_Level: int = 5,
-        Wavelet_Damping_Size: int = 1,
-        Sorting: bool = False,
-        Square_Axis: str = "Z") -> None:
-        
-        Square_Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Square_Axis)
-        param_layer_name = get_param_layer_name("Ring Removal", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Method": Method,
-             "FFT Freq Cutoff": FFT_Freq_Cutoff,
-             "FFT Filter Order": FFT_Filter_Order,
-             "FFT Rows": FFT_Rows,
-             "Wavelet": Wavelet,
-             "Wavelet Level": Wavelet_Level,
-             "Wavelet Damping Size": Wavelet_Damping_Size,
-             "Sorting": Sorting,
-             "Square Axis": Square_Axis})
-        
-        if Method == "FFT":
-            
-            self.viewer.add_image(fourier.fft_ring_removal(Image.data,
-                                                           cutoff_freq = FFT_Freq_Cutoff,
-                                                           filter_order = FFT_Filter_Order,
-                                                           rows = FFT_Rows,
-                                                           sorting = Sorting,
-                                                           square_axis = Square_Axis), name = param_layer_name)
-            
-        elif Method == "Wavelet":
-            
-            self.viewer.add_image(fourier.wavelet_ring_removal(Image.data,
-                                                               level = Wavelet_Level,
-                                                               size = Wavelet_Damping_Size,
-                                                               wavelet = Wavelet,
-                                                               sorting = Sorting,
-                                                               square_axis = Square_Axis), name = param_layer_name)
     
-    @magicgui(
-        call_button = "FFT")
-    def fft_widget(self,
-        Image: napari.layers.Image,
-        Along_Z_Axis: bool = False) -> None:
-        
-        param_layer_name = get_param_layer_name("FFT", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Along Axis": Along_Z_Axis})
-        self.viewer.add_image(pixels.convert_im_type(np.real(fourier.ft(Image.data, Along_Z_Axis)), "uint8", norm = True), name = param_layer_name)
-        
         
     ####################
     # Analysis Widgets #
@@ -1909,7 +1860,19 @@ class ImageProcessor:
         plt.show()
         
     @magicgui(
-        Method = {"choices": misc_calc_list},
+        call_button = "FFT")
+    def fft_widget(self,
+        Image: napari.layers.Image,
+        Along_Z_Axis: bool = False) -> None:
+        
+        param_layer_name = get_param_layer_name("FFT", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(pixels.convert_im_type(np.real(fourier.ft(Image.data, Along_Z_Axis)), "uint8", norm = True), name = param_layer_name)
+        
+    @magicgui(
+        Method = {"choices": ["Stats", "Percent Intensities", "Volume/Area", "Surface Perimeter/Area", "Contact Perimeter/Area"]},
         call_button = "Calculate")
     def misc_calc_widget(self,
         Image: napari.layers.Image,
@@ -2004,9 +1967,9 @@ class ImageProcessor:
                                           units = Units)
 
     @magicgui(
-        Type = {"choices": domain_size_types_list},
-        Domain_Size_Connectivity = {"choices": connectivity_list},
-        Axis = {"choices": axis_list},
+        Type = {"choices": ["Volume", "Area"]},
+        Domain_Size_Connectivity = {"choices": [1, 2, 3]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Plot Distribution")
     def axis_distribution_widget(self,
         Image: napari.layers.Image,
@@ -2157,8 +2120,8 @@ class ImageProcessor:
         plt.show()
         
     @magicgui(
-        Type = {"choices": domain_size_types_list},
-        Connectivity = {"choices": connectivity_list},
+        Type = {"choices": ["Volume", "Area"]},
+        Connectivity = {"choices": [1, 2, 3]},
         X_Max = {"max": 1000000},
         call_button = "Plot Distribution")
     def psd_widget(self,
@@ -2255,10 +2218,10 @@ class ImageProcessor:
         plt.show()
     
     @magicgui(
-        Method = {"choices": heat_method_list},
-        Color_Map = {"choices": heat_colors_list},
-        Height_Direction = {"choices": heat_direction_list},
-        Axis = {"choices": axis_list},
+        Method = {"choices": ["Thickness", "Height"]},
+        Color_Map = {"choices": list(colormaps)},
+        Height_Direction = {"choices": ["Far", "Near"]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Plot Heat Map")
     def heat_map_widget(self,
         Image: napari.layers.Image,
@@ -2491,11 +2454,12 @@ def main() -> napari.viewer.Viewer:
     mod_gaussian: widgets.Container = modify_funcgui(ui.gaussian_widget, "Gaussian Blur")
     mod_nl_means: widgets.Container = modify_funcgui(ui.nl_means_widget, "Non-Local Means Filter")
     mod_remove_background: widgets.Container = modify_funcgui(ui.remove_background_widget, "Remove Background")
+    mod_ring_removal: widgets.Container = modify_funcgui(ui.ring_removal_widget, "Ring Removal")
     mod_tv_bregman: widgets.Container = modify_funcgui(ui.tv_bregman_widget, "TV Bregman Filter")
     mod_tv_chambolle: widgets.Container = modify_funcgui(ui.tv_chambolle_widget, "TV Chambolle Filter")
     mod_wavelet: widgets.Container = modify_funcgui(ui.wavelet_widget, "Wavelet Filter")
     denoising_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_bilateral, mod_gaussian, mod_nl_means, mod_remove_background, mod_tv_bregman, mod_tv_chambolle, mod_wavelet],
+        widgets = [mod_bilateral, mod_gaussian, mod_nl_means, mod_remove_background, mod_ring_removal, mod_tv_bregman, mod_tv_chambolle, mod_wavelet],
         labels = False)
     tabs.addTab(denoising_container.native, "Denoising")
     
@@ -2522,15 +2486,21 @@ def main() -> napari.viewer.Viewer:
     mod_close: widgets.Container = modify_funcgui(ui.close_widget, "Closing")
     mod_open: widgets.Container = modify_funcgui(ui.open_widget, "Opening")
     mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
+    filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat],
+        labels = False)
+    tabs.addTab(filter_container.native, "Filters")
+    
+    
+    # Feature Widgets
+    
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
     mod_angles: widgets.Container = modify_funcgui(ui.angles_widget, "Measure Angles")
-    mod_ring_removal: widgets.Container = modify_funcgui(ui.ring_removal_widget, "Ring Removal")
-    mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
-    filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat, mod_edge_detect, mod_corner_detect, mod_angles, mod_ring_removal, mod_fft],
+    feature_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_edge_detect, mod_corner_detect, mod_angles],
         labels = False)
-    tabs.addTab(filter_container.native, "Filters")
+    tabs.addTab(feature_container.native, "Features")
     
     
     # Analysis Widgets
@@ -2538,12 +2508,13 @@ def main() -> napari.viewer.Viewer:
     mod_histogram: widgets.Container = modify_funcgui(ui.histogram_widget, "Histogram")
     mod_line_scan: widgets.Container = modify_funcgui(ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(ui.gray_level_widget, "Gray Level")
+    mod_fft: widgets.Container = modify_funcgui(ui.fft_widget, "FFT")
     mod_misc_calc: widgets.Container = modify_funcgui(ui.misc_calc_widget, "Misc Calculations")
     mod_axis_distribution: widgets.Container = modify_funcgui(ui.axis_distribution_widget, "Axial Distributions")
     mod_psd: widgets.Container = modify_funcgui(ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
     analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_misc_calc, mod_axis_distribution, mod_psd, mod_heat_map],
+        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_fft, mod_misc_calc, mod_axis_distribution, mod_psd, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     
