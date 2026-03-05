@@ -403,6 +403,36 @@ def apply_parameters(im_array: np.ndarray,
             print("\nRemoving background...")
             im_array = denoising.remove_background(im_array,
                                                    radius = int(parameter["Radius"]))
+            
+        elif parameter["Name"].find("Ring Removal") == 0:
+            
+            print("\nRemoving rings...")
+            
+            if parameter["Sorting"].lower() == "true":
+                
+                sorting: bool = True
+                
+            else:
+                
+                sorting: bool = False
+                
+            if parameter["Method"] == "FFT":
+                
+                im_array = fourier.fft_ring_removal(im_array,
+                                                    cutoff_freq = int(parameter["FFT Freq Cutoff"]),
+                                                    filter_order = int(parameter["FFT Filter Order"]),
+                                                    rows = int(parameter["FFT Rows"]),
+                                                    sorting = sorting,
+                                                    square_axis = int(parameter["Square Axis"]))
+            
+            elif parameter["Method"] == "Wavelet":
+                
+                im_array = fourier.wavelet_ring_removal(im_array,
+                                                        level = int(parameter["Wavelet Level"]),
+                                                        size = int(parameter["Wavelet Damping Size"]),
+                                                        wavelet = parameter["Wavelet"],
+                                                        sorting = sorting,
+                                                        square_axis = int(parameter["Square Axis"]))
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
@@ -557,7 +587,7 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nConnectivity labelling...")
             
-            if parameter["Apply Mask"]:
+            if parameter["Apply Mask"].lower() == "true":
                 
                 mask_array = parameters_dict[parameter["Mask Used"]]
                 
@@ -584,7 +614,7 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nWatershed labelling...")
             
-            if parameter["Apply Mask"]:
+            if parameter["Apply Mask"].lower() == "true":
                 
                 mask_array = parameters_dict[parameter["Mask Used"]]
                 
@@ -604,6 +634,7 @@ def apply_parameters(im_array: np.ndarray,
                                         mask_array = mask_array,
                                         background = float(parameter["Background"]),
                                         connectivity = int(parameter["Connectivity"]),
+                                        radius = int(parameter["Watershed Radius"]),
                                         compactness = float(parameter["Watershed Compactness"]),
                                         along_axis = along_axis,
                                         axis = int(parameter["Axis"]))
@@ -731,6 +762,11 @@ def apply_parameters(im_array: np.ndarray,
                                     int(parameter["Dilations"]),
                                     int(parameter["Erosions"]),
                                     along_axis = along_axis)
+            
+            
+        ######################
+        # Feature Operations #
+        ######################
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
@@ -778,51 +814,7 @@ def apply_parameters(im_array: np.ndarray,
         elif parameter["Name"].find("Angle Measurement") == 0:
             
             print("\nMeasuring angles...")
-            im_array = detect.opening_angles(im_array, float(parameter["Canny Sigma"]))
-        
-        elif parameter["Name"].find("Ring Removal") == 0:
-            
-            print("\nRemoving rings...")
-            
-            if parameter["Sorting"].lower() == "true":
-                
-                sorting: bool = True
-                
-            else:
-                
-                sorting: bool = False
-                
-            if parameter["Method"] == "FFT":
-                
-                im_array = fourier.fft_ring_removal(im_array,
-                                                    cutoff_freq = int(parameter["FFT Freq Cutoff"]),
-                                                    filter_order = int(parameter["FFT Filter Order"]),
-                                                    rows = int(parameter["FFT Rows"]),
-                                                    sorting = sorting,
-                                                    square_axis = int(parameter["Square Axis"]))
-            
-            elif parameter["Method"] == "Wavelet":
-                
-                im_array = fourier.wavelet_ring_removal(im_array,
-                                                        level = int(parameter["Wavelet Level"]),
-                                                        size = int(parameter["Wavelet Damping Size"]),
-                                                        wavelet = parameter["Wavelet"],
-                                                        sorting = sorting,
-                                                        square_axis = int(parameter["Square Axis"]))
-        
-        elif parameter["Name"].find("FFT") == 0:
-            
-            print("\nComputing FFT...")
-            
-            if parameter["Along Axis"].lower() == "true":
-                
-                along_axis: bool = True
-                
-            else:
-                
-                along_axis: bool = False
-                
-            im_array = fourier.ft(im_array, along_axis)
+            im_array = detect.opening_angles(im_array, int(parameter["Minimum Size"]))
         
         
         #######################
@@ -909,6 +901,20 @@ def apply_parameters(im_array: np.ndarray,
             fig = plots.gray_level(im_array, mask_array = mask_array)
             rw.write_plot(fig, f"{file_name}_gray_levels_{gray_index}", save_dir)
             gray_index += 1
+            
+        elif parameter["Name"].find("FFT") == 0:
+            
+            print("\nComputing FFT...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = fourier.ft(im_array, along_axis)
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             

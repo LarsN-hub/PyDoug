@@ -166,6 +166,7 @@ def watershed(im_array: np.ndarray, *,
               mask_array: np.ndarray = None,
               water_line: bool = False,
               connectivity: int = 2,
+              radius: int = 3,
               compactness: float = 0,
               along_axis: bool = False,
               axis: int = 0,
@@ -185,8 +186,11 @@ def watershed(im_array: np.ndarray, *,
         
     if im_array.ndim == 2:
         
+        disk_footprint: morph.Footprint = morph.Footprint("disk")
+        disk_footprint.radius: int = radius
+        footprint: np.ndarray = disk_footprint.get_footprint()
         distance: np.ndarray = ndi.distance_transform_edt(proc_array)
-        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3)), labels = proc_array)
+        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = proc_array)
         water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
         water_mask_array[tuple(peak_coords.T)] = True
         markers: np.ndarray = thresh.label(water_mask_array)
@@ -194,6 +198,9 @@ def watershed(im_array: np.ndarray, *,
     
     elif along_axis:
         
+        disk_footprint: morph.Footprint = morph.Footprint("disk")
+        disk_footprint.radius: int = radius
+        footprint: np.ndarray = disk_footprint.get_footprint()
         proc_array: np.ndarray = util.get_along_axis_array(proc_array, axis)
         water_array: np.ndarray = np.empty(proc_array.shape)
         
@@ -201,7 +208,7 @@ def watershed(im_array: np.ndarray, *,
             
             int_im_array: np.ndarray = proc_array[slice_index]
             distance: np.ndarray = ndi.distance_transform_edt(int_im_array)
-            peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3)), labels = int_im_array)
+            peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = int_im_array)
             water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
             water_mask_array[tuple(peak_coords.T)] = True
             markers: np.ndarray = thresh.label(water_mask_array)
@@ -211,8 +218,11 @@ def watershed(im_array: np.ndarray, *,
     
     else:
         
+        ball_footprint: morph.Footprint = morph.Footprint("ball")
+        ball_footprint.radius: int = radius
+        footprint: np.ndarray = ball_footprint.get_footprint()
         distance: np.ndarray = ndi.distance_transform_edt(proc_array)
-        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = np.ones((3, 3, 3)), labels = proc_array)
+        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = proc_array)
         water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
         water_mask_array[tuple(peak_coords.T)] = True
         markers: np.ndarray = thresh.label(water_mask_array)
@@ -407,9 +417,9 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             return orients_array
         
-def opening_angles(im_array: np.ndarray, canny_sigma: float = 1) -> np.ndarray:
+def opening_angles(im_array: np.ndarray, min_size: int = 3) -> np.ndarray:
     
-    edge_array: np.ndarray = morph.remove_objects(feature.canny(im_array, canny_sigma), 1)
+    edge_array: np.ndarray = morph.remove_objects(quant.get_contact(im_array, return_mode = "array"), min_size)
     edge_coords: np.ndarray = np.argwhere(edge_array)
     angles_array: np.ndarray = np.zeros(edge_array.shape)
     
@@ -429,45 +439,51 @@ def opening_angles(im_array: np.ndarray, canny_sigma: float = 1) -> np.ndarray:
         
         if np.count_nonzero(patch) == 2:
             
-            vec1: np.ndarray = indices[0, :] - np.array([1, 1])
-            vec2: np.ndarray = indices[1, :] - np.array([1, 1])
+            vec1: np.ndarray = indices[0, :] - np.array([local_r, local_c])
+            vec2: np.ndarray = indices[1, :] - np.array([local_r, local_c])
             
         elif np.count_nonzero(patch) > 2 and np.count_nonzero(magnitudes == 1) == 2:
             
             target_indices: np.ndarray = np.squeeze(indices[np.argwhere(magnitudes == 1), :])
-            vec1: np.ndarray = target_indices[0, :] - np.array([1, 1])
-            vec2: np.ndarray = target_indices[1, :] - np.array([1, 1])
+            vec1: np.ndarray = target_indices[0, :] - np.array([local_r, local_c])
+            vec2: np.ndarray = target_indices[1, :] - np.array([local_r, local_c])
             
         else:
                 
             vec1: np.ndarray = np.array([0, 1])
             vec2: np.ndarray = np.array([0, 1])
-            
+        
         angle: int = round(np.degrees(np.arccos(np.dot(vec1, vec2) / (np.sqrt(np.sum(vec1 ** 2)) * np.sqrt(np.sum(vec2 ** 2))))))
         
         if angle == 45:
             
             test_coords: np.ndarray = coords - vec1
             
-            if im_array[test_coords[0], test_coords[1]] == 0:
+            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
+            
+                if im_array[test_coords[0], test_coords[1]] == 0:
                 
-                angle: int = 315
+                    angle: int = 315
         
         elif angle == 90:
             
             test_coords: np.ndarray = coords + vec1 + vec2
             
-            if im_array[test_coords[0], test_coords[1]] == 0:
+            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
+            
+                if im_array[test_coords[0], test_coords[1]] == 0:
                 
-                angle: int = 270
+                    angle: int = 270
         
         elif angle == 135:
             
             test_coords: np.ndarray = coords + vec1 + vec2
             
-            if im_array[test_coords[0], test_coords[1]] == 0:
+            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
+            
+                if im_array[test_coords[0], test_coords[1]] == 0:
                 
-                angle: int = 225
+                    angle: int = 225
                 
         angles_array[coords[0], coords[1]] = angle
         

@@ -439,6 +439,10 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
         
         max_array[np.logical_not(mask_array)] = False
         min_array[np.logical_not(mask_array)] = False
+        
+    if return_mode == "array":
+        
+        contact_array: np.ndarray = np.zeros(im_array.shape, "uint8")
     
     if im_array.ndim == 3:
         
@@ -451,12 +455,21 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
         offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
         offset_min_two_beg: np.ndarray = np.delete(np.append(two_insert, min_array, axis = 2), [-1], axis = 2)
         offset_min_two_end: np.ndarray = np.delete(np.append(min_array, two_insert, axis = 2), [0], axis = 2)
-        contact_count = np.count_nonzero(max_array & offset_min_zer_beg)
+        contact_count: int = np.count_nonzero(max_array & offset_min_zer_beg)
         contact_count += np.count_nonzero(max_array & offset_min_zer_end)
         contact_count += np.count_nonzero(max_array & offset_min_one_beg)
         contact_count += np.count_nonzero(max_array & offset_min_one_end)
         contact_count += np.count_nonzero(max_array & offset_min_two_beg)
         contact_count += np.count_nonzero(max_array & offset_min_two_end)
+        
+        if return_mode == "array":
+            
+            contact_array[max_array & offset_min_zer_beg] = 255
+            contact_array[max_array & offset_min_zer_end] = 255
+            contact_array[max_array & offset_min_one_beg] = 255
+            contact_array[max_array & offset_min_one_end] = 255
+            contact_array[max_array & offset_min_two_beg] = 255
+            contact_array[max_array & offset_min_two_end] = 255
     
     elif im_array.ndim == 2:
         
@@ -466,12 +479,25 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
         offset_min_zer_end: np.ndarray = np.delete(np.append(min_array, zer_insert, axis = 0), [0], axis = 0)
         offset_min_one_beg: np.ndarray = np.delete(np.append(one_insert, min_array, axis = 1), [-1], axis = 1)
         offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
-        contact_count = np.count_nonzero(max_array & offset_min_zer_beg)
+        contact_count: int = np.count_nonzero(max_array & offset_min_zer_beg)
         contact_count += np.count_nonzero(max_array & offset_min_zer_end)
         contact_count += np.count_nonzero(max_array & offset_min_one_beg)
         contact_count += np.count_nonzero(max_array & offset_min_one_end)
         
-    return contact_count
+        if return_mode == "array":
+            
+            contact_array[max_array & offset_min_zer_beg] = 255
+            contact_array[max_array & offset_min_zer_end] = 255
+            contact_array[max_array & offset_min_one_beg] = 255
+            contact_array[max_array & offset_min_one_end] = 255
+        
+    if return_mode == "count":
+        
+        return contact_count
+    
+    elif return_mode == "array":
+        
+        return contact_array
 
 def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
                         pixel_size: float = 1.0,

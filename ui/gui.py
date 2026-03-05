@@ -1344,6 +1344,7 @@ class ImageProcessor:
         Image: napari.layers.Image,
         Method: str = "Connectivity",
         Connectivity: int = 3,
+        Watershed_Radius: int = 3,
         Watershed_Compactness: float = 0,
         Background: int = 0,
         Along_Axis: bool = False,
@@ -1406,6 +1407,7 @@ class ImageProcessor:
                 {"Name": param_layer_name,
                  "Background": Background,
                  "Connectivity": Connectivity,
+                 "Watershed Radius": Watershed_Radius,
                  "Watershed Compactness": Watershed_Compactness,
                  "Along Axis": Along_Axis,
                  "Axis": Axis,
@@ -1414,11 +1416,24 @@ class ImageProcessor:
             
             if Apply_Mask:
                 
-                self.viewer.add_image(detect.watershed(Image.data, background = Background, mask_array = Mask.data, connectivity = Connectivity, compactness = Watershed_Compactness, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(detect.watershed(Image.data,
+                                                       background = Background,
+                                                       mask_array = Mask.data,
+                                                       connectivity = Connectivity,
+                                                       radius = Watershed_Radius,
+                                                       compactness = Watershed_Compactness,
+                                                       along_axis = Along_Axis,
+                                                       axis = Axis), name = param_layer_name)
             
             else:
                 
-                self.viewer.add_image(detect.watershed(Image.data, background = Background, connectivity = Connectivity, compactness = Watershed_Compactness, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+                self.viewer.add_image(detect.watershed(Image.data,
+                                                       background = Background,
+                                                       connectivity = Connectivity,
+                                                       radius = Watershed_Radius,
+                                                       compactness = Watershed_Compactness,
+                                                       along_axis = Along_Axis,
+                                                       axis = Axis), name = param_layer_name)
             
     @magicgui(
         call_button = "Segment")
@@ -1698,13 +1713,13 @@ class ImageProcessor:
         call_button = "Measure Angles")
     def angles_widget(self,
         Image: napari.layers.Image,
-        Canny_Sigma: float = 1) -> None:
+        Minimum_Size: int = 3) -> None:
         
         param_layer_name = get_param_layer_name("Angle Measurement", self.operation_count)
         parameters_log.append(
             {"Name": param_layer_name,
-             "Canny Sigma": Canny_Sigma})
-        self.viewer.add_image(detect.opening_angles(Image.data, Canny_Sigma), name = param_layer_name)
+             "Minimum Size": Minimum_Size})
+        self.viewer.add_image(detect.opening_angles(Image.data, Minimum_Size), name = param_layer_name)
     
         
     ####################
