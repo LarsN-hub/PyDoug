@@ -21,7 +21,13 @@ import quant
 
 def get_histogram(im_array: np.ndarray, *,
                   mask_array: np.ndarray = None,
-                  normalize: bool = False) -> pd.DataFrame:
+                  normalize: bool = False,
+                  nbins: int = 256,
+                  max_bound: float | None = None) -> pd.DataFrame:
+    
+    if max_bound:
+        
+        im_array[im_array > max_bound] = max_bound
     
     if np.any(mask_array):
         
@@ -29,11 +35,11 @@ def get_histogram(im_array: np.ndarray, *,
             
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
-        counts, bin_centers = exposure.histogram(im_array[np.bool(mask_array)], normalize = normalize)
+        counts, bin_centers = exposure.histogram(im_array[np.bool(mask_array)], normalize = normalize, nbins = nbins)
         
     else:
         
-        counts, bin_centers = exposure.histogram(im_array, normalize = normalize)
+        counts, bin_centers = exposure.histogram(im_array, normalize = normalize, nbins = nbins)
         
     bin_centers = np.astype(bin_centers, im_array.dtype)
     
@@ -216,7 +222,9 @@ def __get_size_distribution(im_array: np.ndarray, *,
                             pixel_size: float = 1.0,
                             units: str = "pix",
                             background: float | int = 0,
-                            normalize: bool = False) -> pd.DataFrame:
+                            normalize: bool = False,
+                            nbins: int | None = None,
+                            max_bound: float | None = None) -> pd.DataFrame:
     
     if units == "um":
         
@@ -235,11 +243,35 @@ def __get_size_distribution(im_array: np.ndarray, *,
         
         counts, labels = exposure.histogram(im_array)
         
-    counts = np.delete(counts, np.argwhere(labels == background))
+    counts = np.astype(np.delete(counts, np.argwhere(labels == background)), np.float64)
+    
+    if max_bound:
+        
+        if mode == "vol":
+            
+            max_bound = max_bound / (pixel_size ** 3)
+            
+        elif mode == "area":
+            
+            max_bound = max_bound / (pixel_size ** 2)
     
     if len(counts) != 0:
         
-        size_counts, sizes = exposure.histogram(counts)
+        if nbins:
+            
+            if max_bound:
+                
+                counts[counts > max_bound] = max_bound
+            
+            size_counts, sizes = exposure.histogram(counts, nbins = nbins)
+            
+            if max_bound:
+                
+                size_counts[-1] = 0
+           
+        else:
+            
+            size_counts, sizes = exposure.histogram(counts)
         
     else:
         
@@ -284,6 +316,8 @@ def get_size_distribution(im_array: np.ndarray, *,
                           connectivity: int = None,
                           background: float | int = 0,
                           normalize: bool = False,
+                          nbins: int | None = None,
+                          max_bound: float | None = None,
                           positional: bool = False,
                           temporal_scale: float | int = None,
                           temporal_units: str = "s") -> pd.DataFrame:
@@ -309,7 +343,9 @@ def get_size_distribution(im_array: np.ndarray, *,
                                                             pixel_size = pixel_size,
                                                             units = units,
                                                             background = background,
-                                                            normalize = normalize)
+                                                            normalize = normalize,
+                                                            nbins = nbins,
+                                                            max_bound = max_bound)
             
         else:
             
@@ -319,7 +355,9 @@ def get_size_distribution(im_array: np.ndarray, *,
                                                             pixel_size = pixel_size,
                                                             units = units,
                                                             background = background,
-                                                            normalize = normalize)
+                                                            normalize = normalize,
+                                                            nbins = nbins,
+                                                            max_bound = max_bound)
             
         return size_df
     
@@ -365,11 +403,26 @@ def get_size_distribution(im_array: np.ndarray, *,
             
             if np.any(mask_array):
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mask_array = mask_array[slice_index], mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array,
+                                                               mask_array = mask_array[slice_index],
+                                                               mode = mode,
+                                                               pixel_size = pixel_size,
+                                                               units = units,
+                                                               background = background,
+                                                               normalize = normalize,
+                                                               nbins = nbins,
+                                                               max_bound = max_bound)
             
             else:
                 
-                int_df: pd.DataFrame = __get_size_distribution(int_im_array, mode = mode, pixel_size = pixel_size, units = units, background = background, normalize = normalize)
+                int_df: pd.DataFrame = __get_size_distribution(int_im_array,
+                                                               mode = mode,
+                                                               pixel_size = pixel_size,
+                                                               units = units,
+                                                               background = background,
+                                                               normalize = normalize,
+                                                               nbins = nbins,
+                                                               max_bound = max_bound)
                 
             columns.append(str(pos_scale * slice_index))
             int_sizes: np.ndarray = np.squeeze(np.array([int_df["Bin Centers"]]))

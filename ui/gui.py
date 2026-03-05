@@ -1738,6 +1738,7 @@ class ImageProcessor:
         X_Min: float = 0,
         X_Max: float = 0,
         Y_Max: float = 0,
+        Num_Bins: int = 256,
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
@@ -1761,8 +1762,13 @@ class ImageProcessor:
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Max": Y_Max,
+                 "Num Bins": Num_Bins,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
+            
+        if Num_Bins == 0:
+            
+            Num_Bins: None = None
             
         if X_Max == 0:
             
@@ -1791,7 +1797,8 @@ class ImageProcessor:
                                                      xlims = x_lims,
                                                      ylims = y_lims,
                                                      ignore_edges = Remove_Edges,
-                                                     normalize = Normalize)
+                                                     normalize = Normalize,
+                                                     nbins = Num_Bins)
             
             if Add_CDF:
                 
@@ -1810,7 +1817,8 @@ class ImageProcessor:
                                            xlims = x_lims,
                                            ylims = y_lims,
                                            ignore_edges = Remove_Edges,
-                                           normalize = Normalize)
+                                           normalize = Normalize,
+                                           nbins = Num_Bins)
             
             if Add_CDF:
             
@@ -2138,6 +2146,8 @@ class ImageProcessor:
         Type = {"choices": ["Volume", "Area"]},
         Connectivity = {"choices": [1, 2, 3]},
         X_Max = {"max": 1000000},
+        Y_Max = {"max": 1000000},
+        Max_Bound = {"max": 1000000},
         call_button = "Plot Distribution")
     def psd_widget(self,
         Image: napari.layers.Image,
@@ -2151,6 +2161,8 @@ class ImageProcessor:
         X_Min: float = 0,
         X_Max: float = 0,
         Y_Max: float = 0,
+        Num_Bins: int = 0,
+        Max_Bound: float = 0,
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None,
         Add_as_Parameter: bool = False) -> None:
@@ -2186,24 +2198,34 @@ class ImageProcessor:
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Max": Y_Max,
+                 "Num Bins": Num_Bins,
+                 "Max Bound": Max_Bound,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
         if X_Max == 0:
             
-            x_lims = None
+            x_lims: None = None
             
         else:
             
-            x_lims = (X_Min, X_Max)
+            x_lims: tuple = (X_Min, X_Max)
             
         if Y_Max == 0:
             
-            y_lims = None
+            y_lims: None = None
             
         else:
             
-            y_lims = (0, Y_Max)
+            y_lims: tuple = (0, Y_Max)
+            
+        if Num_Bins == 0:
+            
+            Num_Bins: None = None
+            
+        if Max_Bound == 0:
+            
+            Max_Bound: None = None
             
         if Apply_Mask:
             
@@ -2213,10 +2235,13 @@ class ImageProcessor:
                                         mask_array = Mask.data,
                                         xlims = x_lims,
                                         ylims = y_lims,
+                                        pixel_size = Pixel_Scale,
                                         normalize = Normalize,
                                         ignore_edges = Remove_Edges,
                                         connectivity = Connectivity,
-                                        background = Background)
+                                        background = Background,
+                                        nbins = Num_Bins,
+                                        max_bound = Max_Bound)
             
         else:
             
@@ -2225,10 +2250,13 @@ class ImageProcessor:
                                         units = Units,
                                         xlims = x_lims,
                                         ylims = y_lims,
+                                        pixel_size = Pixel_Scale,
                                         normalize = Normalize,
                                         ignore_edges = Remove_Edges,
                                         connectivity = Connectivity,
-                                        background = Background)
+                                        background = Background,
+                                        nbins = Num_Bins,
+                                        max_bound = Max_Bound)
             
         plt.show()
     

@@ -865,6 +865,14 @@ def apply_parameters(im_array: np.ndarray,
                 
                 normalize: bool = False
                 
+            if int(parameter["Num Bins"]) == 0:
+                
+                nbins: None = None
+                
+            else:
+                
+                nbins: int = int(parameter["Num Bins"])
+                
             fig, hist_ax = plt.subplots()
             hist_ax: plt.Axes = plots.histogram_axis(im_array, hist_ax,
                                                      x_label = "Gray Value",
@@ -872,7 +880,8 @@ def apply_parameters(im_array: np.ndarray,
                                                      xlims = x_lims,
                                                      ylims = y_lims,
                                                      ignore_edges = ignore_edges,
-                                                     normalize = normalize)
+                                                     normalize = normalize,
+                                                     nbins = nbins)
             
             if parameter["Add CDF"].lower() == "true":
                 
@@ -1187,6 +1196,22 @@ def apply_parameters(im_array: np.ndarray,
             else:
                 
                 normalize: bool = False
+                
+            if int(parameter["Num Bins"]) == 0:
+                
+                nbins: None = None
+                
+            else:
+                
+                nbins: int = int(parameter["Num Bins"])
+                
+            if float(parameter["Max Bound"]) == 0:
+                
+                max_bound: None = None
+                
+            else:
+                
+                max_bound: float = float(parameter["Max Bound"])
             
             fig = plots.size_distribution(im_array,
                                           mode = parameter["Type"],
@@ -1194,10 +1219,13 @@ def apply_parameters(im_array: np.ndarray,
                                           mask_array = mask_array,
                                           xlims = x_lims,
                                           ylims = y_lims,
+                                          pixel_size = float(parameter["Pixel Size"]),
                                           normalize = normalize,
                                           ignore_edges = ignore_edges,
                                           connectivity = int(parameter["Connectivity"]),
-                                          background = float(parameter["Background"]))
+                                          background = float(parameter["Background"]),
+                                          nbins = nbins,
+                                          max_bound = max_bound)
             rw.write_plot(fig, f"{file_name}_size_distribution_{psd_index}", save_dir)
             psd_index += 1
         

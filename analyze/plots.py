@@ -823,11 +823,21 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
                    ylims: tuple = None,
                    units: str = None,
                    ignore_edges: bool = False,
-                   normalize: bool = False) -> plt.Axes:
+                   normalize: bool = False,
+                   nbins: int | None = None,
+                   max_bound: float | None = None) -> plt.Axes:
+    
+    if not nbins:
+        
+        nbins: int = 256
     
     if isinstance(data, np.ndarray):
         
-        hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array, normalize = normalize)
+        hist_df: pd.DataFrame = distrib.get_histogram(data,
+                                                      mask_array = mask_array,
+                                                      normalize = normalize,
+                                                      nbins = nbins,
+                                                      max_bound = max_bound)
         
     else:
         
@@ -870,7 +880,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         
         hist_ax.set_ylabel("Counts")
         
-    hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"])
+    hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"], edgecolor = "k")
     
     if xlims:
         
@@ -892,10 +902,18 @@ def histogram(data: np.ndarray | pd.DataFrame, *,
               xlims: tuple = None,
               ylims: tuple = None,
               ignore_edges: bool = False,
-              normalize: bool = False) -> plt.Figure:
+              normalize: bool = False,
+              nbins: int | None = None) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+    hist_ax = histogram_axis(data, hist_ax,
+                             x_label = x_label,
+                             mask_array = mask_array,
+                             xlims = xlims,
+                             ylims = ylims,
+                             ignore_edges = ignore_edges,
+                             normalize = normalize,
+                             nbins = nbins)
     
     return fig
 
@@ -905,14 +923,26 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
                          mask_array: np.ndarray = None,
                          xlims: tuple = None,
                          ylims: tuple = None,
+                         pixel_size: float = 1.0,
                          ignore_edges: bool = False,
                          normalize: bool = False,
                          connectivity: int = None,
-                         background: float | int = 0) -> plt.Axes:
+                         background: float | int = 0,
+                         nbins: int = 100,
+                         max_bound: float | None = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
-        psd_df: pd.DataFrame = distrib.get_size_distribution(data, mask_array = mask_array, mode = mode, units = units, connectivity = connectivity, background = background, normalize = normalize)
+        psd_df: pd.DataFrame = distrib.get_size_distribution(data,
+                                                             mask_array = mask_array,
+                                                             mode = mode,
+                                                             pixel_size = pixel_size,
+                                                             units = units,
+                                                             connectivity = connectivity,
+                                                             background = background,
+                                                             normalize = normalize,
+                                                             nbins = nbins,
+                                                             max_bound = max_bound)
     
     else:
         
@@ -921,18 +951,54 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     x_label = f"Domain Size ({psd_df.attrs["units"]})"
         
     psd_ax = input_ax
-    psd_ax = histogram_axis(psd_df, psd_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+    psd_ax = histogram_axis(psd_df, psd_ax,
+                            x_label = x_label,
+                            mask_array = mask_array,
+                            xlims = xlims,
+                            ylims = ylims,
+                            ignore_edges = ignore_edges,
+                            normalize = normalize,
+                            nbins = nbins,
+                            max_bound = max_bound)
     
     return psd_ax
 
-def size_distribution(data: np.ndarray | pd.DataFrame, *, mode: str = "vol", units: str = "pix", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, connectivity: int = None, background: float | int = 0) -> plt.Figure:
+def size_distribution(data: np.ndarray | pd.DataFrame, *,
+                      mode: str = "vol",
+                      units: str = "pix",
+                      mask_array: np.ndarray = None,
+                      xlims: tuple = None,
+                      ylims: tuple = None,
+                      pixel_size: float = 1.0,
+                      ignore_edges: bool = False,
+                      normalize: bool = False,
+                      connectivity: int = None,
+                      background: float | int = 0,
+                      nbins: int = 100,
+                      max_bound: float | None = None) -> plt.Figure:
     
     fig, psd_ax = plt.subplots()
-    psd_ax = size_distribution_ax(data, psd_ax, mode = mode, units = units, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize, connectivity = connectivity, background = background)
+    psd_ax = size_distribution_ax(data, psd_ax,
+                                  mode = mode,
+                                  units = units,
+                                  mask_array = mask_array,
+                                  xlims = xlims,
+                                  ylims = ylims,
+                                  pixel_size = pixel_size,
+                                  ignore_edges = ignore_edges,
+                                  normalize = normalize,
+                                  connectivity = connectivity,
+                                  background = background,
+                                  nbins = nbins,
+                                  max_bound = max_bound)
     
     return fig
 
-def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Axes:
+def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
+             x_label: str = "Value",
+             mask_array: np.ndarray = None,
+             xlims: tuple = None,
+             ylims: tuple = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
@@ -962,24 +1028,45 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *, x_label: st
         
     return cdf_ax
 
-def cdf(data: np.ndarray | pd.DataFrame, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None) -> plt.Figure:
+def cdf(data: np.ndarray | pd.DataFrame, *,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None) -> plt.Figure:
     
     fig, cdf_ax = plt.subplots()
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
     
     return fig
 
-def hist_cdf(data: np.ndarray | dict, *, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False) -> plt.Figure:
+def hist_cdf(data: np.ndarray | dict, *,
+             x_label: str = "Value",
+             mask_array: np.ndarray = None,
+             xlims: tuple = None,
+             ylims: tuple = None,
+             ignore_edges: bool = False,
+             normalize: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots()
-    hist_ax = histogram_axis(data, hist_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+    hist_ax = histogram_axis(data, hist_ax,
+                             x_label = x_label,
+                             mask_array = mask_array,
+                             xlims = xlims,
+                             ylims = ylims,
+                             ignore_edges = ignore_edges,
+                             normalize = normalize)
     cdf_ax: plt.Axes = hist_ax.twinx()
     cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
-    cdf_ax = cdf_axis(data, cdf_ax, x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
+    cdf_ax = cdf_axis(data, cdf_ax,
+                      x_label = x_label,
+                      mask_array = mask_array,
+                      xlims = xlims,
+                      ylims = ylims)
     
     return fig
 
-def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_axis: int = 0, *, mask_array: np.ndarray = None) -> plt.Axes:
+def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_axis: int = 0, *,
+                    mask_array: np.ndarray = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
@@ -1003,12 +1090,17 @@ def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_a
     
     return gray_ax
 
-def gray_level(data: np.ndarray | pd.DataFrame, *, return_axes: bool = False, mask_array: np.ndarray = None) -> plt.Figure:
+def gray_level(data: np.ndarray | pd.DataFrame, *,
+               return_axes: bool = False,
+               mask_array: np.ndarray = None) -> plt.Figure:
 
     return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array, return_axes = return_axes)
 
-def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser: Callable[[np.ndarray], np.ndarray] = None,
-                     parameters: dict[str, np.ndarray] = None, stride: int = 4, approximate_loss: bool = True) -> plt.Axes:
+def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
+                     denoiser: Callable[[np.ndarray], np.ndarray] = None,
+                     parameters: dict[str, np.ndarray] = None,
+                     stride: int = 4,
+                     approximate_loss: bool = True) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
@@ -1090,7 +1182,9 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *, denoiser:
     return ssl_ax
 
 def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.ndarray] = None,
-                parameters: dict[str, np.ndarray] = None, *, stride: int = 4, approximate_loss: bool = True) -> plt.Figure:
+                parameters: dict[str, np.ndarray] = None, *,
+                stride: int = 4,
+                approximate_loss: bool = True) -> plt.Figure:
     
     fig, ssl_ax = plt.subplots()
     ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
@@ -1218,7 +1312,19 @@ def heat_map(data: np.ndarray, *,
     
         return fig
 
-def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *, return_axes: bool = False, x_label: str = "Value", mask_array: np.ndarray = None, xlims: tuple = None, ylims: tuple = None, ignore_edges: bool = False, normalize: bool = False, quant_axes: tuple = (0, 1, 2), mode: str = "vol", units: str = "pix", connectivity: int = None, background: float | int = 0) -> plt.Figure:
+def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *,
+               return_axes: bool = False,
+               x_label: str = "Value",
+               mask_array: np.ndarray = None,
+               xlims: tuple = None,
+               ylims: tuple = None,
+               ignore_edges: bool = False,
+               normalize: bool = False,
+               quant_axes: tuple = (0, 1, 2),
+               mode: str = "vol",
+               units: str = "pix",
+               connectivity: int = None,
+               background: float | int = 0) -> plt.Figure:
        
     if len(function_list) == 1:
         
