@@ -76,27 +76,27 @@ def pad_operation(im_array: np.ndarray, bounds: dict[int, list[int]], padded_col
             
         left_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0]), im_array.dtype) * padded_color
         right_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1]), im_array.dtype) * padded_color
-        im_array = np.insert(im_array, 0, left_x_insert, axis = 1)
-        im_array = np.append(im_array, right_x_insert, axis = 1)
+        im_array = np.concat((left_x_insert, im_array), axis = 1)
+        im_array = np.concat((im_array, right_x_insert), axis = 1)
         top_y_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1]), im_array.dtype) * padded_color
         bot_y_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1]), im_array.dtype) * padded_color
-        im_array = np.insert(im_array, 0, top_y_insert, axis = 0)
-        im_array = np.append(im_array, bot_y_insert, axis = 0)
+        im_array = np.concat((top_y_insert, im_array), axis = 0)
+        im_array = np.concat((im_array, bot_y_insert), axis = 0)
             
     else:
         
         left_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][0]), im_array.dtype) * padded_color
         right_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][1]), im_array.dtype) * padded_color
-        im_array = np.insert(im_array, [0], left_x_insert, axis = 2)
-        im_array = np.append(im_array, right_x_insert, axis = 2)
+        im_array = np.concat((left_x_insert, im_array), axis = 2)
+        im_array = np.concat((im_array, right_x_insert), axis = 2)
         top_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0], im_array.shape[2]), im_array.dtype) * padded_color
         bot_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1], im_array.shape[2]), im_array.dtype) * padded_color
-        im_array = np.insert(im_array, [0], top_y_insert, axis = 1)
-        im_array = np.append(im_array, bot_y_insert, axis = 1)
+        im_array = np.concat((top_y_insert, im_array), axis = 1)
+        im_array = np.concat((im_array, bot_y_insert), axis = 1)
         front_z_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
         back_z_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
-        im_array = np.insert(im_array, [0], front_z_insert, axis = 0)
-        im_array = np.append(im_array, back_z_insert, axis = 0)
+        im_array = np.concat((front_z_insert, im_array), axis = 0)
+        im_array = np.concat((im_array, back_z_insert), axis = 0)
         
     return im_array
     
@@ -263,24 +263,28 @@ def quick_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, method: st
 
 def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
-    if len(mask_array.shape) < len(im_array.shape):
+    if mask_array.dtype != np.bool:
         
-        mask_array = project_mask(mask_array, im_array.shape[0])
+        bool_array = np.astype(mask_array, np.bool)
     
-    mask_indices: np.ndarray = remove_slice_coords(np.argwhere(mask_array == True))
+    if bool_array.ndim < im_array.ndim:
+        
+        bool_array = project_mask(bool_array, im_array.shape[0])
+    
+    mask_indices: np.ndarray = remove_slice_coords(np.argwhere(bool_array == True))
     r_start: np.int64 = np.min(mask_indices[:, 0])
     c_start: np.int64 = np.min(mask_indices[:, 1])
     r_end: np.int64 = np.max(mask_indices[:, 0])
     c_end: np.int64 = np.max(mask_indices[:, 1])
-    mask_array = mask_array[:, r_start:r_end, c_start:c_end]
+    bool_array = bool_array[:, r_start:r_end, c_start:c_end]
     
     if conserve_mem:
         
         im_array = im_array[:, r_start:r_end, c_start:c_end]
         
-        if not np.all(mask_array):
+        if not np.all(bool_array):
             
-            im_array = mask(im_array, mask_array, mask_color = mask_color, conserve_mem = True)
+            im_array = mask(im_array, bool_array, mask_color = mask_color, conserve_mem = True)
         
         return im_array
     
@@ -288,9 +292,9 @@ def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | in
         
         crop_array: np.ndarray = im_array[:, r_start:r_end, c_start:c_end]
         
-        if not np.all(mask_array):
+        if not np.all(bool_array):
             
-            crop_array = mask(crop_array, mask_array, mask_color = mask_color, conserve_mem = False)
+            crop_array = mask(crop_array, bool_array, mask_color = mask_color, conserve_mem = False)
         
         return crop_array
 

@@ -245,15 +245,21 @@ def __get_size_distribution(im_array: np.ndarray, *,
         
     counts = np.astype(np.delete(counts, np.argwhere(labels == background)), np.float64)
     
-    if max_bound:
+    if mode == "vol":
+            
+        counts = counts * (pixel_size ** 3)
+            
+    elif mode == "area":
+            
+        counts = counts * (pixel_size ** 2)
+            
+    elif mode == "diam":
+            
+        counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi)
+            
+    elif mode == "rad":
         
-        if mode == "vol":
-            
-            max_bound = max_bound / (pixel_size ** 3)
-            
-        elif mode == "area":
-            
-            max_bound = max_bound / (pixel_size ** 2)
+        counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi) / 2
     
     if len(counts) != 0:
         
@@ -284,14 +290,6 @@ def __get_size_distribution(im_array: np.ndarray, *,
         
         size_counts = size_counts / np.sum(size_counts)
     
-    if mode == "vol":
-        
-        sizes = sizes * (pixel_size ** 3)
-        
-    elif mode == "area":
-        
-        sizes = sizes * (pixel_size ** 2)
-    
     size_df: pd.DataFrame = pd.DataFrame(np.stack((sizes, size_counts), 1), columns = ["Bin Centers", "Counts"])
     
     if mode == "vol":
@@ -302,7 +300,7 @@ def __get_size_distribution(im_array: np.ndarray, *,
         
         size_df.attrs = {"units": f"{units}\u00b2"}
         
-    elif mode == "diam":
+    elif mode == "diam" or mode == "rad":
         
         size_df.attrs = {"units": units}
         
@@ -385,7 +383,7 @@ def get_size_distribution(im_array: np.ndarray, *,
             
             size_interval: float | int = pixel_size ** 2
             
-        elif mode == "diam":
+        elif mode == "diam" or mode == "rad":
             
             size_interval: float | int = pixel_size
             
@@ -479,7 +477,7 @@ def get_size_distribution(im_array: np.ndarray, *,
     
             size_df.attrs["area_units"] = f"{units}\u00b2"
                     
-        elif mode == "diam":
+        elif mode == "diam" or mode == "rad":
                 
             size_df.attrs["diam_units"] = units
             

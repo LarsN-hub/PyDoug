@@ -144,6 +144,34 @@ def apply_parameters(im_array: np.ndarray,
                               padded_color = padded_color,
                               conserve_mem = True)
         
+        elif parameter["Name"].find("Cropped") == 0:
+            
+            print("\nCropping...")
+            
+            if np.issubdtype(im_array.dtype, np.floating):
+                
+                mask_color: float = float(parameter["Masked Color"])
+                
+            else:
+                
+                mask_color: int = int(parameter["Masked Color"])
+            
+            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+            im_array = cc.crop(im_array, mask_array,
+                               mask_color = mask_color,
+                               conserve_mem = True)
+            
+        elif parameter["Name"].find("Extend") == 0:
+            
+            print("\nExtending...")
+            
+            im_array = cc.project_mask(im_array, num_slices = int(parameter["Slice Count"]) - 1)
+            
+        
+        ######################
+        # Masking Operations #
+        ######################
+        
         elif parameter["Name"].find("Masked") == 0:
             
             print("\nMasking...")
@@ -159,23 +187,6 @@ def apply_parameters(im_array: np.ndarray,
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.mask(im_array, mask_array,
                                method = parameter["Method"],
-                               mask_color = mask_color,
-                               conserve_mem = True)
-        
-        elif parameter["Name"].find("Cropped") == 0:
-            
-            print("\nCropping...")
-            
-            if np.issubdtype(im_array.dtype, np.floating):
-                
-                mask_color: float = float(parameter["Masked Color"])
-                
-            else:
-                
-                mask_color: int = int(parameter["Masked Color"])
-            
-            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
-            im_array = cc.crop(im_array, mask_array,
                                mask_color = mask_color,
                                conserve_mem = True)
         
@@ -657,9 +668,9 @@ def apply_parameters(im_array: np.ndarray,
                                            sigma = float(parameter["Sigma"]))
         
         
-        #####################
-        # Filter Operations #
-        #####################
+        #########################
+        # Morphology Operations #
+        #########################
         
         elif parameter["Name"].find("Remove Objects") == 0:
             

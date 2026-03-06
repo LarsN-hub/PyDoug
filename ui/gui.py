@@ -397,7 +397,7 @@ class ImageProcessor:
     def trim_pad_widget(self,
         Image: napari.layers.Image,
         Method: str = "Trim",
-        Bounds_as_Slices: bool = False,
+        Bounds_as_Slices: bool = True,
         X_Bounds: bool = True,
         X_Min: int = 0,
         X_Max: int = 0,
@@ -456,13 +456,18 @@ class ImageProcessor:
             
             if Conserve_RAM:
                 
-                Image.data = cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, conserve_mem = True)
+                Image.data = cc.trim(Image.data,
+                                     bounds_dict = bounds_dict,
+                                     bounds_as_slices = Bounds_as_Slices,
+                                     conserve_mem = True)
                 Image.name = param_layer_name
                 self._on_layer_changed()
             
             else:
                 
-                self.viewer.add_image(cc.trim(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices), name = param_layer_name)
+                self.viewer.add_image(cc.trim(Image.data,
+                                              bounds_dict = bounds_dict,
+                                              bounds_as_slices = Bounds_as_Slices), name = param_layer_name)
                 
         elif Method == "Pad":
             
@@ -497,13 +502,189 @@ class ImageProcessor:
             
             if Conserve_RAM:
                 
-                Image.data = cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec, conserve_mem = True)
+                Image.data = cc.pad(Image.data,
+                                    bounds_dict = bounds_dict,
+                                    bounds_as_slices = Bounds_as_Slices,
+                                    padded_color = color_spec,
+                                    conserve_mem = True)
                 Image.name = param_layer_name
                 self._on_layer_changed()
             
             else:
                 
-                self.viewer.add_image(cc.pad(Image.data, bounds_dict = bounds_dict, bounds_as_slices = Bounds_as_Slices, padded_color = color_spec), name = param_layer_name)
+                self.viewer.add_image(cc.pad(Image.data,
+                                             bounds_dict = bounds_dict,
+                                             bounds_as_slices = Bounds_as_Slices,
+                                             padded_color = color_spec), name = param_layer_name)
+    
+    @magicgui(
+        Masked_Color = {"choices": ["Black", "White", "Gray"]},
+        call_button = "Crop")
+    def crop_widget(self,
+        Image: napari.layers.Image,
+        Mask: napari.layers.Image,
+        Masked_Color: str = "Black",
+        Specify_Color: bool = False,
+        Color_Value: float = 0,
+        Conserve_RAM: bool = False) -> None:
+        
+        if not Specify_Color:
+            
+            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
+        
+        else:
+            
+            if Image.data.dtype in util.int_dtypes:
+                
+                color_spec: int = round(Color_Value)
+                
+            else:
+                
+                color_spec = Color_Value
+                
+        param_layer_name = get_param_layer_name("Cropped", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Masked Color": color_spec,
+             "Apply Mask": True,
+             "Mask Used": Mask.name})
+        
+        if Conserve_RAM:
+            
+            Image.data = cc.crop(Image.data, Mask.data,
+                                 mask_color = color_spec,
+                                 conserve_mem = True)
+            Image.name = param_layer_name
+            self._on_layer_changed()
+        
+        else:
+            
+            self.viewer.add_image(cc.crop(Image.data, Mask.data,
+                                          mask_color = color_spec), name = param_layer_name)
+            
+    @magicgui(
+        Axis = {"choices": ["X", "Y", "Z"]},
+        call_button = "Split")
+    def split_widget(self,
+        Image: napari.layers.Image,
+        Split_Index: int = 0,
+        Axis: str = "Z") -> None:
+        
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        param_layer_name = get_param_layer_name("Split", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Split Index": Split_Index,
+             "Axis": Axis})
+        split_arrays: list[np.ndarray] = cc.split(Image.data, Split_Index, Axis)
+        self.viewer.add_image(split_arrays[0], name = f"{param_layer_name} - 1")
+        self.viewer.add_image(split_arrays[1], name = f"{param_layer_name} - 2")
+        
+    @magicgui(
+        Axis = {"choices": ["X", "Y", "Z"]},
+        call_button = "Join")
+    def join_widget(self,
+        Image_1: napari.layers.Image,
+        Image_2: napari.layers.Image,
+        Axis: str = "Z") -> None:
+        
+        Axis = util.convert_ax_str_to_int(Image_1.data, Image_1.rgb, Axis)
+        param_layer_name = get_param_layer_name("Joined", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Axis": Axis})
+        self.viewer.add_image(cc.join([Image_1.data, Image_2.data], Axis), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Extend")
+    def extend_widget(self,
+        Image: napari.layers.Image,
+        Slice_Count: int = 10,
+        Add_as_Parameter: bool = False) -> None:
+        
+        param_layer_name = get_param_layer_name("Extended", self.operation_count)
+        
+        if Add_as_Parameter:
+            
+            parameters_log.append(
+                {"Name": param_layer_name,
+                 "Slice Count": Slice_Count})
+        
+        self.viewer.add_image(cc.project_mask(Image.data, num_slices = Slice_Count - 1), name = param_layer_name)
+    
+    
+    #####################
+    # Transform Widgets #
+    #####################
+
+    @magicgui(
+        Orientation = {"choices": ["Top", "Bottom", "Left", "Right", "Back"]},
+        call_button = "Reslice")
+    def reslice_widget(self,
+        Image: napari.layers.Image,
+        Orientation: str = "Top",
+        viewer: napari.viewer.Viewer = None) -> None:
+        
+        param_layer_name = get_param_layer_name("Resliced", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Orientation": Orientation.lower()})
+        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = param_layer_name)
+        
+    @magicgui(
+        Angle = {"max": 360},
+        call_button = "Rotate")
+    def rotate_widget(self,
+        Image: napari.layers.Image,
+        Clockwise: bool = False,
+        Resize: bool = False,
+        Angle: float = 0) -> None:
+        
+        param_layer_name = get_param_layer_name("Rotated", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Clockwise": Clockwise,
+             "Resize": Resize,
+             "Angle": Angle})
+        
+        if Clockwise:
+            
+            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = param_layer_name)
+        
+        else:
+            
+            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = param_layer_name)
+        
+    @magicgui(
+        Direction = {"choices": ["X", "Y", "Z"]},
+        call_button = "Mirror")
+    def mirror_widget(self,
+        Image: napari.layers.Image,
+        Direction: str = "Y") -> None:
+        
+        Direction = util.convert_ax_str_to_int(Image.data, Image.rgb, Direction)
+        param_layer_name = get_param_layer_name("Mirrored", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Direction": Direction})
+        self.viewer.add_image(trans.mirror(Image.data, Direction), name = param_layer_name)
+
+    @magicgui(
+        call_button = "Rescale")
+    def rescale_widget(self,
+        Image: napari.layers.Image,
+        Scale: float = 0.5) -> None:
+        
+        param_layer_name = get_param_layer_name("Rescaled", self.operation_count)
+        parameters_log.append(
+            {"Name": param_layer_name,
+             "Scale": Scale})
+        self.viewer.add_image(trans.rescale(Image.data, Scale), name = param_layer_name)
+        
+    
+    ###################
+    # Masking Widgets #
+    ###################
     
     @magicgui(
         Shape_Type = {"choices": ["Ellipse", "Rectangle", "Polygon", "Line"]},
@@ -604,167 +785,6 @@ class ImageProcessor:
              "Apply Mask": True,
              "Mask Used": Mask.name})
         self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
-    
-    @magicgui(
-        Masked_Color = {"choices": ["Black", "White", "Gray"]},
-        call_button = "Crop")
-    def crop_widget(self,
-        Image: napari.layers.Image,
-        Mask: napari.layers.Image,
-        Masked_Color: str = "Black",
-        Specify_Color: bool = False,
-        Color_Value: float = 0,
-        Conserve_RAM: bool = False) -> None:
-        
-        if not Specify_Color:
-            
-            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
-        
-        else:
-            
-            if Image.data.dtype in util.int_dtypes:
-                
-                color_spec: int = round(Color_Value)
-                
-            else:
-                
-                color_spec = Color_Value
-                
-        param_layer_name = get_param_layer_name("Cropped", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Masked Color": color_spec,
-             "Apply Mask": True,
-             "Mask Used": Mask.name})
-        
-        if Conserve_RAM:
-            
-            Image.data = cc.crop(Image.data, Mask.data, mask_color = color_spec, conserve_mem = True)
-            Image.name = param_layer_name
-            self._on_layer_changed()
-        
-        else:
-            
-            self.viewer.add_image(cc.crop(Image.data, Mask.data, mask_color = color_spec), name = param_layer_name)
-            
-    @magicgui(
-        Axis = {"choices": ["X", "Y", "Z"]},
-        call_button = "Split")
-    def split_widget(self,
-        Image: napari.layers.Image,
-        Split_Index: int = 0,
-        Axis: str = "Z") -> None:
-        
-        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
-        param_layer_name = get_param_layer_name("Split", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Split Index": Split_Index,
-             "Axis": Axis})
-        split_arrays: list[np.ndarray] = cc.split(Image.data, Split_Index, Axis)
-        self.viewer.add_image(split_arrays[0], name = f"{param_layer_name} - 1")
-        self.viewer.add_image(split_arrays[1], name = f"{param_layer_name} - 2")
-        
-    @magicgui(
-        Axis = {"choices": ["X", "Y", "Z"]},
-        call_button = "Join")
-    def join_widget(self,
-        Image_1: napari.layers.Image,
-        Image_2: napari.layers.Image,
-        Axis: str = "Z") -> None:
-        
-        Axis = util.convert_ax_str_to_int(Image_1.data, Image_1.rgb, Axis)
-        param_layer_name = get_param_layer_name("Joined", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Axis": Axis})
-        self.viewer.add_image(cc.join([Image_1.data, Image_2.data], Axis), name = param_layer_name)
-        
-    @magicgui(
-        call_button = "Extend")
-    def extend_widget(self,
-        Image: napari.layers.Image,
-        Repetitions: int = 10,
-        Add_as_Parameter: bool = False) -> None:
-        
-        param_layer_name = get_param_layer_name("Extended", self.operation_count)
-        
-        if Add_as_Parameter:
-            
-            parameters_log.append(
-                {"Name": param_layer_name,
-                 "Repetitions": Repetitions})
-            
-        self.viewer.add_image(cc.project_mask(Image.data, num_slices = Repetitions), name = param_layer_name)
-
-
-    #####################
-    # Transform Widgets #
-    #####################
-
-    @magicgui(
-        Orientation = {"choices": ["Top", "Bottom", "Left", "Right", "Back"]},
-        call_button = "Reslice")
-    def reslice_widget(self,
-        Image: napari.layers.Image,
-        Orientation: str = "Top",
-        viewer: napari.viewer.Viewer = None) -> None:
-        
-        param_layer_name = get_param_layer_name("Resliced", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Orientation": Orientation.lower()})
-        self.viewer.add_image(trans.reslice(Image.data, Orientation.lower()), name = param_layer_name)
-        
-    @magicgui(
-        Angle = {"widget_type": "FloatSlider", "max": 360},
-        call_button = "Rotate")
-    def rotate_widget(self,
-        Image: napari.layers.Image,
-        Clockwise: bool = False,
-        Resize: bool = False,
-        Angle: float = 0) -> None:
-        
-        param_layer_name = get_param_layer_name("Rotated", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Clockwise": Clockwise,
-             "Resize": Resize,
-             "Angle": Angle})
-        
-        if Clockwise:
-            
-            self.viewer.add_image(trans.rotate(Image.data, Angle, "CW", resize = Resize), name = param_layer_name)
-        
-        else:
-            
-            self.viewer.add_image(trans.rotate(Image.data, Angle, resize = Resize), name = param_layer_name)
-        
-    @magicgui(
-        Direction = {"choices": ["X", "Y", "Z"]},
-        call_button = "Mirror")
-    def mirror_widget(self,
-        Image: napari.layers.Image,
-        Direction: str = "Y") -> None:
-        
-        Direction = util.convert_ax_str_to_int(Image.data, Image.rgb, Direction)
-        param_layer_name = get_param_layer_name("Mirrored", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Direction": Direction})
-        self.viewer.add_image(trans.mirror(Image.data, Direction), name = param_layer_name)
-
-    @magicgui(
-        call_button = "Rescale")
-    def rescale_widget(self,
-        Image: napari.layers.Image,
-        Scale: float = 0.5) -> None:
-        
-        param_layer_name = get_param_layer_name("Rescaled", self.operation_count)
-        parameters_log.append(
-            {"Name": param_layer_name,
-             "Scale": Scale})
-        self.viewer.add_image(trans.rescale(Image.data, Scale), name = param_layer_name)
 
 
     ########################
@@ -1482,9 +1502,9 @@ class ImageProcessor:
                                                   sigma = GAC_Sigma), name = param_layer_name)
     
     
-    ##################
-    # Filter Widgets #
-    ##################
+    ######################
+    # Morphology Widgets #
+    ######################
     
     @magicgui(
         Method = {"choices": ["Particles", "Holes"]},
@@ -2143,7 +2163,7 @@ class ImageProcessor:
         plt.show()
         
     @magicgui(
-        Type = {"choices": ["Volume", "Area"]},
+        Type = {"choices": ["Volume", "Area", "Diameter", "Radius"]},
         Connectivity = {"choices": [1, 2, 3]},
         X_Max = {"max": 1000000},
         Y_Max = {"max": 1000000},
@@ -2169,26 +2189,38 @@ class ImageProcessor:
         
         if Type == "Volume":
             
-            Type = "Vol"
+            Type: str = "vol"
+            
+        elif Type == "Area":
+            
+            Type: str = "area"
+            
+        elif Type == "Diameter":
+            
+            Type: str = "diam"
+            
+        elif Type == "Radius":
+            
+            Type: str = "rad"
             
         if Connectivity > Image.data.ndim:
             
-            Connectivity = 2
+            Connectivity: int = 2
         
         if not Apply_Mask:
             
-            mask_name = None
+            mask_name: None = None
             
         else:
             
-            mask_name = Mask.name
+            mask_name: str = Mask.name
         
         if Add_as_Parameter:
             
             param_layer_name = get_param_layer_name("Domain Size Distribution Plot", self.operation_count)
             parameters_log.append(
                 {"Name": param_layer_name,
-                 "Type": Type.lower(),
+                 "Type": Type,
                  "Connectivity": Connectivity,
                  "Background": Background,
                  "Pixel Size": Pixel_Scale,
@@ -2230,7 +2262,7 @@ class ImageProcessor:
         if Apply_Mask:
             
             _ = plots.size_distribution(Image.data,
-                                        mode = Type.lower(),
+                                        mode = Type,
                                         units = Units,
                                         mask_array = Mask.data,
                                         xlims = x_lims,
@@ -2246,7 +2278,7 @@ class ImageProcessor:
         else:
             
             _ = plots.size_distribution(Image.data,
-                                        mode = Type.lower(),
+                                        mode = Type,
                                         units = Units,
                                         xlims = x_lims,
                                         ylims = y_lims,
@@ -2448,18 +2480,12 @@ def main() -> napari.viewer.Viewer:
     # Manipulate Widgets
     
     mod_trim_pad: widgets.Container = modify_funcgui(ui.trim_pad_widget, "Trim / Pad")
-    mod_add_shape: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
-    mod_create_shape_mask: widgets.Container = modify_funcgui(ui.create_shape_mask_widget, "Create Mask from Shapes")
-    mod_paint: widgets.Container = modify_funcgui(ui.paint_widget, "Paint")
-    mod_create_paint_mask: widgets.Container = modify_funcgui(ui.create_paint_mask_widget, "Create Mask from Paint")
-    mod_mask_logic: widgets.Container = modify_funcgui(ui.mask_logic_widget, "Mask Logic Operations")
-    mod_mask: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
     mod_crop: widgets.Container = modify_funcgui(ui.crop_widget, "Crop")
     mod_split: widgets.Container = modify_funcgui(ui.split_widget, "Split")
     mod_join: widgets.Container = modify_funcgui(ui.join_widget, "Join")
     mod_extend: widgets.Container = modify_funcgui(ui.extend_widget, "Extend")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic, mod_mask, mod_crop, mod_split, mod_join, mod_extend],
+        widgets = [mod_trim_pad, mod_crop, mod_split, mod_join, mod_extend],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     
@@ -2474,6 +2500,20 @@ def main() -> napari.viewer.Viewer:
         widgets = [mod_reslice, mod_rotate, mod_mirror, mod_rescale],
         labels = False)
     tabs.addTab(trans_container.native, "Transform")
+    
+    
+    # Masking Widgets
+    
+    mod_mask: widgets.Container = modify_funcgui(ui.mask_widget, "Mask")
+    mod_add_shape: widgets.Container = modify_funcgui(ui.add_shape_widget, "Add Shape")
+    mod_create_shape_mask: widgets.Container = modify_funcgui(ui.create_shape_mask_widget, "Create Mask from Shapes")
+    mod_paint: widgets.Container = modify_funcgui(ui.paint_widget, "Paint")
+    mod_create_paint_mask: widgets.Container = modify_funcgui(ui.create_paint_mask_widget, "Create Mask from Paint")
+    mod_mask_logic: widgets.Container = modify_funcgui(ui.mask_logic_widget, "Mask Logic Operations")
+    masking_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_mask, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic],
+        labels = False)
+    tabs.addTab(masking_container.native, "Masking")
     
     
     # Pixel Values Widgets
@@ -2521,7 +2561,7 @@ def main() -> napari.viewer.Viewer:
     tabs.addTab(segmentation_container.native, "Segmentation")
     
     
-    # Filter Widgets
+    # Morphology Widgets
     
     mod_remove_objects: widgets.Container = modify_funcgui(ui.remove_objects_widget, "Remove Small Objects")
     mod_dilate: widgets.Container = modify_funcgui(ui.dilate_widget, "Dilation")
@@ -2529,10 +2569,10 @@ def main() -> napari.viewer.Viewer:
     mod_close: widgets.Container = modify_funcgui(ui.close_widget, "Closing")
     mod_open: widgets.Container = modify_funcgui(ui.open_widget, "Opening")
     mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
-    filter_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+    morphology_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat],
         labels = False)
-    tabs.addTab(filter_container.native, "Filters")
+    tabs.addTab(morphology_container.native, "Morphology")
     
     
     # Feature Widgets
