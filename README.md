@@ -1,6 +1,6 @@
------------
---Preface--
------------
+-------
+Preface
+-------
 
 I am not a software developer. I am a PhD candidate who knows some things about image processing
 and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly
@@ -14,11 +14,10 @@ I am working on figuring out how to make this a single, downloadable executable 
 proven more difficult than I realized. Until then, installing PyDoug will require a little bit of work
 as explained below.
 
-----------------
---Installation--
-----------------
+------------
+Installation
+------------
 
-Windows
 1. Ensure that Python v3.13 is installed on your computer.
 2. Test that you have it by opening Windows PowerShell and typing "python".
    - If it worked, some information about python (3.13._) should pop up and the input line should have
@@ -26,7 +25,7 @@ Windows
    - If this is the case, type quit() to exit python and proceed. If this did not
      happen, do not continue with this process and figure this out first.
 3. Navigate to the Tags section in releases as I am frequently fixing bugs during the alpha phase.
-4. Download the zip file for the most recent tag.
+4. Download the .zip file for the most recent tag/release.
 5. Extract the contents wherever you please.
 6. Navigate inside the extracted folder. You should see a folder named "PyDoug" and several text documents.
 7. Move the PyDoug folder and the requirements_dist.txt file to your user folder (e.g. C:\Users\Your_Name)
@@ -47,3 +46,11 @@ Windows
     the above command 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug every time (assuming that you
     launch PowerShell in the C:\Users\Your_Name folder where the PyDoug folder is located).
 
+--------
+Updating
+--------
+
+1. Download the .zip file for the most recent tag/release.
+2. Extract the contents wherever you please.
+3. Navigate inside the extracted folder. Move the folder named "PyDoug" to the location of your current PyDoug folder.
+4. Allow it to replace all current files.
