@@ -119,6 +119,7 @@ I/O Tab
 A tab containing widgets related to the import and export of datasets and batch processing operation / parameters.
 
 **Import File**
+
 A widget for importing single image files (2D or 3D). You can just drag and drop single tiff/png/jpeg type files
 into the napari window if desired, but they can also be imported here. This widget can also import h5-type files
 and (theoretically) any file that the Pillow library can handle: https://pillow.readthedocs.io/en/stable/handbook/tutorial.html.
@@ -126,11 +127,13 @@ and (theoretically) any file that the Pillow library can handle: https://pillow.
 - "Import File": click to import the file.
 
 **Import File Sequence**
+
 A widget for importing sequences of files contained in a folder.
 - "Directory Path": click "Choose directory" to open a directory selector dialog to locate the folder containing the images.
 - "Import File Sequence": click to import the file sequence.
 
 **Export Image(s)**
+
 A wiget for exporting images (2D or 3D).
 - "Image" drop-down: Images in the layer list. Select the image to export.
 - "Method" drop-down: Available export formats (tiff or hdf5)
@@ -142,6 +145,7 @@ A wiget for exporting images (2D or 3D).
 - "Export Image(s)": click to export the image(s).
 
 **Export Parameters**
+
 A widget for exporting the current parameters log.
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will
   be created in this folder with the name provided in "Folder Name".
@@ -152,6 +156,7 @@ A widget for exporting the current parameters log.
 - "Export Parameters": click to export the parameters.
 
 **Batch Processing**
+
 A widget for batch processing other image(s) with an exported parameters log (parameters must be exported and saved already).
 - "Image Format" drop-down: select "Stacks" if importing image sequences, otherwise select "Singles" for 2D images or multi-page (3D) tiffs.
 - "Stack Format" drop-down: if "Image Format" is "Stacks", select "Multi-Page" if stacks are multi-page (3D) tiffs or hdf5-type files.
