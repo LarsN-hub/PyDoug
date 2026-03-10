@@ -124,25 +124,25 @@ A widget for importing single image files (2D or 3D). You can just drag and drop
 into the napari window if desired, but they can also be imported here. This widget can also import h5-type files
 and (theoretically) any file that the Pillow library can handle: https://pillow.readthedocs.io/en/stable/handbook/tutorial.html.
 - "File Path": click "Select file" to open a file selector dialog to locate the file.
-- "Import File": click to import the file.
+- "Import File" button: click to import the file.
 
 **Import File Sequence**
 
 A widget for importing sequences of files contained in a folder.
 - "Directory Path": click "Choose directory" to open a directory selector dialog to locate the folder containing the images.
-- "Import File Sequence": click to import the file sequence.
+- "Import File Sequence" button: click to import the file sequence.
 
 **Export Image(s)**
 
 A wiget for exporting images (2D or 3D).
-- "Image" drop-down: Images in the layer list. Select the image to export.
-- "Method" drop-down: Available export formats (tiff or hdf5)
-- "Multi Page" checkbox: Leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence.
+- "Image" drop-down: images in the layer list. Select the image to export.
+- "Method" drop-down: available export formats (tiff or hdf5)
+- "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence.
   Has no functionality if "Method" is "HDF5".
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will
   be created in this folder if exporting as a tiff sequence.
 - "Save Name": type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
-- "Export Image(s)": click to export the image(s).
+- "Export Image(s)" button: click to export the image(s).
 
 **Export Parameters**
 
@@ -153,7 +153,7 @@ A widget for exporting the current parameters log.
 - "Compress Masks" checkbox: leave checked to convert any masks used to 2D slices of their original 3D volume (if processing 3D images).
   If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices,
   DO NOT leave this checked.
-- "Export Parameters": click to export the parameters.
+- "Export Parameters" button: click to export the parameters.
 
 **Batch Processing**
 
@@ -164,7 +164,7 @@ A widget for batch processing other image(s) with an exported parameters log (pa
 - "Export Images" checkbox: leave checked to export the images after processing. Uncheck if you are just creating plots from the images.
 - "Export Multi Page" checkbox: leave checked to export stacks as multi-page (3D) tiffs. Uncheck to export stacks as image sequences.
 - "Copy Parameters" checkbox: leave checked to put a copy of the parameters used in the export folder.
-- "Run Batch Script": click to open the images selection dialog, followed by the parameters selection dialog, followed by the export
+- "Run Batch Script" button: click to open the images selection dialog, followed by the parameters selection dialog, followed by the export
   selection dialog, followed by the batch script itself.
 
 Manipulate Tab
@@ -173,18 +173,91 @@ A tab containing widgets that modify the dimensions of images.
 
 **Trim / Pad**
 
+A widget for removing (trimming) or adding (padding) specific amounts from/to each axis of an image.
+- "Image" drop-down: Images in the layer list. Select the image to trim/pad.
+- "Method" drop-down: select "Trim" to remove from each axis. Select "Pad" to add to each axis.
+- "Bounds as Slices" checkbox:
+   - Trim: leave checked to enter slice range to keep. Un-check to enter specific number of pixels to trim from each axis.
+   - Pad: leave checked to enter dimensions to expand image to. Un-check to enter specific number of pixels to add to each axis.
+- "X Bounds" checkbox: leave checked to affect the X axis with "X Min" and "X Max". Un-check to leave X axis untouched.
+- "X Min" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel column number left-of-which all columns will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel columns to remove from the left of the image.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
+     columns to add to the left of the image.
+- "X Max" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel column number right-of-which all columns will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel columns to remove from the right of the image.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand X axis to meet. If "Bounds as Slices" is unchecked, enter number
+     of pixel columns to add to the right of the image.
+- "Y Bounds" checkbox: leave checked to affect the Y axis with "Y Min" and "Y Max". Un-check to leave Y axis untouched.
+- "Y Min" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel row number above-which all rows will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel rows to remove from the top of the image.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
+     rows to add to the top of the image.
+- "Y Max" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel row number below-which all rows will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel rows to remove from the bottom of the image.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Y axis to meet. If "Bounds as Slices" is unchecked, enter number
+     of pixel rows to add to the bottom of the image.
+- "Z Bounds" checkbox: leave checked to affect the Z axis with "Z Min" and "Z Max". Un-check to leave Z axis untouched. No effect if the
+  image is not 3D.
+- "Z Min" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel slice number before-which all slices will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel slices to remove from the front of the stack.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
+     slices to add to the front of the stack.
+- "Z Max" integer:
+   - Trim: if "Bounds as Slices" is checked, enter pixel slice number after-which all slices will be removed. If "Bounds
+     as Slices" is unchecked, enter number of pixel slices to remove from the back of the stack.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Z axis to meet. If "Bounds as Slices" is unchecked, enter number
+     of pixel slices to add to the back of the stack.
+- "Padded Color" drop-down: select the default color to assign to pixels added by padding.
+- "Specify Color" checkbox: leave unchecked to use default "Padded Color". Check to specify a color in "Color Value".
+- "Color Value" float: enter specific intensity value to assign to pixels added by padding.
+- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer.
+  If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
+- "Trim / Pad" button: click to perform the trim or pad operation.
 
 **Crop**
 
+A widget for cropping an image using a pre-made mask (covered in Masking Tab).
+- "Image" drop-down: Images in the layer list. Select the image to crop.
+- "Mask" drop-down: Images in the layer list. Select the mask to use to crop "Image".
+- "Masked Color" drop-down: select the default color to assign to pixels outside of the mask but within the new image
+  (e.g. in the case of a circular crop)
+- "Specify Color" checkbox: leave unchecked to use default "Masked Color". Check to specify a color in "Color Value".
+- "Color Value" float: enter specific intensity value to assign to masked pixels remaining after cropping.
+- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer.
+  If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
+- "Crop" button: click to perform the crop operation.
 
 **Split**
 
+A widget for splitting an image (or stack) into two separate layers at a certain column/row/slice.
+Note, splitting will not go in the parameter log and cannot be performed in batch processing.
+- "Image" drop-down: Images in the layer list. Select the image to split.
+- "Split Index" integer: column, row, or slice at which to split the image or stack at.
+- "Axis" drop-down: select the axis to split the image or stack on.
+- "Split" button: click to perform the split operation.
 
 **Join**
 
+A widget for joining two images or stacks on a specified axis.
+Note, joining will not go in the parameter log and cannot be performed in batch processing.
+- "Image 1" drop-down: Images in the layer list. Select the first image to join. This will be earlier on the specified axis.
+- "Image 2" drop-down: Images in the layer list. Select the second image to join. This will be later on the specified axis.
+- "Axis" drop-down: select the axis to join the images or stacks on.
+- "Join" button: click to perform the join operation.
 
 **Extend**
 
+A widget for duplicating an image along the Z axis.
+- "Image" drop-down: Images in the layer list. Select the image to extend.
+- "Slice Count" integer: enter the number of slices that the new stack should have.
+- "Add as Parameter" checkbox: check to add this operation to the parameter log for batch processing.
+- "Extend" button: click to perform the extend operation.
 
 Transform Tab
 -------------
@@ -193,13 +266,17 @@ A tab containing widgets that perform geometric/matrix transformations on images
 **Reslice**
 
 
+
 **Rotate**
+
 
 
 **Mirror**
 
 
+
 **Rescale**
+
 
 
 Masking Tab
@@ -209,19 +286,25 @@ A tab containing widgets that can create and apply masks to images.
 **Mask**
 
 
+
 **Add Shape**
+
 
 
 **Create Mask from Shapes**
 
 
+
 **Paint**
+
 
 
 **Create Mask from Paint**
 
 
+
 **Mask Logic Operations**
+
 
 
 Pixel Values Tab
@@ -231,22 +314,29 @@ A tab containing widgets that alter the bit-dpeth and intensity values of pixels
 **Convert Type**
 
 
+
 **Normalize**
+
 
 
 **Saturate**
 
 
+
 **Equalize Histogram**
+
 
 
 **Invert**
 
 
+
 **Re-Assign Intensities**
 
 
+
 **RGB to Grayscale**
+
 
 
 Denoising Tab
@@ -256,25 +346,33 @@ A tab containing widgets that apply denoising filters to images.
 **Bilateral Filter**
 
 
+
 **Gaussian Blur**
+
 
 
 **Non-Local Means Filter**
 
 
+
 **Remove Background**
+
 
 
 **Ring Removal**
 
 
+
 **TV Bregman Filter**
+
 
 
 **TV Chambolle Filter**
 
 
+
 **Wavelet Filter**
+
 
 
 Segmentation Tab
@@ -284,19 +382,25 @@ A tab containing widgets that can segment images and label image segmentations.
 **Manual Threshold**
 
 
+
 **Label**
+
 
 
 **Histogram Threshold**
 
 
+
 **Local Threshold**
+
 
 
 **Random Walk**
 
 
+
 **Morphological Snakes**
+
 
 
 Morphology Tab
@@ -306,19 +410,25 @@ A tab containing widgets that apply morphology-based filters to segmented images
 **Remove Small Objects**
 
 
+
 **Dilation**
+
 
 
 **Erosion**
 
 
+
 **Closing**
+
 
 
 **Opening**
 
 
+
 **Top Hat**
+
 
 
 Features Tab
@@ -328,10 +438,13 @@ A tab containing widgets that detect features in images.
 **Edge Detection**
 
 
+
 **Corner Detection**
 
 
+
 **Measure Angles**
+
 
 
 Analysis Tab
@@ -341,25 +454,33 @@ A tab containing widgets that generate plots and measurements of images.
 **Histogram**
 
 
+
 **Line Scan**
+
 
 
 **Gray Level**
 
 
+
 **FFT**
+
 
 
 **Misc Calculations**
 
 
+
 **Axial Distributions**
+
 
 
 **Domain Size Distribution**
 
 
+
 **Heat Maps**
+
 
 
 ------------
