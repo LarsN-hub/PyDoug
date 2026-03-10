@@ -225,19 +225,27 @@ def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer
     
 def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
     
-    if len(mask_array.shape) < len(im_array.shape):
+    if mask_array.dtype != np.bool:
         
-        mask_array = project_mask(mask_array, im_array.shape[0])
+        bool_array: np.ndarray = np.astype(mask_array, np.bool)
+        
+    else:
+        
+        bool_array: np.ndarray = np.copy(mask_array)
+    
+    if bool_array.ndim < im_array.ndim:
+        
+        bool_array = project_mask(bool_array, im_array.shape[0])
     
     if conserve_mem:
         
         if method == "out":
         
-            im_array[np.logical_not(mask_array)] = mask_color
+            im_array[np.logical_not(bool_array)] = mask_color
             
         elif method == "in":
             
-            im_array[mask_array] = mask_color
+            im_array[bool_array] = mask_color
         
         return im_array
     
@@ -247,11 +255,11 @@ def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", m
         
         if method == "out":
         
-            masked_array[np.logical_not(mask_array)] = mask_color
+            masked_array[np.logical_not(bool_array)] = mask_color
             
         else:
             
-            masked_array[mask_array] = mask_color
+            masked_array[bool_array] = mask_color
         
         return masked_array
     
@@ -265,7 +273,11 @@ def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | in
     
     if mask_array.dtype != np.bool:
         
-        bool_array = np.astype(mask_array, np.bool)
+        bool_array: np.ndarray = np.astype(mask_array, np.bool)
+        
+    else:
+        
+        bool_array: np.ndarray = np.copy(mask_array)
     
     if bool_array.ndim < im_array.ndim:
         
