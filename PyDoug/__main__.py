@@ -293,16 +293,9 @@ class ImageProcessor:
     @magicgui(
         call_button = "Import File")
     def im_import_widget(self,
-        Multi_Page: bool = True,
         File_Path: pathlib.Path = pathlib.Path("~")) -> None:
         
-        if Multi_Page:
-            
-            self.viewer.add_image(rw.read_stack(str(File_Path)), name = "Image")
-            
-        else:
-            
-            self.viewer.add_image(rw.read_im(str(File_Path)), name = "Image")
+        self.viewer.add_image(rw.read_stack(str(File_Path)), name = "Image")
     
     @magicgui(
         Directory_Path = {"mode": "d"},
@@ -374,6 +367,7 @@ class ImageProcessor:
         Z_Min = {"max": 10000},
         Z_Max = {"max": 10000},
         Padded_Color = {"choices": ["Black", "White", "Gray"]},
+        Color_Value = {"max": 65535},
         call_button = "Trim / Pad")
     def trim_pad_widget(self,
         Image: napari.layers.Image,
@@ -544,6 +538,7 @@ class ImageProcessor:
                                           mask_color = color_spec), name = param_layer_name)
             
     @magicgui(
+        Split_Index = {"max": 10000},
         Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Split")
     def split_widget(self,
@@ -677,6 +672,8 @@ class ImageProcessor:
         sv.add_shape(self.viewer, Shape_Type.lower(), n_vertices = Polygon_Vertices)
     
     @magicgui(
+        Slice_Start = {"max": 10000},
+        Slice_End = {"max": 10000},
         call_button = "Create Mask")
     def create_shape_mask_widget(self,
         Image: napari.layers.Image,
