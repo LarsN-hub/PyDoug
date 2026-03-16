@@ -964,6 +964,7 @@ class ImageProcessor:
     @magicgui(
         Axis = {"choices": ["X", "Y", "Z"]},
         Edges_Method = {"choices": ["Constant", "Edge", "Symmetric", "Reflect", "Wrap"]},
+        Constant_Value = {"max": 65535},
         call_button = "Filter")
     def bilateral_widget(self,
         Image: napari.layers.Image,
@@ -1002,6 +1003,7 @@ class ImageProcessor:
         
     @magicgui(
         Edges_Method = {"choices": ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]},
+        Constant_Value = {"max": 65535},
         Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Filter")
     def gaussian_widget(self,
@@ -1009,9 +1011,9 @@ class ImageProcessor:
         Sigma: float = 1.0,
         Truncate: float = 4.0,
         Edges_Method: str = "Nearest",
+        Constant_Value: float = 0,
         Along_Axis: bool = False,
-        Axis: str = "Z",
-        Constant_Value: float = 0) -> None:
+        Axis: str = "Z") -> None:
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         param_layer_name = get_param_layer_name("Gaussian", self.operation_count)
@@ -1078,7 +1080,7 @@ class ImageProcessor:
         Method = {"choices": ["FFT", "Wavelet"]},
         Wavelet = {"choices": pywt.wavelist()},
         Square_Axis = {"choices": ["X", "Y", "Z"]},
-        call_button = "Remove Rings")
+        call_button = "Filter")
     def ring_removal_widget(self,
         Image: napari.layers.Image,
         Method: str = "FFT",
