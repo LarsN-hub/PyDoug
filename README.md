@@ -392,16 +392,42 @@ A widget for converting the data type of images.
 A widget for normalizing the intensity range of images to a new range. This operation can be performed automatically for the
 data type range of an image in the "Saturate" and "Convert Type" widgets.
 - "Image" drop-down: images in the layer list. Select the image to normalize.
+- "Input Range" checkbox: check to specify an input range to normalize. Values outside this range will be clipped (as in saturation).
+  If unchecked, the current range of the image will be used.
+- "Input Min" float: specify the input range minimum if "Input Range" is checked.
+- "Input Max" float: specify the input range maximum if "Input Range" is checked.
+- "Output Range" checkbox: check to specify an output range for normalization. If unchecked, the range of the image's data type will be used.
+- "Output Min" float: specify the output range minimum if "Output Range" is checked.
+- "Output Max" float: specify the output range maximum if "Output Range" is checked.
+- "Normalize" button: click to perform the normalization operation.
 
 **Saturate**
 
-A widget for cropping the image's histogram at extreme intensity values. Contrast can then be enhanced by normalizing.
+A widget for clipping the image's histogram at extreme intensity values. Contrast can then be enhanced by normalizing.
 - "Image" drop-down: images in the layer list. Select the image to saturate.
+- "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the image's data type's range after saturation.
+- "Bounds as Percentages": leave checked to input the saturation bounds as percentages of the total image pixels. Uncheck to input specific
+  intensity values. Regardless of the option used, the parameters log will record the specific intensity values used for consistency in batch
+  processing. Note that leaving checked will require a calculation that may take some time depending on the image dimensions.
+- "Min Bound" float: input the minimum bound for saturation.
+- "Max Bound" float: input the maximum bound for saturation.
+- "Apply Mask" checkbox: check to apply a mask to the image during saturation. Pixels that are masked will not be considered in the calculation
+  of bounds percentages. This has no effect if "Bounds as Percentages" is unchecked.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Saturate" button: click to perform the saturation operation.
 
 **Equalize Histogram**
 
 A widget for enhancing image contrast by equalizing the histogram (making brighter areas brighter and darker areas darker).
 - "Image" drop-down: images in the layer list. Select the image to equalize.
+- "Method" drop-down: select the equalization method. "Global" takes all pixel values into account whereas "Local" and "Adaptive" consider only the surrounding
+  neighborhood of pixels.
+- "Local Radius" integer: input the radius to be used if "Method" is "Local".
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Apply Mask" checkbox: check to apply a mask to the image during equalization. Pixels that are masked will not be considered in the equalization calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Equalize Histogram" button: click to perform the equalization operation.
 
 **Invert**
 
