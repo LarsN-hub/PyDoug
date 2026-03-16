@@ -584,15 +584,32 @@ A tab containing widgets that can segment images and label image segmentations.
 
 **Manual Threshold**
 
-
+A widget for manual binary segmentation of an image/stack.
+- "Image" drop-down: images in the layer list. Select the image to segment.
+- "Preview" checkbox: check to turn on a label layer preview of what will be segmented with the current range. Updates dynamically if left on.
+- "Range" slidebar: adjust the lower and upper inclusive bounds of the segmentation. Click on the intensity readout above each slider to type in a value.
+- "Segment" button: click to perform the segmentation operation.
 
 **Label**
 
+A widget for labeling segmented images/stacks using connectivity or watershed based methods.
 More info: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label,
 https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.watershed
+- "Image" drop-down: images in the layer list. Select the segmented image to label.
+- "Method" drop-down: select the labeling method.
+- "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
+- "Watershed Radius" integer: if "Method" is "Watershed", input the radius of the watershed kernel (larger = larger watersheds).
+- "Watershed Compactness" float: if "Method" is "Watershed", input the compactness factor of the watershed regions (higher = more compact).
+- "Background" integer: input the intensity of the background ROI.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Apply Mask" checkbox: check to apply a mask to the image during labeling. Pixels that are masked will not be labeled.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Label Segmentation" button: click to perform the labeling operation.
 
 **Histogram Threshold**
 
+A widget for histogram-based segmentation algorithms of images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_isodata,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_li,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_mean,
@@ -600,22 +617,52 @@ https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.th
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_otsu,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_triangle,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_yen
+- "Image" drop-down: images in the layer list. Select the image to segment.
+- "Method" drop-down: select the algorithm to be used for segmentation.
+- "Otsu Classes" integer: if "Method" is "Otsu", input the number of ROIs to segment.
+- "Apply Mask" checkbox: check to apply a mask to the image during segmentation. Pixels that are masked will not be included in the histogram.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Segment" button: click to perform the segmentation operation.
 
 **Local Threshold**
 
+A widget for neighborhood-based segmentation algorithms of images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_local,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_niblack,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_sauvola,
 https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filters.rank.threshold
+- "Image" drop-down: images in the layer list. Select the image to segment.
+- "Method" drop-down: select the algorithm to be used for segmentation.
+- "Radius" integer: input the kernel radius.
+- "Niblack or Savoula Sigma Weight" float: if "Method" is "Niblack" or "Savoula", input the weight of the standard deviation of intensities.
+- "Savoula Sigma Range" float: if "Method" is "Savoula", input the dynamic standard deviation range. Leave as 0 for automatic calculation.
+- "Apply Mask" checkbox: check to apply a mask to the image during segmentation. Pixels that are masked will be segmented as background.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Segment" button" click to perform the segmentation operation.
 
 **Random Walk**
 
+A widget for random walk segmentation of images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.random_walker
+- "Image" drop-down: images in the layer list. Select the image to segment.
+- "Beta" float: input penalization coefficient for walker model (higher = more difficult diffusion).
+- "Lower Percentile" float: input lower intensity percentile for use as random walk marker.
+- "Upper Percentile" float: input upper intensity percentile for use as random walk marker.
+- "Segment" button: click to perform segmentation operation.
 
 **Morphological Snakes**
 
+A widget for morphological snake segmentation of images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_chan_vese,
 https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_geodesic_active_contour
+- "Image" drop-down: images in the layer list. Select the image to segment.
+- "Method" drop-down: select the morphological snake method.
+- "Iterations" integer: input the number of iterations to run the algorithm for optimization.
+- "Square Size" integer: input square size of the initial level set.
+- "GAC Alpha" float: if "Method" is "GAC", input inversion steepness for IGG-based edge detection.
+- "GAC Sigma" float: if "Method" is "GAC", input standard deviation for IGG-based edge detection.
+- "GAC Smoothing" integer: if "Method" is "GAC", input smoothing iterations (larger = smoother segmentation).
+- "Segment" button: click to perform segmentation operation.
 
 Morphology Tab
 --------------
@@ -623,28 +670,67 @@ A tab containing widgets that apply morphology-based filters to segmented images
 
 **Remove Small Objects**
 
+A widget for removing small particles or holes in segmented images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects,
 https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
+- "Image" drop-down: images in the layer list. Select the image to remove objects.
+- "Method" drop-down: select "Particles" for small white objects or "Holes" for small black objects.
+- "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
+- "Size Threshold" float: input the smallest allowed size of the objects being removed.
+- "Background" integer: input the background ROI intensity.
+- "Pixel Scale" float: input the units/pixel (leave as 1 if "Size Threshold" is entered in pixels).
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Remove Objects" button: click to perform the remove objects operation.
 
 **Dilation**
 
+A widget for dilating segmented images.
 More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.dilation
+- "Image" drop-down: images in the layer list. Select the image to dilate.
+- "Iterations" integer: input the number of dilations to perform.
+- "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
+- "Dilate" button: click to perform the dilation operation.
 
 **Erosion**
 
+A widget for eroding segmented images.
 More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.erosion
+- "Image" drop-down: images in the layer list. Select the image to erode.
+- "Iterations" integer: input the number of erosions to perform.
+- "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
+- "Erode" button: click to perform the erosion operation.
 
 **Closing**
 
-
+A widget for closing segmented images. Closing is defined as a dilation followed by an erosion and is good for removing small dark spots
+(i.e. "closing" dark holes in the image).
+- "Image" drop-down: images in the layer list. Select the image to close.
+- "Dilations" integer: input the number of dilations to perform before performing erosions.
+- "Erosions" integer: input the number of erosions to perform after performing dilations.
+- "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
+- "Close" button: click to perform the closing operation.
 
 **Opening**
 
-
+A widget for opening segmented images. Opening is defined as an erosion followed by a dilation and is good for removing small bright spots
+(i.e. "opening" large dark holes in the image).
+- "Image" drop-down: images in the layer list. Select the image to open.
+- "Erosions" integer: input the number of erosions to perform before performing dilations.
+- "Dilations" integer: input the number of dilations to perform after performing erosions.
+- "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
+- "Open" button: click to perform the opening operation.
 
 **Top Hat**
 
-
+A widget for performing tophats on images. A black top hat is defined as a closing of an image subtracted by the original image and is good for
+returning small dark spots. A white top hat is defined as an image subtracted by its opening and is good for returning small bright spots.
+- "Image" drop-down: images in the layer list. Select the image to top hat.
+- "Method" drop-down: select the top hat method.
+- "Dilations" integer: input the number of dilations to perform in the selected top hat method.
+- "Erosions" integer: input the number of erosions to perform in the selected top hat method.
+- "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
+- "Top Hat" button: click to perform the top hat operation.
 
 Features Tab
 ------------
@@ -652,6 +738,7 @@ A tab containing widgets that detect features in images.
 
 **Edge Detection**
 
+A widget for detecting edges in images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.canny,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.farid,
 https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.inverse_gaussian_gradient,
@@ -660,18 +747,36 @@ https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.pr
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.roberts,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.scharr,
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.sobel
+- "Image" drop-down: images in the layer list. Select the image to detect edges.
+- "Method" drop-down: select the edge-detection method to use.
+- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
+- "Canny or IGG Sigma" float: if "Method" is "Canny" or "IGG", input the standard deviation of intensity values.
+- "IGG Alpha" float: if "Method" is "IGG", input inversion steepness.
+- "Laplace K Size" integer: if "Method" is "Laplace", input the Laplacian operator size.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Detect Edges" button: click to perform the edge detection operation.
 
 **Corner Detection**
 
+A widget for detecting corners in images/stacks.
 More info: https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_fast,
 https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_harris,
 https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_kitchen_rosenfeld,
 https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_moravec,
 https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_shi_tomasi
-
-**Measure Angles**
-
-
+- "Image" drop-down: images in the layer list. Select the image to detect corners.
+- "Method" drop-down: select the corner detection algorithm.
+- "Fast N" integer: if "Method" is "Fast", input the number of consecutive pixels for corner detection.
+- "Fast Threshold" float: if "Method" is "Fast", input the threshold for corner validation (smaller = more corners).
+- "Harris Method" drop-down: if "Method" is "Harris", select the Harris detection method.
+- "Harris K" float: if "Method" is "Harris" and "Harris Method" is "K", input corner from edge sensitivity factor.
+- "Harris Epsilon" float: if "Method" is "Harris" and "Harris Method" is "Epsilon", input normalization factor.
+- "Harris or Shi Tomasi Sigma" float: if "Method" is "Harris" or "Shi Tomasi", input Gaussian kernel standard deviation.
+- "Moravec Window Size" integer: if "Method" is "Moravec", input the kernel window size.
+- "Correct Anomalies" checkbox: leave checked to remove corners that appear extraneously in the middle of open regions in the original image.
+- "Return Mode" drop-down: select the ouput mode for corner analysis.
+- "Detect Corners" button: click to perform the coner detection operation.
 
 Analysis Tab
 ------------
