@@ -883,7 +883,9 @@ class ImageProcessor:
              "Mask Used": mask_name})
         self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = False), name = param_layer_name)
 
-    @magicgui(Method = {"choices": ["Global", "Local", "Adaptive"]},
+    @magicgui(
+        Method = {"choices": ["Global", "Local", "Adaptive"]},
+        Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Equalize Histogram")
     def equalize_widget(self,
         Image: napari.layers.Image,
