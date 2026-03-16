@@ -1710,18 +1710,6 @@ class ImageProcessor:
                                              window_size = Moravec_Window_Size,
                                              correct_anomalies = Correct_Anomalies,
                                              return_mode = Return_Mode), name = param_layer_name)
-        
-    @magicgui(
-        call_button = "Measure Angles")
-    def angles_widget(self,
-        Image: napari.layers.Image,
-        Minimum_Size: int = 3) -> None:
-        
-        param_layer_name = get_param_layer_name("Angle Measurement", self.operation_count)
-        self.parameters_log.append(
-            {"Name": param_layer_name,
-             "Minimum Size": Minimum_Size})
-        self.viewer.add_image(detect.opening_angles(Image.data, Minimum_Size), name = param_layer_name)
     
         
     ####################
@@ -2561,9 +2549,8 @@ def main() -> napari.viewer.Viewer:
     
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
-    mod_angles: widgets.Container = modify_funcgui(ui.angles_widget, "Measure Angles")
     feature_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_edge_detect, mod_corner_detect, mod_angles],
+        widgets = [mod_edge_detect, mod_corner_detect],
         labels = False)
     tabs.addTab(feature_container.native, "Features")
     
