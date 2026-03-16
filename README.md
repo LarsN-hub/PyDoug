@@ -433,16 +433,21 @@ A widget for enhancing image contrast by equalizing the histogram (making bright
 
 A widget for inverting the intensity values of images within the data type's range (bright becomes dark and vice versa).
 - "Image" drop-down: images in the layer list. Select the image to invert.
+- "Invert" button: click to perform the inversion operation.
 
 **Re-Assign Intensities**
 
 A widget for assigning specific intensity values to new intensity values.
-- "Image" drop-down: images in the layer list. Select the image to convert.
+- "Image" drop-down: images in the layer list. Select the image to re-assign.
+- "Input Intensity" float: input the intensity to be re-assigned.
+- "Output Intensity" float: input the intensity to re-assign "Input Intensity" to.
+- "Re-Assign" button: click to perform the re-assign operation.
 
 **RGB to Grayscale**
 
 A widget for converting RGB images to grayscale.
 - "Image" drop-down: images in the layer list. Select the RGB image to convert to grayscale.
+- "Grayscale" button: click to perform the RGB to grayscale operation.
 
 Denoising Tab
 -------------
