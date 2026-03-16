@@ -291,6 +291,7 @@ A widget for reslicing a stack to observe from a different direction. Treats the
 **Rotate**
 
 A widget for rotating an image or stack around the center of the Z axis.
+More info: https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.rotate
 - "Image" drop-down: images in the layer list. Select the image to rotate.
 - "Clockwise" checkbox: check to rotate clockwise. Leave unchecked to rotate counter clockwise.
 - "Resize" checkbox: leave unchecked to keep original image dimensions. Check to expand dimensions outwards to avoid cropping
@@ -308,6 +309,7 @@ A widget for mirroring (flipping) an image or stack along an axis.
 **Rescale**
 
 A widget for rescaling pixels (image) or voxels (stack).
+More info: https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.rescale
 - "Image" drop-down: images in the layer list. Select the image to rescale.
 - "Scale" float: enter the scale by which to downsize (<1) or upsize (>1) the image.
 - "Rescale" button: click to perform the rescale operation.
@@ -378,6 +380,13 @@ A tab containing widgets that alter the bit-dpeth and intensity values of pixels
 **Convert Type**
 
 A widget for converting the data type of images.
+More info: https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_bool,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_float,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_float32,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_float64,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_int,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_ubyte,
+https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_uint
 - "Image" drop-down: images in the layer list. Select the image to convert.
 - "Type" drop-down: data type options for conversion.
 - "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the new type's range after conversion.
@@ -391,6 +400,7 @@ A widget for converting the data type of images.
 
 A widget for normalizing the intensity range of images to a new range. This operation can be performed automatically for the
 data type range of an image in the "Saturate" and "Convert Type" widgets.
+More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.rescale_intensity
 - "Image" drop-down: images in the layer list. Select the image to normalize.
 - "Input Range" checkbox: check to specify an input range to normalize. Values outside this range will be clipped (as in saturation).
   If unchecked, the current range of the image will be used.
@@ -419,6 +429,9 @@ A widget for clipping the image's histogram at extreme intensity values. Contras
 **Equalize Histogram**
 
 A widget for enhancing image contrast by equalizing the histogram (making brighter areas brighter and darker areas darker).
+More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.equalize_hist,
+https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.equalize_adapthist,
+https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filters.rank.equalize
 - "Image" drop-down: images in the layer list. Select the image to equalize.
 - "Method" drop-down: select the equalization method. "Global" takes all pixel values into account whereas "Local" and "Adaptive" consider only the surrounding
   neighborhood of pixels.
@@ -432,6 +445,7 @@ A widget for enhancing image contrast by equalizing the histogram (making bright
 **Invert**
 
 A widget for inverting the intensity values of images within the data type's range (bright becomes dark and vice versa).
+More info: https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.invert
 - "Image" drop-down: images in the layer list. Select the image to invert.
 - "Invert" button: click to perform the inversion operation.
 
@@ -446,6 +460,7 @@ A widget for assigning specific intensity values to new intensity values.
 **RGB to Grayscale**
 
 A widget for converting RGB images to grayscale.
+More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.rgb2gray
 - "Image" drop-down: images in the layer list. Select the RGB image to convert to grayscale.
 - "Grayscale" button: click to perform the RGB to grayscale operation.
 
@@ -457,6 +472,7 @@ A tab containing widgets that apply denoising filters to images.
 
 A widget for applying a bilateral filter to an image/stack. A bilateral filter is an edge-preserving smoothing filter.
 Note that the bilateral filter can only be applied along an axis in 3D.
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_bilateral
 - "Image" drop-down: images in the layer list. Select the image to filter.
 - "Axis" drop-down: select the axis along which the filter will be applied. This has no effect on a 2D image.
 - "Window Size" integer: input the window size of the local filter. Leave as 0 for automatic calculation.
@@ -470,46 +486,96 @@ Note that the bilateral filter can only be applied along an axis in 3D.
 **Gaussian Blur**
 
 A widget for applying a gaussian blur filter to an image/stack. A gaussian blur is a smoothing filter that does not preserve edges.
+More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.gaussian
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Sigma" float: input the standard deviation for the Gaussian kernel (higher = smoother).
+- "Truncate" float: input the number of standard deviations after which the filter in truncated.
+- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
+- "Constant Value" float: input the value to be used if "Edges Method" is "Constant".
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Filter" button: click to perform the filter operation.
 
 **Non-Local Means Filter**
 
 A widget for applying a non-local means filter to an image/stack. A non-local means filter is an edge-preserving smoothing filter.
 Note that this filter is very slow with image stacks.
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_nl_means
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Patch Size" integer: input the size of the non-local means kernel.
+- "Patch Distance" integer: input the radius around pixels where other patches can be searched for.
+- "Cut Off Distance" float: input the distance in gray value above which other patches are not accepted (higher = smoother).
+- "Sigma" float: input the standard deviation of the Gaussian noise. Leave as 0 for automatic calculation.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Filter" button: click to perform the filter operation.
 
 **Remove Background**
 
 A widget for removing background from an image/stack. This filter will attempt to identify foreground from background and smooth the background.
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.rolling_ball
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Radius" integer: input the radius of the rolling ball used to find the background of the image.
 - "Filter" button: click to perform the filter operation.
 
 **Ring Removal**
 
 A widget for applying a ring-removal filter to an image/stack. These filters attempt to smooth radial ring artifacts typically seen in XCT data.
+Note, images must be perfectly square along the "Square Axis".
+More info: https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_fft,
+https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_wavelet_fft
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Method" drop-down: select the ring-removal method to be used.
+- "FFT Freq Cutoff" integer: if "Method" is "FFT", input the frequency cutoff.
+- "FFT Filter Order" integer: if "Method" is "FFT", input the filter order.
+- "FFT Rows" integer: if "Method" is "FFT", input the number of rows to apply the filter on.
+- "Wavelet" drop-down: if "Method" is "Wavelet", select the wavelet to use for wavelet domain conversion.
+- "Wavelet Level" integer: if "Method" is "Wavelet", input the wavelet decomposition level.
+- "Wavelet Damping Size" intger: if "Method" is "Wavelet", input the wavelet damping size.
+- "Sorting" checkbox: if checked, apply a sorting algorithm to potentially enhance strip removal (more computationally expensive).
+- "Square Axis" drop-down: select the axis to apply the operation along (must be perfectly square).
 - "Filter" button: click to perform the filter operation.
 
 **TV Bregman Filter**
 
 A widget for applying a total variation Bregman filter to an image/stack. A TV Bregman filter attempts to smooth an image while remaining similar
 to the original image.
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_tv_bregman
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Weight" float: input denoising weight (smaller = smoother).
+- "Epsilon" float: input tolerance for stop criterion.
+- "Max Iterations" integer: input the max number of iterations allowed for optimization.
+- "Isotropic" checkbox: leave checked if noise is isotropic along all axes. Uncheck for anisotropic denoising.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Filter" button: click to perform the filter operation.
 
 **TV Chambolle Filter**
 
 A widget for applying a total variation Chambolle filter to an image/stack. A TV Chambolle filter attempts to smooth an image while remaining similar
 to the original image.
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_tv_chambolle
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Weight" float: input denoising weight (greater = smoother).
+- "Epsilon" float: input tolerance for stop criterion.
+- "Max Iterations" integer: input the max number of iterations allowed for optimization.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Filter" button: click to perform the filter operation.
 
 **Wavelet Filter**
 
 A widget for applying a wavelet filter to an image/stack. A wavelet filter denoises an image in the wavelet domain (similar to the frequency domain).
+More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_wavelet
 - "Image" drop-down: images in the layer list. Select the image to filter.
+- "Wavelet" drop-down: select the wavelet to use for wavelet domain conversion.
+- "Mode" drop-down: select the type of denoising to be performed.
+- "Sigma" float: input the standard deviation of the noise.
+- "Wavelet Levels" integer: input the wavelet decomposition level.
+- "Threshold Method" drop-down: select the wavelet thresholding method to be used.
+- "Rescale Sigma" checkbox: leave checked to rescale the input sigma if the image is rescaled for denoising.
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Filter" button: click to perform the filter operation.
 
 Segmentation Tab
@@ -522,23 +588,34 @@ A tab containing widgets that can segment images and label image segmentations.
 
 **Label**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label,
+https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.watershed
 
 **Histogram Threshold**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_isodata,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_li,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_mean,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_minimum,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_otsu,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_triangle,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_yen
 
 **Local Threshold**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_local,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_niblack,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.threshold_sauvola,
+https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filters.rank.threshold
 
 **Random Walk**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.random_walker
 
 **Morphological Snakes**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_chan_vese,
+https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_geodesic_active_contour
 
 Morphology Tab
 --------------
@@ -546,15 +623,16 @@ A tab containing widgets that apply morphology-based filters to segmented images
 
 **Remove Small Objects**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects,
+https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
 
 **Dilation**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.dilation
 
 **Erosion**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.erosion
 
 **Closing**
 
@@ -574,11 +652,22 @@ A tab containing widgets that detect features in images.
 
 **Edge Detection**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.canny,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.farid,
+https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.inverse_gaussian_gradient,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.laplace,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.prewitt,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.roberts,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.scharr,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.sobel
 
 **Corner Detection**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_fast,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_harris,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_kitchen_rosenfeld,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_moravec,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.corner_shi_tomasi
 
 **Measure Angles**
 
@@ -590,7 +679,7 @@ A tab containing widgets that generate plots and measurements of images.
 
 **Histogram**
 
-
+More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.histogram
 
 **Line Scan**
 
@@ -602,7 +691,8 @@ A tab containing widgets that generate plots and measurements of images.
 
 **FFT**
 
-
+More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2,
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
 
 **Misc Calculations**
 
