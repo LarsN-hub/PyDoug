@@ -455,35 +455,62 @@ A tab containing widgets that apply denoising filters to images.
 
 **Bilateral Filter**
 
-
+A widget for applying a bilateral filter to an image/stack. A bilateral filter is an edge-preserving smoothing filter.
+Note that the bilateral filter can only be applied along an axis in 3D.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Axis" drop-down: select the axis along which the filter will be applied. This has no effect on a 2D image.
+- "Window Size" integer: input the window size of the local filter. Leave as 0 for automatic calculation.
+- "Sigma Color" float: input the standard deviation of the grayscale intensities to be smoothed. Leave as 0 for automatic calculation.
+- "Sigma Spatial" float: input the standard deviation of the range distance for edge detection.
+- "Bins" integer: larger value = higher accuracy for Gaussian weights color filtering.
+- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
+- "Constant Value" float: input the value to be used if "Edges Method" is "Constant".
+- "Filter" button: click to perform the filter operation.
 
 **Gaussian Blur**
 
-
+A widget for applying a gaussian blur filter to an image/stack. A gaussian blur is a smoothing filter that does not preserve edges.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **Non-Local Means Filter**
 
-
+A widget for applying a non-local means filter to an image/stack. A non-local means filter is an edge-preserving smoothing filter.
+Note that this filter is very slow with image stacks.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **Remove Background**
 
-
+A widget for removing background from an image/stack. This filter will attempt to identify foreground from background and smooth the background.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **Ring Removal**
 
-
+A widget for applying a ring-removal filter to an image/stack. These filters attempt to smooth radial ring artifacts typically seen in XCT data.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **TV Bregman Filter**
 
-
+A widget for applying a total variation Bregman filter to an image/stack. A TV Bregman filter attempts to smooth an image while remaining similar
+to the original image.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **TV Chambolle Filter**
 
-
+A widget for applying a total variation Chambolle filter to an image/stack. A TV Chambolle filter attempts to smooth an image while remaining similar
+to the original image.
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 **Wavelet Filter**
 
-
+A widget for applying a wavelet filter to an image/stack. A wavelet filter denoises an image in the wavelet domain (similar to the frequency domain).
+- "Image" drop-down: images in the layer list. Select the image to filter.
+- "Filter" button: click to perform the filter operation.
 
 Segmentation Tab
 ----------------
