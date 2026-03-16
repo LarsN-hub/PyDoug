@@ -777,7 +777,7 @@ class ImageProcessor:
     def convert_type_widget(self,
         Image: napari.layers.Image,
         Type: str = "Uint8",
-        Auto_Normalize: bool = False,
+        Auto_Normalize: bool = True,
         Bounds: bool = False,
         Min: float = 0,
         Max: float = 0) -> None:
@@ -848,7 +848,7 @@ class ImageProcessor:
         call_button = "Saturate")
     def saturate_widget(self,
         Image: napari.layers.Image,
-        Auto_Normalize: bool = False,
+        Auto_Normalize: bool = True,
         Bounds_as_Percentages: bool = True,
         Min_Bound: float = 0,
         Max_Bound: float = 100,
