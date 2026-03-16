@@ -121,7 +121,11 @@ More info here: https://napari.org/stable/howtos/layers/shapes.html.
 
 **Labels Layer**
 
-
+After adding a labels layer (covered in the Masking Tab), the labels layer can be interacted with by clicking on it in the layer list.
+Use the paintbrush option to draw on the image. The brush size can be altered and drawing in 2D or 3D can be performed. Change the label
+index to change the color. Note that all label colors will be converted to the white portion of the mask (if painting a mask). Use the
+paint-fill bucket to color an entire image/slice or within a pre-drawn boundary. DO NOT try to paint fill in 3D or the program will
+almost certainly crash. Use the eraser option to remove previously drawn labels.
 More info here: https://napari.org/stable/howtos/layers/labels.html.
 
 -------
@@ -345,7 +349,7 @@ Note, creating a mask will not go in the parameter log and cannot be performed i
 
 **Paint**
 
-A widget for creating a labels layer for painting.
+A widget for creating a labels layer for painting. Painting in the labels layer is covered in General Info.
 Note, painting will not go in the parameter log and cannot be performed in batch processing.
 - "Image" drop-down: images in the layer list. Select the image to make a label layer with matching dimensions.
 - "Paint" button: click to create the labels layer for painting.
@@ -373,31 +377,46 @@ A tab containing widgets that alter the bit-dpeth and intensity values of pixels
 
 **Convert Type**
 
-
+A widget for converting the data type of images.
+- "Image" drop-down: images in the layer list. Select the image to convert.
+- "Type" drop-down: data type options for conversion.
+- "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the new type's range after conversion.
+  This has no effect when converting between integer data types.
+- "Bounds" checkbox: check to specify the bounds to normalize between if "Auto-Normalize" is checked.
+- "Min" float: input minimum bound for normalization if "Bounds" checked.
+- "Max" float: input maximum bound for normalization if "Bounds" checked.
+- "Convert Type" button: click to perform the type conversion operation.
 
 **Normalize**
 
-
+A widget for normalizing the intensity range of images to a new range. This operation can be performed automatically for the
+data type range of an image in the "Saturate" and "Convert Type" widgets.
+- "Image" drop-down: images in the layer list. Select the image to normalize.
 
 **Saturate**
 
-
+A widget for cropping the image's histogram at extreme intensity values. Contrast can then be enhanced by normalizing.
+- "Image" drop-down: images in the layer list. Select the image to saturate.
 
 **Equalize Histogram**
 
-
+A widget for enhancing image contrast by equalizing the histogram (making brighter areas brighter and darker areas darker).
+- "Image" drop-down: images in the layer list. Select the image to equalize.
 
 **Invert**
 
-
+A widget for inverting the intensity values of images within the data type's range (bright becomes dark and vice versa).
+- "Image" drop-down: images in the layer list. Select the image to invert.
 
 **Re-Assign Intensities**
 
-
+A widget for assigning specific intensity values to new intensity values.
+- "Image" drop-down: images in the layer list. Select the image to convert.
 
 **RGB to Grayscale**
 
-
+A widget for converting RGB images to grayscale.
+- "Image" drop-down: images in the layer list. Select the RGB image to convert to grayscale.
 
 Denoising Tab
 -------------
