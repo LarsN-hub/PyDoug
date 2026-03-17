@@ -326,31 +326,56 @@ def crop(im_array: np.ndarray,
         bool_array: np.ndarray = np.copy(mask_array)
     
     bool_array = expand_2d_mask(bool_array, im_array)
+    mask_indices: np.ndarray = np.argwhere(bool_array)
     
-    mask_indices: np.ndarray = remove_slice_coords(np.argwhere(bool_array == True))
+    if util.is_3d_rgb(im_array)["3D"]:
+        
+        mask_indices = remove_slice_coords(mask_indices)
+    
     r_start: np.int64 = np.min(mask_indices[:, 0])
     c_start: np.int64 = np.min(mask_indices[:, 1])
     r_end: np.int64 = np.max(mask_indices[:, 0])
     c_end: np.int64 = np.max(mask_indices[:, 1])
-    bool_array = bool_array[:, r_start:r_end, c_start:c_end]
+    
+    if util.is_3d_rgb(im_array)["3D"]:
+        
+        bool_array = bool_array[:, r_start:r_end, c_start:c_end]
+    
+        if conserve_mem:
+            
+            im_array = im_array[:, r_start:r_end, c_start:c_end]
+        
+        else:
+            
+            crop_array: np.ndarray = im_array[:, r_start:r_end, c_start:c_end]
+        
+    else:
+        
+        bool_array = bool_array[r_start:r_end, c_start:c_end]
+        
+        if conserve_mem:
+            
+            im_array = im_array[r_start:r_end, c_start:c_end]
+        
+        else:
+            
+            crop_array: np.ndarray = im_array[r_start:r_end, c_start:c_end]
+        
+    if not np.all(bool_array):
+        
+        if conserve_mem:
+        
+            im_array = mask(im_array, bool_array, mask_color = mask_color, conserve_mem = True)
+            
+        else:
+            
+            crop_array = mask(crop_array, bool_array, mask_color = mask_color, conserve_mem = False)
     
     if conserve_mem:
-        
-        im_array = im_array[:, r_start:r_end, c_start:c_end]
-        
-        if not np.all(bool_array):
-            
-            im_array = mask(im_array, bool_array, mask_color = mask_color, conserve_mem = True)
         
         return im_array
     
     else:
-        
-        crop_array: np.ndarray = im_array[:, r_start:r_end, c_start:c_end]
-        
-        if not np.all(bool_array):
-            
-            crop_array = mask(crop_array, bool_array, mask_color = mask_color, conserve_mem = False)
         
         return crop_array
 
