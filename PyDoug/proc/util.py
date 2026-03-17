@@ -15,6 +15,22 @@ from PyDoug.proc import trans
 
 # Functions
 
+def get_in_plane_dims(im_array: np.ndarray) -> tuple[int]:
+    
+    if im_array.ndim == 2:
+        
+        return (im_array.shape[0], im_array.shape[1])
+    
+    else:
+        
+        if is_3d_rgb(im_array)["3D"]:
+            
+            return (im_array.shape[1], im_array.shape[2])
+        
+        else:
+        
+            return (im_array.shape[0], im_array.shape[1])
+
 def find_order_of_mag(value: float | int) -> float | int:
     
     return math.floor(math.log10(value))

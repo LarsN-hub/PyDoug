@@ -17,7 +17,13 @@ from PyDoug.ui import sliceview as sv
 
 # Functions
 
-def trim_pad_bounds(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, method: str = "trim") -> dict[int, list[int]]:
+def trim_pad_bounds(im_array: np.ndarray,
+                    x_bounds: int | list[int] = None,
+                    y_bounds: int | list[int] = None,
+                    z_bounds: int | list[int] = None,
+                    bounds_dict: dict[str, list[int]] = None,
+                    bounds_as_slices: bool = False,
+                    method: str = "trim") -> dict[int, list[int]]:
     
     is_3d_rgb_dict = util.is_3d_rgb(im_array)
         
@@ -41,7 +47,13 @@ def trim_pad_bounds(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bo
         
     return bounds
 
-def trim(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, conserve_mem: bool = False) -> np.ndarray:
+def trim(im_array: np.ndarray,
+         x_bounds: int | list[int] = None,
+         y_bounds: int | list[int] = None,
+         z_bounds: int | list[int] = None, *,
+         bounds_dict: dict[str, list[int]] = None,
+         bounds_as_slices: bool = False,
+         conserve_mem: bool = False) -> np.ndarray:
     
     bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "trim")
     is_3d_rgb_dict = util.is_3d_rgb(im_array)
@@ -100,7 +112,14 @@ def pad_operation(im_array: np.ndarray, bounds: dict[int, list[int]], padded_col
         
     return im_array
     
-def pad(im_array: np.ndarray, x_bounds: int | list[int] = None, y_bounds: int | list[int] = None, z_bounds: int | list[int] = None, *, bounds_dict: dict[str, list[int]] = None, bounds_as_slices: bool = False, padded_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+def pad(im_array: np.ndarray,
+        x_bounds: int | list[int] = None,
+        y_bounds: int | list[int] = None,
+        z_bounds: int | list[int] = None, *,
+        bounds_dict: dict[str, list[int]] = None,
+        bounds_as_slices: bool = False,
+        padded_color: float | int = 0,
+        conserve_mem: bool = False) -> np.ndarray:
     
     bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "pad")
     
@@ -129,16 +148,6 @@ def remove_slice_coords(coords: np.ndarray) -> dict[str, np.ndarray]:
         coords = np.transpose(np.array([coords[:, 1], coords[:, 2]]))
     
     return coords
-
-def get_in_plane_dims(im_array: np.ndarray) -> tuple[int]:
-    
-    if len(im_array.shape) == 2:
-        
-        return (im_array.shape[0], im_array.shape[1])
-    
-    else:
-        
-        return (im_array.shape[1], im_array.shape[2])
     
 def get_rot_angle(shape_dict: dict[str: np.ndarray]) -> float:
     
@@ -157,7 +166,7 @@ def get_rot_angle(shape_dict: dict[str: np.ndarray]) -> float:
 
 def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.ndarray:
 
-    mask_shape: tuple[int] = get_in_plane_dims(im_array)
+    mask_shape: tuple[int] = util.get_in_plane_dims(im_array)
     mask_array: np.ndarray = np.zeros(mask_shape, dtype = np.bool)
     
     for shape in list(shape_dict.keys()):
@@ -188,7 +197,35 @@ def project_mask(mask_array: np.ndarray, num_slices: int, axis: int = 0) -> np.n
     
     return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = axis)
 
-def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer: napari.layers.Shapes = None, slice_range: tuple = None, convert_to_3d: bool = True) -> np.ndarray:
+def expand_2d_mask(mask_array: np.ndarray, im_array: np.ndarray) -> np.ndarray:
+    
+    if mask_array.ndim == im_array.ndim:
+        
+        return mask_array
+    
+    else:
+        
+        if util.is_3d_rgb(im_array)["3D"]:
+            
+            mask_array = project_mask(mask_array, im_array.shape[0])
+            
+            if util.is_3d_rgb["RGB"]:
+                
+                mask_array = np.expand_dims(mask_array, 3)
+                
+                return np.concat((mask_array, mask_array, mask_array), axis = 3)
+                
+        else:
+            
+            mask_array = np.expand_dims(mask_array, 2)
+            
+            return np.concat((mask_array, mask_array, mask_array), axis = 2)
+
+def get_mask(im_array: np.ndarray,
+             viewer: napari.viewer.Viewer, *,
+             shapes_layer: napari.layers.Shapes = None,
+             slice_range: tuple = None,
+             convert_to_3d: bool = True) -> np.ndarray:
     
     shape_dict: dict[str, np.ndarray] = sv.extract_shapes(viewer, shapes_layer)
     
@@ -198,7 +235,7 @@ def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer
         
     mask_array: np.ndarray = shape_2_mask(im_array, shape_dict)
     
-    if convert_to_3d:
+    if util.is_3d_rgb(im_array)["3D"] and convert_to_3d:
         
         if slice_range:
             
@@ -223,7 +260,11 @@ def get_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, shapes_layer
         
     return mask_array
     
-def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+def mask(im_array: np.ndarray,
+         mask_array: np.ndarray, *,
+         method: str = "out",
+         mask_color: float | int = 0,
+         conserve_mem: bool = False) -> np.ndarray:
     
     if mask_array.dtype != np.bool:
         
@@ -233,9 +274,7 @@ def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", m
         
         bool_array: np.ndarray = np.copy(mask_array)
     
-    if bool_array.ndim < im_array.ndim:
-        
-        bool_array = project_mask(bool_array, im_array.shape[0])
+    bool_array = expand_2d_mask(bool_array, im_array)
     
     if conserve_mem:
         
@@ -263,13 +302,20 @@ def mask(im_array: np.ndarray, mask_array: np.ndarray, *, method: str = "out", m
         
         return masked_array
     
-def quick_mask(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, method: str = "out", mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+def quick_mask(im_array: np.ndarray,
+               viewer: napari.viewer.Viewer, *,
+               method: str = "out",
+               mask_color: float | int = 0,
+               conserve_mem: bool = False) -> np.ndarray:
     
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
     return mask(im_array, mask_array, method = method, mask_color = mask_color, conserve_mem = conserve_mem)
 
-def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+def crop(im_array: np.ndarray,
+         mask_array: np.ndarray, *,
+         mask_color: float | int = 0,
+         conserve_mem: bool = False) -> np.ndarray:
     
     if mask_array.dtype != np.bool:
         
@@ -279,9 +325,7 @@ def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | in
         
         bool_array: np.ndarray = np.copy(mask_array)
     
-    if bool_array.ndim < im_array.ndim:
-        
-        bool_array = project_mask(bool_array, im_array.shape[0])
+    bool_array = expand_2d_mask(bool_array, im_array)
     
     mask_indices: np.ndarray = remove_slice_coords(np.argwhere(bool_array == True))
     r_start: np.int64 = np.min(mask_indices[:, 0])
@@ -310,7 +354,10 @@ def crop(im_array: np.ndarray, mask_array: np.ndarray, *, mask_color: float | in
         
         return crop_array
 
-def quick_crop(im_array: np.ndarray, viewer: napari.viewer.Viewer, *, mask_color: float | int = 0, conserve_mem: bool = False) -> np.ndarray:
+def quick_crop(im_array: np.ndarray,
+               viewer: napari.viewer.Viewer, *,
+               mask_color: float | int = 0,
+               conserve_mem: bool = False) -> np.ndarray:
     
     mask_array: np.ndarray = get_mask(im_array, viewer)
     

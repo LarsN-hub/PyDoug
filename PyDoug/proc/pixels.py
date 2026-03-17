@@ -22,15 +22,15 @@ def rgb_2_gray(im_array: np.ndarray) -> np.ndarray:
         
         if im_array.ndim == 3:
             
-            return color.rgb2gray(im_array[:, :, 0:3])
+            return convert_im_type(color.rgb2gray(im_array[:, :, 0:3]), "uint8")
         
         elif im_array.ndim == 4:
             
-            return color.rgb2gray(im_array[:, :, :, 0:3])
+            return convert_im_type(color.rgb2gray(im_array[:, :, :, 0:3]), "uint8")
         
     else:
     
-        return color.rgb2gray(im_array)
+        return convert_im_type(color.rgb2gray(im_array), "uint8")
 
 def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: tuple | str = None) -> np.ndarray:
      
