@@ -2147,7 +2147,7 @@ class ImageProcessor:
         Pixel_Scale: float = 1,
         Units: str = "pixels",
         Normalize: bool = False,
-        Remove_Edges: bool = True,
+        Remove_Edges: bool = False,
         X_Min: float = 0,
         X_Max: float = 0,
         Y_Max: float = 0,
