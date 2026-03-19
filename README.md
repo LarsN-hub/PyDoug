@@ -784,24 +784,62 @@ A tab containing widgets that generate plots and measurements of images.
 
 **Histogram**
 
+A widget for generating a gray-level histogram of an image/stack. Histogram statistics are displayed in the terminal upon generation.
 More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.histogram
+- "Image" drop-down: images in the layer list. Select the image to generate a histogram.
+- "Normalize" checkbox: check to normalize the counts of the histogram. Y axis will read "Probability Density" instead of "Counts".
+- "Add CDF" checkbox: check to add a cumulative distribution function curve plotted on the right Y axis.
+- "Remove Edges" checkbox: check to remove the highest and lowest values of the histogram in case of anomalous extreme values.
+- "X Min" float: input the minimum X value to plot.
+- "X Max" float: input the maximum X value to plot.
+- "Num Bins" integer: input the number of bins for the histogram.
+- "Apply Mask" checkbox: check to apply a mask during histogram generation. Pixels that are masked will not be included.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Add as Parameter" checkbox: check to add the histogram generation step to the parameters log.
+- "Plot Histogram" button: click to plot the histogram.
 
 **Line Scan**
 
-
+A widget for generating an intensity profile along a drawn line.
+- "Image" drop-down: images in the layer list. Select the image to line scan.
+- "Shapes" drop-down: shape layers in the layer list. Select the shapes layer with the drawn line.
+- "Plot Line Scan" button: click to plot the line scan.
 
 **Gray Level**
 
-
+A widget for generating gray level statistical plots along each axis of a 3D image stack.
+- "Image" drop-down: images in the layer list. Select the image to plot gray levels.
+- "Apply Mask" checkbox: check to apply a mask during gray level plotting. Masked pixels will not be included.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Add as Parameter" checkbox: check to add the gray level plot step to the parameters log.
+- "Plot Gray Level" button: click to plot the gray level statistics.
 
 **FFT**
 
+A widget for computing a fast-Fourier transform of an image/stack.
 More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2,
 https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
+- "Image" drop-down: images in the layer list. Select the image to compute an FFT.
+- "Along Z Axis" checkbox: check to perform the FFT along the Z axis of a 3D image stack.
+- "FFT" button: click to perform the FFT operation.
 
 **Misc Calculations**
 
-
+A widget for calculating miscellaneous information about an image/stack such as gray level statistics, intensity volume percentages (as used in saturation), intensity volume/area, segmented phase surface area/perimeter, and segmented phases contact area/perimeter. Calculated values are displayed in the terminal upon generation.
+- "Image" drop-down: images in the layer list. Select the image to calculate information.
+- "Method" drop-down: select the calculation to be performed.
+- "Min Percent" float: if "Method" is "Percent Intensities", input the minimum percentage to calculate.
+- "Max Percent" float: if "Method" is "Percent Intensities", input the maximum percentage to calculate.
+- "Include Background" checkbox: if "Method" is "Volume/Area", check to include the volume/area of the background phase in the     case of a segmented image/stack.
+- "Surface Phase" float: if "Method" is "Surface Area/Perimeter", input the intensity of the phase to calculate surface area/      perimeter.
+- "Contact Phase 1" float: if "Method" is "Contact Area/Perimeter", input the intensity of one of the phases.
+- "Contact Phase 2" float: if "Method" is "Contact Area/Perimeter", input the intensity of the other phase.
+- "Pixel Scale" float: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the unit         length per pixel.
+- "Units" string: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the length units.
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Add as Parameter" checkbox: check to include the miscellaneous calculation step in the parameters log to be output during       batch processing.
+- "Calculate" button: click to perform the calculation operation.
 
 **Axial Distributions**
 
