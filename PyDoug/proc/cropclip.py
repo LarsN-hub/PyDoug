@@ -214,6 +214,10 @@ def expand_2d_mask(mask_array: np.ndarray, im_array: np.ndarray) -> np.ndarray:
                 mask_array = np.expand_dims(mask_array, 3)
                 
                 return np.concat((mask_array, mask_array, mask_array), axis = 3)
+            
+            else:
+                
+                return mask_array
                 
         else:
             
