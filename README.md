@@ -892,10 +892,10 @@ A widget for generating a domain size distribution plot for a segmented image/st
 
 A widget to generate a thickness or positional heat map along an axis from a segmented 3D image stack.
 - "Image" drop-down: images in the layer list. Select the image stack to plot a heat map.
-- "Method" drop-down: select "Thickness" to measure the thickness of a segmented phase along the specified axis or "Height" to     measure the distance to the closest or farthest pixel belonging to the segmented phase along the specified axis.
-- "Color Map" drop-down: select the color map to use for the heat map.
-- "Heat Direction" drop-down: if "Method" is "Height", select "Near" to plot the closest (lowest index) or "Far" to plot the       farthest (highest index) pixel belonging to the segmented phase along the specified axis.
 - "Axis" drop-down: select the axis along which the heat mapped value should be calculated.
+- "Method" drop-down: select "Thickness" to measure the thickness of a segmented phase along the specified axis or "Height" to     measure the distance to the closest or farthest pixel belonging to the segmented phase along the specified axis.
+- "Heat Direction" drop-down: if "Method" is "Height", select "Near" to plot the closest (lowest index) or "Far" to plot the       farthest (highest index) pixel belonging to the segmented phase along the specified axis.
+- "Color Map" drop-down: select the color map to use for the heat map.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.
 - "Define Limits" checkbox: check to define the thickness/height limits for the heat map. Leave unchecked to use the smallest      and largest values measured in the heat map calculation.
