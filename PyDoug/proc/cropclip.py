@@ -209,7 +209,7 @@ def expand_2d_mask(mask_array: np.ndarray, im_array: np.ndarray) -> np.ndarray:
             
             mask_array = project_mask(mask_array, im_array.shape[0])
             
-            if util.is_3d_rgb["RGB"]:
+            if util.is_3d_rgb(im_array)["RGB"]:
                 
                 mask_array = np.expand_dims(mask_array, 3)
                 
