@@ -1,0 +1,8 @@
+v0.2.0-alpha
+- Completed readme file
+- Created automatic expansion of 2D mask for 3D stack masking/cropping from 2D mask
+- Fixed bug with inability to mask/crop 2D images
+- Many minor changes to the default parameters in each widget
+
+v0.1.0-alpha
+- Initial release on GitHub
