@@ -41,7 +41,7 @@ Other miscellaneous resources used:
 Installing & Updating
 ---------------------
 
-**Installation**
+**Windows Installation**
 1. Ensure that Python v3.13 is installed on your computer.
 2. Test that you have it by opening Windows PowerShell and typing "python".
    - If it worked, some information about python (3.13._) should pop up and the input line should have
