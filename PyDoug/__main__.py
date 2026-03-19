@@ -2270,10 +2270,10 @@ class ImageProcessor:
         call_button = "Plot Heat Map")
     def heat_map_widget(self,
         Image: napari.layers.Image,
-        Method: str = "Thickness",
-        Color_Map: str = "inferno",
-        Height_Direction: str = "Near",
         Axis: str = "Z",
+        Method: str = "Thickness",
+        Height_Direction: str = "Near",
+        Color_Map: str = "inferno",
         Pixel_Scale: float = 1,
         Units: str = "pixels",
         Define_Limits: bool = False,
