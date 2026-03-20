@@ -8,7 +8,7 @@ Module for detection-based image segmentation
 import numpy as np
 
 from scipy import ndimage as ndi
-from skimage import segmentation, filters, feature
+from skimage import segmentation, filters, feature, morphology
 
 from PyDoug.proc import cropclip as cc, pixels, util, morph, thresh
 from PyDoug.analyze import quant
@@ -410,77 +410,9 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             return orients_array
         
-def opening_angles(im_array: np.ndarray, min_size: int = 3) -> np.ndarray:
+def skeleton(im_array: np.ndarray, method: str = None) -> np.ndarray:
     
-    edge_array: np.ndarray = morph.remove_objects(quant.get_contact(im_array, return_mode = "array"), min_size)
-    edge_coords: np.ndarray = np.argwhere(edge_array)
-    angles_array: np.ndarray = np.zeros(edge_array.shape)
-    
-    for coords in edge_coords:
-        
-        r0: int = max(coords[0] - 1, 0)
-        r1: int = min(coords[0] + 2, edge_array.shape[0])
-        c0: int = max(coords[1] - 1, 0)
-        c1: int = min(coords[1] + 2, edge_array.shape[0])
-        local_r: int = coords[0] - r0
-        local_c: int = coords[1] - c0
-        patch: np.ndarray = np.copy(edge_array[r0:r1, c0:c1])
-        patch[local_r, local_c] = 0
-        indices: np.ndarray = np.argwhere(patch)
-        vecs: np.ndarray = indices - np.repeat(np.array([[1, 1]]), indices.shape[0], axis = 0)
-        magnitudes: np.ndarray = np.sqrt(np.sum((vecs ** 2), axis = 1))
-        
-        if np.count_nonzero(patch) == 2:
-            
-            vec1: np.ndarray = indices[0, :] - np.array([local_r, local_c])
-            vec2: np.ndarray = indices[1, :] - np.array([local_r, local_c])
-            
-        elif np.count_nonzero(patch) > 2 and np.count_nonzero(magnitudes == 1) == 2:
-            
-            target_indices: np.ndarray = np.squeeze(indices[np.argwhere(magnitudes == 1), :])
-            vec1: np.ndarray = target_indices[0, :] - np.array([local_r, local_c])
-            vec2: np.ndarray = target_indices[1, :] - np.array([local_r, local_c])
-            
-        else:
-                
-            vec1: np.ndarray = np.array([0, 1])
-            vec2: np.ndarray = np.array([0, 1])
-        
-        angle: int = round(np.degrees(np.arccos(np.dot(vec1, vec2) / (np.sqrt(np.sum(vec1 ** 2)) * np.sqrt(np.sum(vec2 ** 2))))))
-        
-        if angle == 45:
-            
-            test_coords: np.ndarray = coords - vec1
-            
-            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
-            
-                if im_array[test_coords[0], test_coords[1]] == 0:
-                
-                    angle: int = 315
-        
-        elif angle == 90:
-            
-            test_coords: np.ndarray = coords + vec1 + vec2
-            
-            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
-            
-                if im_array[test_coords[0], test_coords[1]] == 0:
-                
-                    angle: int = 270
-        
-        elif angle == 135:
-            
-            test_coords: np.ndarray = coords + vec1 + vec2
-            
-            if test_coords[0] < im_array.shape[0] and test_coords[1] < im_array.shape[1]:
-            
-                if im_array[test_coords[0], test_coords[1]] == 0:
-                
-                    angle: int = 225
-                
-        angles_array[coords[0], coords[1]] = angle
-        
-    return angles_array
+    return pixels.convert_im_type(morphology.skeletonize(im_array, method = method), "uint8")
                 
 
 # Main

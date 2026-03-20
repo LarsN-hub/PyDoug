@@ -1710,6 +1710,26 @@ class ImageProcessor:
                                              window_size = Moravec_Window_Size,
                                              correct_anomalies = Correct_Anomalies,
                                              return_mode = Return_Mode), name = param_layer_name)
+        
+    @magicgui(
+        Method = {"choices": ["Lee (2D/3D)", "Zhang (2D)"]})
+    def skeleton_detect_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Lee (2D/3D)") -> None:
+        
+        if Method == "Lee (2D/3D)":
+            
+            Method: str = "lee"
+            
+        elif Method == "Zhang (2D)":
+            
+            Method: str = "zhang"
+        
+        param_layer_name: str = get_param_layer_name("Skeleton Detection", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method})
+        self.viewer.add_image(detect.skeleton(Image.data, Method), name = param_layer_name)
     
         
     ####################
@@ -2549,8 +2569,9 @@ def main() -> napari.viewer.Viewer:
     
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
+    mod_skeleton_detect: widgets.Container = modify_funcgui(ui.skeleton_detect_widget, "Skeleton Detection")
     feature_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_edge_detect, mod_corner_detect],
+        widgets = [mod_edge_detect, mod_corner_detect, mod_skeleton_detect],
         labels = False)
     tabs.addTab(feature_container.native, "Features")
     

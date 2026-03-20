@@ -812,10 +812,10 @@ def apply_parameters(im_array: np.ndarray,
                                       correct_anomalies = correct_anomalies,
                                       return_mode = parameter["Return Mode"])
             
-        elif parameter["Name"].find("Angle Measurement") == 0:
+        elif parameter["Name"].find("Skeleton Detection") == 0:
             
-            print("\nMeasuring angles...")
-            im_array = detect.opening_angles(im_array, int(parameter["Minimum Size"]))
+            print("\nDetecting skeleton...")
+            im_array = detect.skeleton(im_array, parameter["Method"])
         
         
         #######################
