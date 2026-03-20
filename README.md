@@ -778,6 +778,14 @@ https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.co
 - "Return Mode" drop-down: select the ouput mode for corner analysis.
 - "Detect Corners" button: click to perform the coner detection operation.
 
+**Skeleton Detection**
+
+A widget for detecting the skeleton of segmented features in an image/stack.
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.skeletonize
+- "Image" drop-down: images in the layer list. Select the image to skeletonize.
+- "Method" drop-down: select the skeleton detection algorithm.
+- "Detect Skeleton" button: perform the skeleton detection operation.
+
 Analysis Tab
 ------------
 A tab containing widgets that generate plots and measurements of images.
