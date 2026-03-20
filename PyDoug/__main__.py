@@ -1712,7 +1712,8 @@ class ImageProcessor:
                                              return_mode = Return_Mode), name = param_layer_name)
         
     @magicgui(
-        Method = {"choices": ["Lee (2D/3D)", "Zhang (2D)"]})
+        Method = {"choices": ["Lee (2D/3D)", "Zhang (2D)"]},
+        call_button = "Detect skeleton")
     def skeleton_detect_widget(self,
         Image: napari.layers.Image,
         Method: str = "Lee (2D/3D)") -> None:
