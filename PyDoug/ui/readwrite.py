@@ -573,7 +573,7 @@ def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: 
                     
                 if mask_layer != None:
                     
-                    if compress_masks:
+                    if compress_masks and mask_layer.data.ndim > 2:
                         
                         write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
                     
