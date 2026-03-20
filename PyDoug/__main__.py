@@ -23,6 +23,11 @@ from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixel
 from PyDoug.analyze import quant, plots
 
 
+# Globals
+
+version_str = "v0.3.1-alpha"
+
+
 # Classes
 
 @magicclass
@@ -2596,7 +2601,7 @@ def main() -> napari.viewer.Viewer:
     # Launch
     
     tabs.setCurrentIndex(0)
-    viewer.window.add_dock_widget(tabs, name = "Image Processing Tools")
+    viewer.window.add_dock_widget(tabs, name = "Image Processing Tools " + version_str)
     napari.run()
     
     return viewer
