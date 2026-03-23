@@ -610,15 +610,15 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             if legend_axis == 2:
                 
-                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2)
+                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2, frameon = False)
                 
             else:
                 
-                bar_ax.legend(bars + bars2, bars_labels + bars_labels2)
+                bar_ax.legend(bars + bars2, bars_labels + bars_labels2, frameon = False)
             
         else:
             
-            bar_ax.legend(bars, bars_labels)
+            bar_ax.legend(bars, bars_labels, frameon = False)
     
     return fig
 
