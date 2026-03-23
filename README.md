@@ -840,15 +840,15 @@ A widget for calculating miscellaneous information about an image/stack such as 
 - "Method" drop-down: select the calculation to be performed.
 - "Min Percent" float: if "Method" is "Percent Intensities", input the minimum percentage to calculate.
 - "Max Percent" float: if "Method" is "Percent Intensities", input the maximum percentage to calculate.
-- "Include Background" checkbox: if "Method" is "Volume/Area", check to include the volume/area of the background phase in the     case of a segmented image/stack.
-- "Surface Phase" float: if "Method" is "Surface Area/Perimeter", input the intensity of the phase to calculate surface area/      perimeter.
+- "Include Background" checkbox: if "Method" is "Volume/Area", check to include the volume/area of the background phase in the case of a segmented image/stack.
+- "Surface Phase" float: if "Method" is "Surface Area/Perimeter", input the intensity of the phase to calculate surface area/perimeter.
 - "Contact Phase 1" float: if "Method" is "Contact Area/Perimeter", input the intensity of one of the phases.
 - "Contact Phase 2" float: if "Method" is "Contact Area/Perimeter", input the intensity of the other phase.
-- "Pixel Scale" float: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the unit         length per pixel.
+- "Pixel Scale" float: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the unit length per pixel.
 - "Units" string: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the length units.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
-- "Add as Parameter" checkbox: check to include the miscellaneous calculation step in the parameters log to be output during       batch processing.
+- "Add as Parameter" checkbox: check to include the miscellaneous calculation step in the parameters log to be output during batch processing.
 - "Calculate" button: click to perform the calculation operation.
 
 **Axial Distributions**
@@ -857,13 +857,14 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 - "Image" drop-down: images in the layer list. Select the image to plot an axial distribution.
 - "Type" drop-down: select whether area or volume is being calculated along the specified axis.
 - "Axis" drop-down: select the axis along which the plot is generated.
-- "Domain Size" checkbox: check to calculate domain area/volume distributions along the axis instead of total area/volume. NOTE,   this feature does not currently work and will return an error.
-- "Domain Size Connectivity" drop-down: if "Domain Size" is checked, select the number of orthogonal hops allowed to consider a    neighboring pixel connected.
+- "Domain Size" checkbox: check to calculate domain area/volume distributions along the axis instead of total area/volume. NOTE, this feature does not currently work and will return an error.
+- "Domain Size Connectivity" drop-down: if "Domain Size" is checked, select the number of orthogonal hops allowed to consider a neighboring pixel connected.
 - "Include Background" checkbox: check to plot the area/volume of the background phase in addition to the segmented phases.
 - "Background" float: input the background phase intensity.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Pixel Units" string: input the length units.
 - "Normalize" checkbox: check to normalize the plotted area/volume to plot probability density instead.
+- "Normalization Method" drop-down: if "Normalize" is checked and "Domain Size" is unchecked, select the normalization method. "Total" normalizes the measured volume/area against the entire volume/area in each slice while "Phase" normalizes each segmented phase's volume/area against the total volume/area of that phase measured in all slices combined.
 - "Remove Edges" checkbox: check to remove the end values in the case of anomalous extremes.
 - "X Min" float: input the minimum X value to plot.
 - "X Max" float: input the maximum X value to plot.
@@ -880,8 +881,8 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 
 A widget for generating a domain size distribution plot for a segmented image/stack. If the image is not already labeled (see the label widget in the Segmentation tab), it will be labeled with the connectivity method.
 - "Image" drop-down: images in the layer list. Select the image to plot a segmented domain size distribution.
-- "Type" drop-down: select the format to calculate domain size. Volume and area are the total measured volume/area for each        domain while diameter and radius initially calculate the area/volume and then calculate the diameter/radius assuming a           circular or spherical domain shape.
-- "Connectivity" drop-down: if the image is not labeled, select the number of orthogonal hops allowed to consider a                neighboring pixel connected.
+- "Type" drop-down: select the format to calculate domain size. Volume and area are the total measured volume/area for each domain while diameter and radius initially calculate the area/volume and then calculate the diameter/radius assuming a circular or spherical domain shape.
+- "Connectivity" drop-down: if the image is not labeled, select the number of orthogonal hops allowed to consider a neighboring pixel connected.
 - "Background" float: input the background intensity.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.
@@ -902,12 +903,12 @@ A widget for generating a domain size distribution plot for a segmented image/st
 A widget to generate a thickness or positional heat map along an axis from a segmented 3D image stack.
 - "Image" drop-down: images in the layer list. Select the image stack to plot a heat map.
 - "Axis" drop-down: select the axis along which the heat mapped value should be calculated.
-- "Method" drop-down: select "Thickness" to measure the thickness of a segmented phase along the specified axis or "Height" to     measure the distance to the closest or farthest pixel belonging to the segmented phase along the specified axis.
-- "Heat Direction" drop-down: if "Method" is "Height", select "Near" to plot the closest (lowest index) or "Far" to plot the       farthest (highest index) pixel belonging to the segmented phase along the specified axis.
+- "Method" drop-down: select "Thickness" to measure the thickness of a segmented phase along the specified axis or "Height" to measure the distance to the closest or farthest pixel belonging to the segmented phase along the specified axis.
+- "Heat Direction" drop-down: if "Method" is "Height", select "Near" to plot the closest (lowest index) or "Far" to plot the farthest (highest index) pixel belonging to the segmented phase along the specified axis.
 - "Color Map" drop-down: select the color map to use for the heat map.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.
-- "Define Limits" checkbox: check to define the thickness/height limits for the heat map. Leave unchecked to use the smallest      and largest values measured in the heat map calculation.
+- "Define Limits" checkbox: check to define the thickness/height limits for the heat map. Leave unchecked to use the smallest and largest values measured in the heat map calculation.
 - "Min Value" float: if "Define Limits" is checked, input the minimum heat mapped value.
 - "Max Value" float: if "Define Limits" is checked, input the maximum haet mapped value.
 - "Alternate Colorbar Label" checkbox: check to input a different label for the colorbar than "Thickness" or "Height"
