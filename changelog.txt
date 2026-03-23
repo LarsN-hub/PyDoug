@@ -1,3 +1,6 @@
+v0.3.2-alpha
+- Added normalization method drop-down selection to axial distribution plot widget
+
 v0.3.1-alpha
 - Added call button label to skeleton detection widget
 
