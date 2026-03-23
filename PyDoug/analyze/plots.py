@@ -641,6 +641,7 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
               ignore_edges: bool = False,
               connectivity: int = None,
               normalize: bool = False,
+              norm_method: str = "total",
               xlims: tuple = None,
               ylims: tuple = None) -> plt.Axes:
     
@@ -663,7 +664,8 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
                                                                       axis = axis,
                                                                       include_background = include_background,
                                                                       background = background,
-                                                                      normalize = normalize)
+                                                                      normalize = normalize,
+                                                                      norm_method = norm_method)
         
         elif mode == "psd distrib":
             
@@ -692,7 +694,8 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
                                                             connectivity = connectivity,
                                                             background = background,
                                                             include_background = include_background,
-                                                            normalize = normalize)
+                                                            normalize = normalize,
+                                                            norm_method = norm_method)
             
     else:
         
@@ -856,6 +859,7 @@ def line(data: np.ndarray | pd.DataFrame,
          connectivity: int = None,
          ignore_edges: bool = False,
          normalize: bool = False,
+         norm_method: str = "total",
          xlims: tuple = None,
          ylims: tuple = None) -> plt.Figure:
     
@@ -887,6 +891,7 @@ def line(data: np.ndarray | pd.DataFrame,
                         connectivity = connectivity,
                         ignore_edges = ignore_edges,
                         normalize = normalize,
+                        norm_method = norm_method,
                         xlims = xlims,
                         ylims = ylims)
     # fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)

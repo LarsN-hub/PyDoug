@@ -1149,6 +1149,7 @@ def apply_parameters(im_array: np.ndarray,
                              connectivity = int(parameter["Connectivity"]),
                              ignore_edges = ignore_edges,
                              normalize = normalize,
+                             norm_method = parameter["Normalize Method"],
                              xlims = x_lims,
                              ylims = y_lims)
             rw.write_plot(fig, f"{file_name}_axial_distribution_{axis_dist_index}", save_dir)

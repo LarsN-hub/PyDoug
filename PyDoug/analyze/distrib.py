@@ -71,7 +71,8 @@ def get_position_distribution(im_array: np.ndarray, *,
                               axis: int = 0,
                               include_background: bool = False,
                               background: float | int = 0,
-                              normalize: bool = False) -> pd.DataFrame:
+                              normalize: bool = False,
+                              norm_method: str = "total") -> pd.DataFrame:
     
     if units == "um":
         
@@ -140,16 +141,30 @@ def get_position_distribution(im_array: np.ndarray, *,
             else:
                 
                 int_mask_array = None
+                
+        if normalize and norm_method == "total":
+            
+            quant_normalize: bool = True
+            
+        else:
+            
+            quant_normalize: bool = False
             
         int_array: np.ndarray = quant.__vol_area_precondition(int_im_array,
                                                               mask_array = int_mask_array,
                                                               include_background = include_background,
                                                               background = background,
-                                                              normalize = normalize).T
+                                                              normalize = quant_normalize).T
         
         for index, gray_value in enumerate(int_array[:, 0]):
             
             pos_array[slice_index, 1 + np.argwhere(phases == gray_value)] = int_array[index, 1]
+            
+    if normalize and norm_method == "phase":
+        
+        for index in range(1, pos_array.shape[1]):
+            
+            pos_array[:, index] = pos_array[:, index] / np.sum(pos_array[:, index])
             
     if temporal_scale:
         
@@ -491,7 +506,8 @@ def get_time_series(im_array: np.ndarray, mode: str = "vol", *,
                     axis: int = 0,
                     include_background: bool = False,
                     background: float | int = 0,
-                    normalize: bool = False) -> pd.DataFrame:
+                    normalize: bool = False,
+                    norm_method: str = "total") -> pd.DataFrame:
     
     if spatial_units == "um":
         
@@ -523,7 +539,8 @@ def get_time_series(im_array: np.ndarray, mode: str = "vol", *,
                                                           axis = axis,
                                                           include_background = include_background,
                                                           background = background,
-                                                          normalize = normalize)
+                                                          normalize = normalize,
+                                                          norm_method = norm_method)
 
     return time_df
 

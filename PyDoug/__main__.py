@@ -2009,6 +2009,7 @@ class ImageProcessor:
         Type = {"choices": ["Volume", "Area"]},
         Domain_Size_Connectivity = {"choices": [1, 2, 3]},
         Axis = {"choices": ["X", "Y", "Z"]},
+        Normalize_Method = {"choices": ["Total", "Phase"]},
         call_button = "Plot Distribution")
     def axis_distribution_widget(self,
         Image: napari.layers.Image,
@@ -2021,6 +2022,7 @@ class ImageProcessor:
         Pixel_Scale: float = 1,
         Pixel_Units: str = "pixels",
         Normalize: bool = False,
+        Normalize_Method: str = "Total",
         Remove_Edges: bool = False,
         X_Min: float = 0,
         X_Max: float = 0,
@@ -2068,6 +2070,7 @@ class ImageProcessor:
                  "Pixel Size": Pixel_Scale,
                  "Units": Pixel_Units,
                  "Normalize": Normalize,
+                 "Normalize Method": Normalize_Method.lower(),
                  "Remove Edges": Remove_Edges,
                  "X Min": X_Min,
                  "X Max": X_Max,
@@ -2134,6 +2137,7 @@ class ImageProcessor:
                            connectivity = Domain_Size_Connectivity,
                            ignore_edges = Remove_Edges,
                            normalize = Normalize,
+                           norm_method = Normalize_Method.lower(),
                            xlims = x_lims,
                            ylims = y_lims)
             
@@ -2153,6 +2157,7 @@ class ImageProcessor:
                            connectivity = Domain_Size_Connectivity,
                            ignore_edges = Remove_Edges,
                            normalize = Normalize,
+                           norm_method = Normalize_Method.lower(),
                            xlims = x_lims,
                            ylims = y_lims)
             
