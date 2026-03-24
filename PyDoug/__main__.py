@@ -1359,10 +1359,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
             
         if Connectivity > Image.data.ndim:
             
@@ -1387,22 +1389,12 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
-            if Apply_Mask:
-                
-                self.viewer.add_labels(thresh.label(Image.data,
-                                                    mask_array = Mask.data,
-                                                    connectivity = Connectivity,
-                                                    background = Background,
-                                                    positional = Along_Axis,
-                                                    axis = Axis), name = param_layer_name)
-            
-            else:
-                
-                self.viewer.add_labels(thresh.label(Image.data,
-                                                    connectivity = Connectivity,
-                                                    background = Background,
-                                                    positional = Along_Axis,
-                                                    axis = Axis), name = param_layer_name)
+            self.viewer.add_labels(thresh.label(Image.data,
+                                                mask_array = mask_array,
+                                                connectivity = Connectivity,
+                                                background = Background,
+                                                positional = Along_Axis,
+                                                axis = Axis), name = param_layer_name)
                 
         elif Method == "Watershed":
             
@@ -1418,26 +1410,14 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": Mask.name})
             
-            if Apply_Mask:
-                
-                self.viewer.add_labels(detect.watershed(Image.data,
-                                                        background = Background,
-                                                        mask_array = Mask.data,
-                                                        connectivity = Connectivity,
-                                                        radius = Watershed_Radius,
-                                                        compactness = Watershed_Compactness,
-                                                        along_axis = Along_Axis,
-                                                        axis = Axis), name = param_layer_name)
-            
-            else:
-                
-                self.viewer.add_labels(detect.watershed(Image.data,
-                                                        background = Background,
-                                                        connectivity = Connectivity,
-                                                        radius = Watershed_Radius,
-                                                        compactness = Watershed_Compactness,
-                                                        along_axis = Along_Axis,
-                                                        axis = Axis), name = param_layer_name)
+            self.viewer.add_labels(detect.watershed(Image.data,
+                                                    background = Background,
+                                                    mask_array = mask_array,
+                                                    connectivity = Connectivity,
+                                                    radius = Watershed_Radius,
+                                                    compactness = Watershed_Compactness,
+                                                    along_axis = Along_Axis,
+                                                    axis = Axis), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]},
@@ -1452,10 +1432,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
         
         param_layer_name = get_param_layer_name("Histogram Threshold", self.operation_count)
         self.parameters_log.append(
@@ -1465,14 +1447,12 @@ class ImageProcessor:
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
         
-        if Apply_Mask:
-            
-            self.viewer.add_image(thresh.hist(Image.data, method = Method.lower(), otsu_classes = Otsu_Classes, mask_array = Mask.data), name = param_layer_name)
+        self.viewer.add_image(thresh.hist(Image.data,
+                                          method = Method.lower(),
+                                          otsu_classes = Otsu_Classes,
+                                          mask_array = mask_array),
+                              name = param_layer_name)
         
-        else:
-            
-            self.viewer.add_image(thresh.hist(Image.data, method = Method.lower(), otsu_classes = Otsu_Classes), name = param_layer_name)
-    
     @magicgui(
         Method = {"choices": ["Adaptive", "Niblack", "Savoula", "Rank"]},
         call_button = "Segment")
@@ -1488,10 +1468,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
         
         param_layer_name = get_param_layer_name("Local Threshold", self.operation_count)
         self.parameters_log.append(
@@ -1507,24 +1489,13 @@ class ImageProcessor:
             
             Savoula_Sigma_Range = None
         
-        if Apply_Mask:
-            
-            self.viewer.add_image(thresh.local(Image.data,
-                                               mask_array = Mask.data,
-                                               method = Method.lower(),
-                                               radius = Radius,
-                                               window_size = Radius,
-                                               k = Niblack_or_Savoula_Sigma_Weight,
-                                               r = Savoula_Sigma_Range), name = param_layer_name)
-            
-        else:
-            
-            self.viewer.add_image(thresh.local(Image.data,
-                                               method = Method.lower(),
-                                               radius = Radius,
-                                               window_size = Radius,
-                                               k = Niblack_or_Savoula_Sigma_Weight,
-                                               r = Savoula_Sigma_Range), name = param_layer_name)
+        self.viewer.add_image(thresh.local(Image.data,
+                                           mask_array = mask_array,
+                                           method = Method.lower(),
+                                           radius = Radius,
+                                           window_size = Radius,
+                                           k = Niblack_or_Savoula_Sigma_Weight,
+                                           r = Savoula_Sigma_Range), name = param_layer_name)
             
     @magicgui(
         call_button = "Segment")
@@ -1846,10 +1817,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
         
         if Add_as_Parameter:
             
@@ -1888,45 +1861,24 @@ class ImageProcessor:
             
         fig, hist_ax = plt.subplots()
         
-        if Apply_Mask:
+        hist_ax: plt.Axes = plots.histogram_axis(Image.data,
+                                                 hist_ax,
+                                                 x_label = "Gray Value",
+                                                 mask_array = mask_array,
+                                                 xlims = x_lims,
+                                                 ylims = y_lims,
+                                                 ignore_edges = Remove_Edges,
+                                                 normalize = Normalize,
+                                                 nbins = Num_Bins)
             
-            hist_ax: plt.Axes = plots.histogram_axis(Image.data,
-                                                     hist_ax,
-                                                     x_label = "Gray Value",
-                                                     mask_array = Mask.data,
-                                                     xlims = x_lims,
-                                                     ylims = y_lims,
-                                                     ignore_edges = Remove_Edges,
-                                                     normalize = Normalize,
-                                                     nbins = Num_Bins)
-            
-            if Add_CDF:
+        if Add_CDF:
                 
-                cdf_ax: plt.Axes = hist_ax.twinx()
-                cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
-                                        x_label = "Gray Value",
-                                        mask_array = Mask.data,
-                                        xlims = x_lims)
-                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
-            
-        else:
-            
-            hist_ax = plots.histogram_axis(Image.data,
-                                           hist_ax,
-                                           x_label = "Gray Value",
-                                           xlims = x_lims,
-                                           ylims = y_lims,
-                                           ignore_edges = Remove_Edges,
-                                           normalize = Normalize,
-                                           nbins = Num_Bins)
-            
-            if Add_CDF:
-            
-                cdf_ax: plt.Axes = hist_ax.twinx()
-                cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
-                                        x_label = "Gray Value",
-                                        xlims = x_lims)
-                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+            cdf_ax: plt.Axes = hist_ax.twinx()
+            cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
+                                    x_label = "Gray Value",
+                                    mask_array = Mask.data,
+                                    xlims = x_lims)
+            cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
                 
         plt.show(block = False)
         
@@ -1959,10 +1911,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
         
         if Add_as_Parameter:
             
@@ -1972,13 +1926,7 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name})
             
-        if Apply_Mask:
-            
-            _ = plots.gray_level(Image.data, mask_array = Mask.data)
-            
-        else:
-            
-            _ = plots.gray_level(Image.data)
+        _ = plots.gray_level(Image.data, mask_array = mask_array)
             
         plt.show(block = False)
         
@@ -2133,10 +2081,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
             
         Axis: int = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
@@ -2204,46 +2154,24 @@ class ImageProcessor:
             Time_Units = None
             Time_Scale = None
             
-        if Apply_Mask:
-            
-            _ = plots.line(Image.data,
-                           mode = mode,
-                           distrib_mode = distrib_mode,
-                           size_mode = Type.lower(),
-                           pixel_size = Pixel_Scale,
-                           units = Pixel_Units,
-                           mask_array = Mask.data,
-                           temporal_scale = Time_Scale,
-                           temporal_units = Time_Units,
-                           axis = Axis,
-                           include_background = Include_Background,
-                           background = Background,
-                           connectivity = Domain_Size_Connectivity,
-                           ignore_edges = Remove_Edges,
-                           normalize = Normalize,
-                           norm_method = Normalize_Method.lower(),
-                           xlims = x_lims,
-                           ylims = y_lims)
-            
-        else:
-            
-            _ = plots.line(Image.data,
-                           mode = mode,
-                           distrib_mode = distrib_mode,
-                           size_mode = Type.lower(),
-                           pixel_size = Pixel_Scale,
-                           units = Pixel_Units,
-                           temporal_scale = Time_Scale,
-                           temporal_units = Time_Units,
-                           axis = Axis,
-                           include_background = Include_Background,
-                           background = Background,
-                           connectivity = Domain_Size_Connectivity,
-                           ignore_edges = Remove_Edges,
-                           normalize = Normalize,
-                           norm_method = Normalize_Method.lower(),
-                           xlims = x_lims,
-                           ylims = y_lims)
+        _ = plots.line(Image.data,
+                       mode = mode,
+                       distrib_mode = distrib_mode,
+                       size_mode = Type.lower(),
+                       pixel_size = Pixel_Scale,
+                       units = Pixel_Units,
+                       mask_array = mask_array,
+                       temporal_scale = Time_Scale,
+                       temporal_units = Time_Units,
+                       axis = Axis,
+                       include_background = Include_Background,
+                       background = Background,
+                       connectivity = Domain_Size_Connectivity,
+                       ignore_edges = Remove_Edges,
+                       normalize = Normalize,
+                       norm_method = Normalize_Method.lower(),
+                       xlims = x_lims,
+                       ylims = y_lims)
             
         plt.show(block = False)
         
@@ -2294,11 +2222,13 @@ class ImageProcessor:
         
         if not Apply_Mask:
             
-            mask_name: None = None
+            mask_name = None
+            mask_array = None
             
         else:
             
-            mask_name: str = Mask.name
+            mask_name = Mask.name
+            mask_array = Mask.data
         
         if Add_as_Parameter:
             
@@ -2344,36 +2274,19 @@ class ImageProcessor:
             
             Max_Bound: None = None
             
-        if Apply_Mask:
-            
-            _ = plots.size_distribution(Image.data,
-                                        mode = Type,
-                                        units = Units,
-                                        mask_array = Mask.data,
-                                        xlims = x_lims,
-                                        ylims = y_lims,
-                                        pixel_size = Pixel_Scale,
-                                        normalize = Normalize,
-                                        ignore_edges = Remove_Edges,
-                                        connectivity = Connectivity,
-                                        background = Background,
-                                        nbins = Num_Bins,
-                                        max_bound = Max_Bound)
-            
-        else:
-            
-            _ = plots.size_distribution(Image.data,
-                                        mode = Type,
-                                        units = Units,
-                                        xlims = x_lims,
-                                        ylims = y_lims,
-                                        pixel_size = Pixel_Scale,
-                                        normalize = Normalize,
-                                        ignore_edges = Remove_Edges,
-                                        connectivity = Connectivity,
-                                        background = Background,
-                                        nbins = Num_Bins,
-                                        max_bound = Max_Bound)
+        _ = plots.size_distribution(Image.data,
+                                    mode = Type,
+                                    units = Units,
+                                    mask_array = mask_array,
+                                    xlims = x_lims,
+                                    ylims = y_lims,
+                                    pixel_size = Pixel_Scale,
+                                    normalize = Normalize,
+                                    ignore_edges = Remove_Edges,
+                                    connectivity = Connectivity,
+                                    background = Background,
+                                    nbins = Num_Bins,
+                                    max_bound = Max_Bound)
             
         plt.show(block = False)
     
@@ -2404,10 +2317,12 @@ class ImageProcessor:
         if not Apply_Mask:
             
             mask_name = None
+            mask_array = None
             
         else:
             
             mask_name = Mask.name
+            mask_array = Mask.data
             
         if not Alternate_Colorbar_Label:
             
@@ -2442,14 +2357,6 @@ class ImageProcessor:
         else:
             
             clim = None
-            
-        if Apply_Mask:
-            
-            mask_array: np.ndarray = Mask.data
-            
-        else:
-            
-            mask_array: None = None
             
         if Return_Array:
             
