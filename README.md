@@ -37,8 +37,7 @@ Installing & Updating
 2. Test that you have it by opening Windows PowerShell and typing "python".
    - If it worked, some information about python (3.13._) should pop up and the input line should have ">>>" in front of it.
    - If this is the case, type quit() to exit python and proceed. If this did not happen, do not continue with this process and figure this out first.
-3. Navigate to the Tags section in releases as I am frequently fixing bugs during the alpha phase.
-4. Download the .zip file for the most recent tag/release.
+3. Download the .zip file source code for the most recent PyDoug release.
 5. Extract the contents wherever you please.
 6. Navigate inside the extracted folder. You should see a folder named "PyDoug" and several text documents.
 7. Move the PyDoug folder and the requirements_dist.txt file to your user folder (e.g. "C:\Users\Your_Name")
@@ -69,7 +68,7 @@ Installing & Updating
 14. If this worked and PyDoug launches successfully, you need only launch Windows PowerShell and re-enter the above command 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug every time (assuming that you launch PowerShell in the C:\Users\Your_Name folder where the PyDoug folder is located).
 
 **Update**
-1. Download the .zip file for the most recent tag/release.
+1. Download the .zip file source code for the most recent release.
 2. Extract the contents wherever you please.
 3. Navigate inside the extracted folder. Move the folder named "PyDoug" to the location of your current PyDoug folder.
 4. Allow it to replace all current files.
