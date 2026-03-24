@@ -45,10 +45,22 @@ Installing & Updating
    - Note, "Your_Name" should be replaced with your user account name.
    - Note, you may place these wherever you want but this is the simplest option and I will only provide guidance for installation from this folder.
    - If you are knowledgeable enough, then changing the commands that follow to a different folder should not be too difficult.
-9. Open Windows Powershell if not already open from before.
-10. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
+9. Your filetree should now look like this:
+   |--C:
+      |--Users
+         |--Your_Name
+            |--PyDoug
+               |--__init__.py
+               |--__main__.py
+               |--analyze
+               |--proc
+               |--ui
+            |--requirements_dist.txt
+            |--Your_User_Files
+11. Open Windows Powershell if not already open from before.
+12. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
    - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
-11. Type 'python -m venv PyDoug_Env' then enter.
+11. Type 'python -m venv PyDoug_Env' then enter. This will create a new folder named 'PyDoug_Env' in your C:\Users\Your_Name folder.
 12. Once it is finished, type 'PyDoug_Env\Scripts\pip install -r requirements_dist.txt' then enter.
     - Note, this will take some time. Allow it to install everything before doing anything else.
 13. Once it is finished, type 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug.
