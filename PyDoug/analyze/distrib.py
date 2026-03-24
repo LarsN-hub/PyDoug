@@ -42,6 +42,23 @@ def get_histogram(im_array: np.ndarray, *,
     
     return pd.DataFrame(np.stack((bin_centers, counts), 1), columns = ["Bin Centers", "Counts"])
 
+def extend_histogram_bins(bins: np.ndarray, counts: np.ndarray) -> np.ndarray:
+    
+    ext_bins: np.ndarray = np.empty((1, np.astype(np.sum(counts), np.int32)))
+    index: int = 0
+    bin_loc: int = 0
+    
+    for bin_value in bins:
+        
+        for count in range(0, int(counts[bin_loc])):
+            
+            ext_bins[0, index] = bin_value
+            index += 1
+            
+        bin_loc += 1
+        
+    return ext_bins
+
 def get_cdf(im_array: np.ndarray, *,
             mask_array: np.ndarray = None) -> pd.DataFrame:
     

@@ -170,6 +170,29 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
+def get_log_starts_widths(log_ax_values: np.ndarray, *,
+                          points_per_value: int = 1,
+                          point_count_index: int = 0,
+                          width: float = 1) -> np.ndarray:
+    
+    offset_starts: np.ndarray = np.zeros((points_per_value, log_ax_values.shape[0]))
+    widths: np.ndarray = np.copy(offset_starts)
+    offset_indices: np.ndarray = np.arange(0, points_per_value)
+    offset_indices = offset_indices - math.floor((points_per_value / 2))
+    
+    for index, value in enumerate(log_ax_values):
+        
+        log_left: np.ndarray = np.logspace(math.log10(value) - 1, math.log10(value), max(round(10 / width), points_per_value))
+        log_right: np.ndarray = np.logspace(math.log10(value), math.log10(value) + 1, max(round(10 / width), points_per_value))
+        log_range: np.ndarray = np.concat((log_left, log_right[1:]))
+        
+        for point_index in range(point_count_index, points_per_value):
+            
+            offset_starts[point_index, index] = log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
+            widths[point_index, index] = log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index] + 1] - log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
+    
+    return offset_starts, widths
+
 def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
              y_label: str = "Values",
              x_label: str = "Categories",
@@ -230,10 +253,9 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
         
         if logx:
             
-            offset_starts: np.ndarray = np.zeros((y_count, x.shape[0]))
-            widths: np.ndarray = np.copy(offset_starts)
-            offset_indices: np.ndarray = np.arange(0, y_count)
-            offset_indices = offset_indices - math.floor((y_count / 2))
+            offset_starts, widths = get_log_starts_widths(x, points_per_value = y_count,
+                                                          point_count_index = y_count_index,
+                                                          width = width)
             
             if y_count % 2 != 0:
                         
@@ -242,17 +264,6 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
             else:
                         
                 align: str = "edge"
-                
-            for x_index, x_value in enumerate(x):
-                
-                x_log_left: np.ndarray = np.logspace(math.log10(x_value) - 1, math.log10(x_value), max(round(10 / width), y_count))
-                x_log_right: np.ndarray = np.logspace(math.log10(x_value), math.log10(x_value) + 1, max(round(10 / width), y_count))
-                x_log_range: np.ndarray = np.concat((x_log_left, x_log_right[1:]))
-                
-                for y_index in range(y_count_index, y_count):
-                    
-                    offset_starts[y_index, x_index] = x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index]]
-                    widths[y_index, x_index] = x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index] + 1] - x_log_range[(max(round(10 / width), y_count) - 1) + offset_indices[y_index]]
             
         else:
         
@@ -390,11 +401,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
         
         if logx:
             
-            widths: list[float] = []
-            
-            for x_value in x:
-                
-                widths.append(width * np.diff(np.logspace(math.log10(x_value), math.log10(x_value) + 1, 10))[0])
+            _, widths = get_log_starts_widths(x, width = width)
+            widths = np.squeeze(widths)
                 
         else:
             
@@ -620,6 +628,67 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             bar_ax.legend(bars, bars_labels, frameon = False)
     
+    return fig
+
+def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
+                categories: list | tuple | np.ndarray = None,
+                cat_label: str = "Categories",
+                cat_units: str = None,
+                data_label: str = "Values",
+                data_units: str = None,
+                orientation: str = "vertical",
+                widths: float = 0.5,
+                data_lims: tuple = None,
+                colors: np.ndarray = None) -> plt.Figure:
+    
+    if cat_units:
+        
+        cat_label = f"{cat_label} ({cat_units})"
+        
+    if data_units:
+        
+        data_label = f"{data_label} ({data_units})"
+        
+    fig, box_ax = plt.subplots()
+    bp = box_ax.boxplot(data, orientation = orientation,
+                        tick_labels = categories,
+                        widths = widths,
+                        patch_artist = True)
+    
+    if orientation == "vertical":
+        
+        box_ax.set_xlabel(cat_label)
+        box_ax.set_ylabel(data_label)
+        
+        if data_lims:
+            
+            box_ax.set_ylim(min(data_lims), max(data_lims))
+        
+    else:
+        
+        box_ax.set_ylabel(cat_label)
+        box_ax.set_xlabel(data_label)
+        
+        if data_lims:
+            
+            box_ax.set_xlim(min(data_lims), max(data_lims))
+            
+    for median in bp["medians"]:
+        
+        median.set(color = "black")
+        
+    if np.any(colors):
+        
+        for index, patch in enumerate(bp["boxes"]):
+            
+            if colors.ndim == 1:
+                
+                patch.set_facecolor(colors)
+                
+            else:
+                
+                patch.set_facecolor(colors[index, :])
+        
     return fig
 
 def line_axis(data: np.ndarray | pd.DataFrame = None,
@@ -943,19 +1012,7 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     
     if not normalize:
         
-        ext_bin_centers: np.ndarray = np.empty((1, int(np.sum(hist_df["Counts"]))))
-        index: int = 0
-        bin_loc: int = 0
-        
-        for bin_center in hist_df["Bin Centers"]:
-            
-            for count in range(0, int(hist_df["Counts"][bin_loc])):
-                
-                ext_bin_centers[0, index] = bin_center
-                index += 1
-                
-            bin_loc += 1
-            
+        ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(hist_df["Bin Centers"], hist_df["Counts"])            
         hist_std: float = np.std(ext_bin_centers)
         print(f"{"Histogram StDv:":<16} {hist_std}")
         print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
