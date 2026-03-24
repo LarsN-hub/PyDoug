@@ -46,17 +46,29 @@ Installing & Updating
    - Note, you may place these wherever you want but this is the simplest option and I will only provide guidance for installation from this folder.
    - If you are knowledgeable enough, then changing the commands that follow to a different folder should not be too difficult.
 9. Your filetree should now look like this:
+
    |--C:
+   
       |--Users
+   
          |--Your_Name
+   
             |--PyDoug
+   
                |--__init__.py
+   
                |--__main__.py
+   
                |--analyze
+   
                |--proc
+   
                |--ui
+   
             |--requirements_dist.txt
+   
             |--Your_User_Files
+   
 11. Open Windows Powershell if not already open from before.
 12. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
    - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
