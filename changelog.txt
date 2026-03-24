@@ -1,3 +1,10 @@
+v0.3.3-alpha
+- Fixed mask creation from shape coordinate rounding error
+- Labeling widget now adds label layers with colors instead of grayscale image layer
+- Label layers can be directly exported from I/O tab
+- Label layers can be converted to image layers in Pixel Values tab
+- Removed unnecessary duplicate code in widgets with mask application option
+
 v0.3.2-alpha
 - Added normalization method drop-down selection to axial distribution plot widget
 
