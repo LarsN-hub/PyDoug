@@ -1,3 +1,6 @@
+v0.3.4-alpha
+- Fixed domain size distribution plot to accept label layers instead of image layers
+
 v0.3.3-alpha
 - Fixed mask creation from shape coordinate rounding error
 - Labeling widget now adds label layers with colors instead of grayscale image layer
