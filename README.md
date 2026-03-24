@@ -2,17 +2,11 @@
 Preface
 -------
 
-I am not a software developer. I am a PhD candidate who knows some things about image processing
-and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly
-due to monetary or licensing limitations. Please be patient with me as I navigate through the world
-of coding and GitHub best practices, licensing, and all that jazz.
+I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
 
-I have only ever used Windows systems, so I cannot say whether or not this works on Linux or Apple
-systems nor can I currently provide support for installing this on those systems.
+I have only ever used Windows systems, so I cannot say whether or not this works on Linux or Apple systems nor can I currently provide support for installing this on those systems.
 
-I am working on figuring out how to make this a single, downloadable executable file, but this has
-proven more difficult than I realized. Until then, installing PyDoug will require a few more steps
-as explained below.
+I am working on figuring out how to make this a single, downloadable executable file, but this has proven more difficult than I realized. Until then, installing PyDoug will require a few more steps as explained below.
 
 ---------
 Resources
@@ -22,12 +16,9 @@ PyDoug is built completely in Python: https://www.python.org/
 
 The GUI is built on napari's n-dimensional image viewing GUI: https://napari.org/stable/
 
-Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/
-and magic-class: https://hanjinliu.github.io/magic-class/
+Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/ and magic-class: https://hanjinliu.github.io/magic-class/
 
-Most widgets are wrapper functions for functions from the scikit-image library: https://scikit-image.org/,
-numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, and
-algotom: https://myalgotomo.readthedocs.io/en/latest/index.html
+Most widgets are wrapper functions for functions from the scikit-image library: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, and algotom: https://myalgotomo.readthedocs.io/en/latest/index.html
 
 Other miscellaneous resources used:
 - h5py: https://docs.h5py.org/en/stable/index.html
@@ -44,20 +35,16 @@ Installing & Updating
 **Windows Installation**
 1. Ensure that Python v3.13 is installed on your computer.
 2. Test that you have it by opening Windows PowerShell and typing "python".
-   - If it worked, some information about python (3.13._) should pop up and the input line should have
-     ">>>" in front of it.
-   - If this is the case, type quit() to exit python and proceed. If this did not
-     happen, do not continue with this process and figure this out first.
+   - If it worked, some information about python (3.13._) should pop up and the input line should have ">>>" in front of it.
+   - If this is the case, type quit() to exit python and proceed. If this did not happen, do not continue with this process and figure this out first.
 3. Navigate to the Tags section in releases as I am frequently fixing bugs during the alpha phase.
 4. Download the .zip file for the most recent tag/release.
 5. Extract the contents wherever you please.
 6. Navigate inside the extracted folder. You should see a folder named "PyDoug" and several text documents.
 7. Move the PyDoug folder and the requirements_dist.txt file to your user folder (e.g. "C:\Users\Your_Name")
    - Note, "Your_Name" should be replaced with your user account name.
-   - Note, you may place these wherever you want but this is the simplest option and I will only provide
-     guidance for installation from this folder.
-   - If you are knowledgeable enough, then changing the commands that follow to a different folder should
-     not be too difficult.
+   - Note, you may place these wherever you want but this is the simplest option and I will only provide guidance for installation from this folder.
+   - If you are knowledgeable enough, then changing the commands that follow to a different folder should not be too difficult.
 9. Open Windows Powershell if not already open from before.
 10. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
    - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
@@ -65,11 +52,8 @@ Installing & Updating
 12. Once it is finished, type 'PyDoug_Env\Scripts\pip install -r requirements_dist.txt' then enter.
     - Note, this will take some time. Allow it to install everything before doing anything else.
 13. Once it is finished, type 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug.
-    - Note, the napari GUI may take a minute to launch. It is normal for it to flash many small popups
-     during this process.
-14. If this worked and PyDoug launches successfully, you need only launch Windows PowerShell and re-enter
-    the above command 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug every time (assuming that you
-    launch PowerShell in the C:\Users\Your_Name folder where the PyDoug folder is located).
+    - Note, the napari GUI may take a minute to launch. It is normal for it to flash many small popups during this process.
+14. If this worked and PyDoug launches successfully, you need only launch Windows PowerShell and re-enter the above command 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug every time (assuming that you launch PowerShell in the C:\Users\Your_Name folder where the PyDoug folder is located).
 
 **Update**
 1. Download the .zip file for the most recent tag/release.
@@ -81,11 +65,7 @@ Installing & Updating
 General Info
 ------------
 
-When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can
-be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart
-the program to get them back. Aside from the widgets area, everything with any imported image files works according to napari's
-website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how
-napari works for ease of use with PyDoug. Here are some general instructions:
+When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Aside from the widgets area, everything with any imported image files works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
 
 - Any single image file (other than .h5-type formats) can simply be dragged and dropped into the napari window to open.
 - You can move the image around by clicking and dragging with the mouse.
@@ -100,33 +80,18 @@ Buttons/functionality native to napari that you should NOT use in PyDoug:
 - The axis transpose buttons (bottom left, immediately right of the 2D/3D button)
 - The image layer renaming feature (activated by double-clicking on a layer's name)
 
-PyDoug has its own functionality for shapes and labels that napari handles differently. Additionally, transposing axes
-with napari's buttons rather than PyDoug's reslice widget will not record what you have done in the constantly-updating
-parameters log, meaning you cannot recreate those transpositions in any later batch processing if needed. Finally, chaning
-a layer's name will not update the parameters log, so if you remove the image later the parameters log will not be able
-to find the operation to remove. Otherwise, these buttons will not "break" PyDoug, just potentially harm its functionality.
+PyDoug has its own functionality for shapes and labels that napari handles differently. Additionally, transposing axes with napari's buttons rather than PyDoug's reslice widget will not record what you have done in the constantly-updating parameters log, meaning you cannot recreate those transpositions in any later batch processing if needed. Finally, chaning a layer's name will not update the parameters log, so if you remove the image later the parameters log will not be able to find the operation to remove. Otherwise, these buttons will not "break" PyDoug, just potentially harm its functionality.
 
-Whenever you modify an image with one of PyDoug's widgets, a parameters log will update with the operation performed and
-the parameters used for the operation. When you delete an image layer from the layers list, the parameters log will delete
-the entry corresponding to that layer's name. By exporting these parameters, you can use them for batch processing of
-other datasets without you having to manually do so for each image.
+Whenever you modify an image with one of PyDoug's widgets, a parameters log will update with the operation performed and the parameters used for the operation. When you delete an image layer from the layers list, the parameters log will delete the entry corresponding to that layer's name. By exporting these parameters, you can use them for batch processing of other datasets without you having to manually do so for each image.
 
 **Shapes Layer**
 
-After adding a shape (covered in the Masking Tab), the shapes layer can be interacted with by clicking on it in the layer list.
-Use the hollow cursor option (not the filled cursor) to move shapes around. Drag a shape's vertices to change its dimensions.
-Hold shift when changing dimensions to maintain the current aspect ratio. Click on a shape to change its appearance in the layer
-controls window above the layer list window (opacity, edge width, edge color, etc.). Do not add shapes from this selection
-window or they will only occupy a single slice of a stack as opposed to all slices of a stack when the add shape widget is used.
+After adding a shape (covered in the Masking Tab), the shapes layer can be interacted with by clicking on it in the layer list. Use the hollow cursor option (not the filled cursor) to move shapes around. Drag a shape's vertices to change its dimensions. Hold shift when changing dimensions to maintain the current aspect ratio. Click on a shape to change its appearance in the layer controls window above the layer list window (opacity, edge width, edge color, etc.). Do not add shapes from this selection window or they will only occupy a single slice of a stack as opposed to all slices of a stack when the add shape widget is used. Note that the exact location of a pixel's coordinates are in the center; i.e. if you want to include a pixel in a shape you will be creating a mask from, set the edge width to 1 and make sure the pixel is roughly covered by the edges on either side of the shape's manipulation line.
 More info here: https://napari.org/stable/howtos/layers/shapes.html.
 
 **Labels Layer**
 
-After adding a labels layer (covered in the Masking Tab), the labels layer can be interacted with by clicking on it in the layer list.
-Use the paintbrush option to draw on the image. The brush size can be altered and drawing in 2D or 3D can be performed. Change the label
-index to change the color. Note that all label colors will be converted to the white portion of the mask (if painting a mask). Use the
-paint-fill bucket to color an entire image/slice or within a pre-drawn boundary. DO NOT try to paint fill in 3D or the program will
-almost certainly crash. Use the eraser option to remove previously drawn labels.
+After adding a labels layer (covered in the Masking Tab), the labels layer can be interacted with by clicking on it in the layer list. Use the paintbrush option to draw on the image. The brush size can be altered and drawing in 2D or 3D can be performed. Change the label index to change the color. Note that all label colors will be converted to the white portion of the mask (if painting a mask). Use the paint-fill bucket to color an entire image/slice or within a pre-drawn boundary. DO NOT try to paint fill in 3D or the program will almost certainly crash. Use the eraser option to remove previously drawn labels.
 More info here: https://napari.org/stable/howtos/layers/labels.html.
 
 -------
@@ -139,9 +104,7 @@ A tab containing widgets related to the import and export of datasets and batch 
 
 **Import File**
 
-A widget for importing single image files (2D or 3D). You can just drag and drop single tiff/png/jpeg type files
-into the napari window if desired, but they can also be imported here. This widget can also import h5-type files
-and (theoretically) any file that the Pillow library can handle: https://pillow.readthedocs.io/en/stable/handbook/tutorial.html.
+A widget for importing single image files (2D or 3D). You can just drag and drop single tiff/png/jpeg type files into the napari window if desired, but they can also be imported here. This widget can also import h5-type files and (theoretically) any file that the Pillow library can handle: https://pillow.readthedocs.io/en/stable/handbook/tutorial.html.
 - "File Path": click "Select file" to open a file selector dialog to locate the file.
 - "Import File" button: click to import the file.
 
@@ -156,35 +119,36 @@ A widget for importing sequences of files contained in a folder.
 A wiget for exporting images (2D or 3D).
 - "Image" drop-down: images in the layer list. Select the image to export.
 - "Method" drop-down: available export formats (tiff or hdf5)
-- "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence.
-  Has no functionality if "Method" is "HDF5".
-- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will
-  be created in this folder if exporting as a tiff sequence.
+- "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence. Has no functionality if "Method" is "HDF5".
+- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder if exporting as a tiff sequence.
 - "Save Name": type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
 - "Export Image(s)" button: click to export the image(s).
+
+**Export Labels**
+- "Labels" drop-down: labels in the layer list. Select the labels layer to export.
+- "Method" drop-down: available export formats (tiff or hdf5)
+- "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence. Has no functionality if "Method" is "HDF5".
+- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder if exporting as a tiff sequence.
+- "Save Name": type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
+- "Export Labels" button: click to export the image(s).
 
 **Export Parameters**
 
 A widget for exporting the current parameters log.
-- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will
-  be created in this folder with the name provided in "Folder Name".
+- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder with the name provided in "Folder Name".
 - "Folder Name": type in a name for the parameters folder.
-- "Compress Masks" checkbox: leave checked to convert any masks used to 2D slices of their original 3D volume (if processing 3D images).
-  If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices,
-  DO NOT leave this checked.
+- "Compress Masks" checkbox: leave checked to convert any masks used to 2D slices of their original 3D volume (if processing 3D images). If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices, DO NOT leave this checked.
 - "Export Parameters" button: click to export the parameters.
 
 **Batch Processing**
 
 A widget for batch processing other image(s) with an exported parameters log (parameters must be exported and saved already).
 - "Image Format" drop-down: select "Stacks" if importing image sequences, otherwise select "Singles" for 2D images or multi-page (3D) tiffs.
-- "Stack Format" drop-down: if "Image Format" is "Stacks", select "Multi-Page" if stacks are multi-page (3D) tiffs or hdf5-type files.
-  Otherwise, select "Sequence" to import folders containing image sequences.
+- "Stack Format" drop-down: if "Image Format" is "Stacks", select "Multi-Page" if stacks are multi-page (3D) tiffs or hdf5-type files. Otherwise, select "Sequence" to import folders containing image sequences.
 - "Export Images" checkbox: leave checked to export the images after processing. Uncheck if you are just creating plots from the images.
 - "Export Multi Page" checkbox: leave checked to export stacks as multi-page (3D) tiffs. Uncheck to export stacks as image sequences.
 - "Copy Parameters" checkbox: leave checked to put a copy of the parameters used in the export folder.
-- "Run Batch Script" button: click to open the images selection dialog, followed by the parameters selection dialog, followed by the export
-  selection dialog, followed by the batch script itself.
+- "Run Batch Script" button: click to open the images selection dialog, followed by the parameters selection dialog, followed by the export selection dialog, followed by the batch script itself.
 
 Manipulate Tab
 --------------
@@ -200,43 +164,30 @@ A widget for removing (trimming) or adding (padding) specific amounts from/to ea
    - Pad: leave checked to enter dimensions to expand image to. Un-check to enter specific number of pixels to add to each axis.
 - "X Bounds" checkbox: leave checked to affect the X axis with "X Min" and "X Max". Un-check to leave X axis untouched.
 - "X Min" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel column number left-of-which all columns will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel columns to remove from the left of the image.
-   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
-     columns to add to the left of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel column number left-of-which all columns will be removed. If "Bounds as Slices" is unchecked, enter number of pixel columns to remove from the left of the image.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel columns to add to the left of the image.
 - "X Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel column number right-of-which all columns will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel columns to remove from the right of the image.
-   - Pad: if "Bounds as Slices" is checked, enter dimension to expand X axis to meet. If "Bounds as Slices" is unchecked, enter number
-     of pixel columns to add to the right of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel column number right-of-which all columns will be removed. If "Bounds as Slices" is unchecked, enter number of pixel columns to remove from the right of the image.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand X axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel columns to add to the right of the image.
 - "Y Bounds" checkbox: leave checked to affect the Y axis with "Y Min" and "Y Max". Un-check to leave Y axis untouched.
 - "Y Min" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel row number above-which all rows will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel rows to remove from the top of the image.
-   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
-     rows to add to the top of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel row number above-which all rows will be removed. If "Bounds as Slices" is unchecked, enter number of pixel rows to remove from the top of the image.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel rows to add to the top of the image.
 - "Y Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel row number below-which all rows will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel rows to remove from the bottom of the image.
-   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Y axis to meet. If "Bounds as Slices" is unchecked, enter number
-     of pixel rows to add to the bottom of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel row number below-which all rows will be removed. If "Bounds as Slices" is unchecked, enter number of pixel rows to remove from the bottom of the image.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Y axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel rows to add to the bottom of the image.
 - "Z Bounds" checkbox: leave checked to affect the Z axis with "Z Min" and "Z Max". Un-check to leave Z axis untouched. No effect if the
   image is not 3D.
 - "Z Min" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel slice number before-which all slices will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel slices to remove from the front of the stack.
-   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel
-     slices to add to the front of the stack.
+   - Trim: if "Bounds as Slices" is checked, enter pixel slice number before-which all slices will be removed. If "Bounds as Slices" is unchecked, enter number of pixel slices to remove from the front of the stack.
+   - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel slices to add to the front of the stack.
 - "Z Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel slice number after-which all slices will be removed. If "Bounds
-     as Slices" is unchecked, enter number of pixel slices to remove from the back of the stack.
-   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Z axis to meet. If "Bounds as Slices" is unchecked, enter number
-     of pixel slices to add to the back of the stack.
+   - Trim: if "Bounds as Slices" is checked, enter pixel slice number after-which all slices will be removed. If "Bounds as Slices" is unchecked, enter number of pixel slices to remove from the back of the stack.
+   - Pad: if "Bounds as Slices" is checked, enter dimension to expand Z axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel slices to add to the back of the stack.
 - "Padded Color" drop-down: select the default color to assign to pixels added by padding.
 - "Specify Color" checkbox: leave unchecked to use default "Padded Color". Check to specify a color in "Color Value".
 - "Color Value" float: enter specific intensity value to assign to pixels added by padding.
-- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer.
-  If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
+- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer. If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
 - "Trim / Pad" button: click to perform the trim or pad operation.
 
 **Crop**
@@ -244,12 +195,10 @@ A widget for removing (trimming) or adding (padding) specific amounts from/to ea
 A widget for cropping an image using a pre-made mask (covered in Masking Tab).
 - "Image" drop-down: images in the layer list. Select the image to crop.
 - "Mask" drop-down: images in the layer list. Select the mask to use to crop "Image".
-- "Masked Color" drop-down: select the default color to assign to pixels outside of the mask but within the new image
-  (e.g. in the case of a circular crop)
+- "Masked Color" drop-down: select the default color to assign to pixels outside of the mask but within the new image (e.g. in the case of a circular crop)
 - "Specify Color" checkbox: leave unchecked to use default "Masked Color". Check to specify a color in "Color Value".
 - "Color Value" float: enter specific intensity value to assign to masked pixels remaining after cropping.
-- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer.
-  If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
+- "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer. If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
 - "Crop" button: click to perform the crop operation.
 
 **Split**
@@ -295,8 +244,7 @@ A widget for rotating an image or stack around the center of the Z axis.
 More info: https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.rotate
 - "Image" drop-down: images in the layer list. Select the image to rotate.
 - "Clockwise" checkbox: check to rotate clockwise. Leave unchecked to rotate counter clockwise.
-- "Resize" checkbox: leave unchecked to keep original image dimensions. Check to expand dimensions outwards to avoid cropping
-  off edges that are rotated out-of-frame.
+- "Resize" checkbox: leave unchecked to keep original image dimensions. Check to expand dimensions outwards to avoid cropping off edges that are rotated out-of-frame.
 - "Angle" float: enter the angle to rotate the image(s) by.
 - "Rotate" button: click to perform the rotate operation.
 
@@ -344,8 +292,7 @@ A widget for creating a mask from a shapes layer.
 Note, creating a mask will not go in the parameter log and cannot be performed in batch processing.
 - "Image" drop-down: images in the layer list. Select the image to make a mask with matching dimensions.
 - "Shapes" drop-down: shapes in the layer list. Select the shapes layer to make the mask from.
-- "Specify Slice Range" checkbox: check to only apply the shapes to the mask in a specified slice range. Leave unchecked to fill all
-  slices with the shapes. Has no effect on 2D images.
+- "Specify Slice Range" checkbox: check to only apply the shapes to the mask in a specified slice range. Leave unchecked to fill all slices with the shapes. Has no effect on 2D images.
 - "Slice Start" integer: enter the slice to start applying the shapes to the mask if "Specify Slice Range" is checked.
 - "Slice End" integer: enter the slice to stop applying the shapes to the mask if "Specify Slice Range" is checked.
 - "Create Mask" button: click to create the mask.
@@ -370,8 +317,7 @@ A widget for PowerPoint-style shape merging operations.
 Note, mask logic will not go in the parameter log and cannot be performed in batch processing.
 - "Mask 1" drop-down: images in the layer list. Select the first mask for the merging operation.
 - "Mask 2" drop-down: images in the layer list. Select the second mask for the merging operation.
-- "Method" drop-down: select "Union" to make all white areas in each mask white. Select subtract to subtract the white areas
-  in the second mask from those in the first mask. Select "intersect" to make only the areas that are white in each mask white.
+- "Method" drop-down: select "Union" to make all white areas in each mask white. Select subtract to subtract the white areas in the second mask from those in the first mask. Select "intersect" to make only the areas that are white in each mask white.
 - "Perform Operation" button: click to perform the mask logic operation.
 
 Pixel Values Tab
@@ -390,8 +336,7 @@ https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_u
 https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_uint
 - "Image" drop-down: images in the layer list. Select the image to convert.
 - "Type" drop-down: data type options for conversion.
-- "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the new type's range after conversion.
-  This has no effect when converting between integer data types.
+- "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the new type's range after conversion. This has no effect when converting between integer data types.
 - "Bounds" checkbox: check to specify the bounds to normalize between if "Auto-Normalize" is checked.
 - "Min" float: input minimum bound for normalization if "Bounds" checked.
 - "Max" float: input maximum bound for normalization if "Bounds" checked.
@@ -399,12 +344,10 @@ https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.img_as_u
 
 **Normalize**
 
-A widget for normalizing the intensity range of images to a new range. This operation can be performed automatically for the
-data type range of an image in the "Saturate" and "Convert Type" widgets.
+A widget for normalizing the intensity range of images to a new range. This operation can be performed automatically for the data type range of an image in the "Saturate" and "Convert Type" widgets.
 More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.rescale_intensity
 - "Image" drop-down: images in the layer list. Select the image to normalize.
-- "Input Range" checkbox: check to specify an input range to normalize. Values outside this range will be clipped (as in saturation).
-  If unchecked, the current range of the image will be used.
+- "Input Range" checkbox: check to specify an input range to normalize. Values outside this range will be clipped (as in saturation). If unchecked, the current range of the image will be used.
 - "Input Min" float: specify the input range minimum if "Input Range" is checked.
 - "Input Max" float: specify the input range maximum if "Input Range" is checked.
 - "Output Range" checkbox: check to specify an output range for normalization. If unchecked, the range of the image's data type will be used.
@@ -417,13 +360,10 @@ More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimag
 A widget for clipping the image's histogram at extreme intensity values. Contrast can then be enhanced by normalizing.
 - "Image" drop-down: images in the layer list. Select the image to saturate.
 - "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the image's data type's range after saturation.
-- "Bounds as Percentages": leave checked to input the saturation bounds as percentages of the total image pixels. Uncheck to input specific
-  intensity values. Regardless of the option used, the parameters log will record the specific intensity values used for consistency in batch
-  processing. Note that leaving checked will require a calculation that may take some time depending on the image dimensions.
+- "Bounds as Percentages": leave checked to input the saturation bounds as percentages of the total image pixels. Uncheck to input specific intensity values. Regardless of the option used, the parameters log will record the specific intensity values used for consistency in batch processing. Note that leaving checked will require a calculation that may take some time depending on the image dimensions.
 - "Min Bound" float: input the minimum bound for saturation.
 - "Max Bound" float: input the maximum bound for saturation.
-- "Apply Mask" checkbox: check to apply a mask to the image during saturation. Pixels that are masked will not be considered in the calculation
-  of bounds percentages. This has no effect if "Bounds as Percentages" is unchecked.
+- "Apply Mask" checkbox: check to apply a mask to the image during saturation. Pixels that are masked will not be considered in the calculation of bounds percentages. This has no effect if "Bounds as Percentages" is unchecked.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Saturate" button: click to perform the saturation operation.
 
@@ -434,8 +374,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimag
 https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.equalize_adapthist,
 https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filters.rank.equalize
 - "Image" drop-down: images in the layer list. Select the image to equalize.
-- "Method" drop-down: select the equalization method. "Global" takes all pixel values into account whereas "Local" and "Adaptive" consider only the surrounding
-  neighborhood of pixels.
+- "Method" drop-down: select the equalization method. "Global" takes all pixel values into account whereas "Local" and "Adaptive" consider only the surrounding neighborhood of pixels.
 - "Local Radius" integer: input the radius to be used if "Method" is "Local".
 - "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
 - "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
@@ -464,6 +403,12 @@ A widget for converting RGB images to grayscale.
 More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.rgb2gray
 - "Image" drop-down: images in the layer list. Select the RGB image to convert to grayscale.
 - "Grayscale" button: click to perform the RGB to grayscale operation.
+
+**Labels to Image**
+A widget for converting a labels layer to an image layer.
+More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.label2rgb
+- "Labels" drop-down: labels in the layer list. Select the labels layer to convert to an image layer.
+- "Labels to Image" button: click to perform the labels to image operation.
 
 Denoising Tab
 -------------
@@ -523,8 +468,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#ski
 
 A widget for applying a ring-removal filter to an image/stack. These filters attempt to smooth radial ring artifacts typically seen in XCT data.
 Note, images must be perfectly square along the "Square Axis".
-More info: https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_fft,
-https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_wavelet_fft
+More info: https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_fft, https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html#algotom.post.postprocessing.remove_ring_based_wavelet_fft
 - "Image" drop-down: images in the layer list. Select the image to filter.
 - "Method" drop-down: select the ring-removal method to be used.
 - "FFT Freq Cutoff" integer: if "Method" is "FFT", input the frequency cutoff.
@@ -539,8 +483,7 @@ https://myalgotomo.readthedocs.io/en/latest/api/algotom.post.postprocessing.html
 
 **TV Bregman Filter**
 
-A widget for applying a total variation Bregman filter to an image/stack. A TV Bregman filter attempts to smooth an image while remaining similar
-to the original image.
+A widget for applying a total variation Bregman filter to an image/stack. A TV Bregman filter attempts to smooth an image while remaining similar to the original image.
 More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_tv_bregman
 - "Image" drop-down: images in the layer list. Select the image to filter.
 - "Weight" float: input denoising weight (smaller = smoother).
@@ -553,8 +496,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#ski
 
 **TV Chambolle Filter**
 
-A widget for applying a total variation Chambolle filter to an image/stack. A TV Chambolle filter attempts to smooth an image while remaining similar
-to the original image.
+A widget for applying a total variation Chambolle filter to an image/stack. A TV Chambolle filter attempts to smooth an image while remaining similar to the original image.
 More info: https://scikit-image.org/docs/stable/api/skimage.restoration.html#skimage.restoration.denoise_tv_chambolle
 - "Image" drop-down: images in the layer list. Select the image to filter.
 - "Weight" float: input denoising weight (greater = smoother).
@@ -593,9 +535,8 @@ A widget for manual binary segmentation of an image/stack.
 
 **Label**
 
-A widget for labeling segmented images/stacks using connectivity or watershed based methods.
-More info: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label,
-https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.watershed
+A widget for labeling segmented images/stacks using connectivity or watershed based methods. The created labels will be added to the napari viewer as a labels layer (covered in General Info). This can be exported but will not display with colors as viewed in napari unless converted to an image before exporting (this can be done with the "Labels to Image" widget in the Pixel Values tab).
+More info: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label, https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.watershed
 - "Image" drop-down: images in the layer list. Select the segmented image to label.
 - "Method" drop-down: select the labeling method.
 - "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
@@ -654,8 +595,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#sk
 **Morphological Snakes**
 
 A widget for morphological snake segmentation of images/stacks.
-More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_chan_vese,
-https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_geodesic_active_contour
+More info: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_chan_vese, https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.morphological_geodesic_active_contour
 - "Image" drop-down: images in the layer list. Select the image to segment.
 - "Method" drop-down: select the morphological snake method.
 - "Iterations" integer: input the number of iterations to run the algorithm for optimization.
@@ -672,8 +612,7 @@ A tab containing widgets that apply morphology-based filters to segmented images
 **Remove Small Objects**
 
 A widget for removing small particles or holes in segmented images/stacks.
-More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects,
-https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects, https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
 - "Image" drop-down: images in the layer list. Select the image to remove objects.
 - "Method" drop-down: select "Particles" for small white objects or "Holes" for small black objects.
 - "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
@@ -704,8 +643,8 @@ More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skim
 
 **Closing**
 
-A widget for closing segmented images. Closing is defined as a dilation followed by an erosion and is good for removing small dark spots
-(i.e. "closing" dark holes in the image).
+A widget for closing segmented images. Closing is defined as a dilation followed by an erosion and is good for removing small dark spots (i.e. "closing" dark holes in the image).
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.closing
 - "Image" drop-down: images in the layer list. Select the image to close.
 - "Dilations" integer: input the number of dilations to perform before performing erosions.
 - "Erosions" integer: input the number of erosions to perform after performing dilations.
@@ -714,8 +653,8 @@ A widget for closing segmented images. Closing is defined as a dilation followed
 
 **Opening**
 
-A widget for opening segmented images. Opening is defined as an erosion followed by a dilation and is good for removing small bright spots
-(i.e. "opening" large dark holes in the image).
+A widget for opening segmented images. Opening is defined as an erosion followed by a dilation and is good for removing small bright spots (i.e. "opening" large dark holes in the image).
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.opening
 - "Image" drop-down: images in the layer list. Select the image to open.
 - "Erosions" integer: input the number of erosions to perform before performing dilations.
 - "Dilations" integer: input the number of dilations to perform after performing erosions.
@@ -724,8 +663,8 @@ A widget for opening segmented images. Opening is defined as an erosion followed
 
 **Top Hat**
 
-A widget for performing tophats on images. A black top hat is defined as a closing of an image subtracted by the original image and is good for
-returning small dark spots. A white top hat is defined as an image subtracted by its opening and is good for returning small bright spots.
+A widget for performing tophats on images. A black top hat is defined as a closing of an image subtracted by the original image and is good for returning small dark spots. A white top hat is defined as an image subtracted by its opening and is good for returning small bright spots.
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.black_tophat, https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.white_tophat
 - "Image" drop-down: images in the layer list. Select the image to top hat.
 - "Method" drop-down: select the top hat method.
 - "Dilations" integer: input the number of dilations to perform in the selected top hat method.
@@ -827,8 +766,7 @@ A widget for generating gray level statistical plots along each axis of a 3D ima
 **FFT**
 
 A widget for computing a fast-Fourier transform of an image/stack.
-More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2,
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
+More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2, https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
 - "Image" drop-down: images in the layer list. Select the image to compute an FFT.
 - "Along Z Axis" checkbox: check to perform the FFT along the Z axis of a 3D image stack.
 - "FFT" button: click to perform the FFT operation.
