@@ -2039,7 +2039,6 @@ class ImageProcessor:
 
     @magicgui(
         Type = {"choices": ["Volume", "Area"]},
-        Domain_Size_Connectivity = {"choices": [1, 2, 3]},
         Axis = {"choices": ["X", "Y", "Z"]},
         Normalize_Method = {"choices": ["Total", "Phase"]},
         call_button = "Plot Distribution")
@@ -2047,8 +2046,6 @@ class ImageProcessor:
         Image: napari.layers.Image,
         Type: str = "Volume",
         Axis: str = "Z",
-        Domain_Size: bool = False,
-        Domain_Size_Connectivity: int = 2,
         Include_Background: bool = False,
         Background: float = 0,
         Pixel_Scale: float = 1,
@@ -2074,10 +2071,6 @@ class ImageProcessor:
             
             Type = "Psd"
             
-        if Domain_Size_Connectivity > Image.data.ndim:
-            
-            Domain_Size_Connectivity = 2
-            
         if not Apply_Mask:
             
             mask_name = None
@@ -2097,8 +2090,6 @@ class ImageProcessor:
                 {"Name": param_layer_name,
                  "Type": Type.lower(),
                  "Axis": Axis,
-                 "Domain Size": Domain_Size,
-                 "Connectivity": Domain_Size_Connectivity,
                  "Include Background": Include_Background,
                  "Background": Background,
                  "Pixel Size": Pixel_Scale,
@@ -2131,23 +2122,12 @@ class ImageProcessor:
             
             y_lims = (0, Y_Max)
             
-        if not Domain_Size:
-            
-            mode: str = "phase distrib"
-            
-        else:
-            
-            mode: str = "psd distrib"
-            
+        mode: str = "phase distrib"
         distrib_mode: str = Type.lower()
             
         if Time_Series:
             
             mode: str = "time series"
-            
-            if Domain_Size:
-                
-                distrib_mode: str = "size"
             
         if not Time_Series:
             
@@ -2166,7 +2146,6 @@ class ImageProcessor:
                        axis = Axis,
                        include_background = Include_Background,
                        background = Background,
-                       connectivity = Domain_Size_Connectivity,
                        ignore_edges = Remove_Edges,
                        normalize = Normalize,
                        norm_method = Normalize_Method.lower(),
@@ -2177,15 +2156,13 @@ class ImageProcessor:
         
     @magicgui(
         Type = {"choices": ["Volume", "Area", "Diameter", "Radius"]},
-        Connectivity = {"choices": [1, 2, 3]},
         X_Max = {"max": 1000000},
         Y_Max = {"max": 1000000},
         Max_Bound = {"max": 1000000},
         call_button = "Plot Distribution")
     def psd_widget(self,
-        Image: napari.layers.Image,
+        Labels: napari.layers.Labels,
         Type: str = "Volume",
-        Connectivity: int = 3,
         Background: int = 0,
         Pixel_Scale: float = 1,
         Units: str = "pixels",
@@ -2215,10 +2192,6 @@ class ImageProcessor:
         elif Type == "Radius":
             
             Type: str = "rad"
-            
-        if Connectivity > Image.data.ndim:
-            
-            Connectivity: int = 2
         
         if not Apply_Mask:
             
@@ -2236,7 +2209,6 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Type": Type,
-                 "Connectivity": Connectivity,
                  "Background": Background,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
@@ -2274,7 +2246,7 @@ class ImageProcessor:
             
             Max_Bound: None = None
             
-        _ = plots.size_distribution(Image.data,
+        _ = plots.size_distribution(Labels.data,
                                     mode = Type,
                                     units = Units,
                                     mask_array = mask_array,
@@ -2283,7 +2255,6 @@ class ImageProcessor:
                                     pixel_size = Pixel_Scale,
                                     normalize = Normalize,
                                     ignore_edges = Remove_Edges,
-                                    connectivity = Connectivity,
                                     background = Background,
                                     nbins = Num_Bins,
                                     max_bound = Max_Bound)

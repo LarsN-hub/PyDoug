@@ -1115,14 +1115,7 @@ def apply_parameters(im_array: np.ndarray,
                 
                 include_background: bool = False
                 
-            if parameter["Domain Size"].lower() == "false":
-                
-                mode: str = "phase distrib"
-                
-            else:
-                
-                mode: str = "psd distrib"
-                
+            mode: str = "phase distrib"
             distrib_mode: str = parameter["Type"]
                 
             if parameter["Time Series"].lower() == "true":
@@ -1130,10 +1123,6 @@ def apply_parameters(im_array: np.ndarray,
                 mode: str = "time series"
                 temporal_scale = parameter["Time Scale"]
                 temporal_units = parameter["Time Units"]
-                
-                if parameter["Domain Size"].lower() == "true":
-                    
-                    distrib_mode: str = "size"
                     
             else:
                 
@@ -1151,7 +1140,6 @@ def apply_parameters(im_array: np.ndarray,
                              axis = int(parameter["Axis"]),
                              include_background = include_background,
                              background = float(parameter["Background"]),
-                             connectivity = int(parameter["Connectivity"]),
                              ignore_edges = ignore_edges,
                              normalize = normalize,
                              norm_method = parameter["Normalize Method"],
@@ -1229,7 +1217,6 @@ def apply_parameters(im_array: np.ndarray,
                                           pixel_size = float(parameter["Pixel Size"]),
                                           normalize = normalize,
                                           ignore_edges = ignore_edges,
-                                          connectivity = int(parameter["Connectivity"]),
                                           background = float(parameter["Background"]),
                                           nbins = nbins,
                                           max_bound = max_bound)
