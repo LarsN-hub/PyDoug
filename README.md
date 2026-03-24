@@ -807,14 +807,12 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 - "Image" drop-down: images in the layer list. Select the image to plot an axial distribution.
 - "Type" drop-down: select whether area or volume is being calculated along the specified axis.
 - "Axis" drop-down: select the axis along which the plot is generated.
-- "Domain Size" checkbox: check to calculate domain area/volume distributions along the axis instead of total area/volume. NOTE, this feature does not currently work and will return an error.
-- "Domain Size Connectivity" drop-down: if "Domain Size" is checked, select the number of orthogonal hops allowed to consider a neighboring pixel connected.
 - "Include Background" checkbox: check to plot the area/volume of the background phase in addition to the segmented phases.
 - "Background" float: input the background phase intensity.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Pixel Units" string: input the length units.
 - "Normalize" checkbox: check to normalize the plotted area/volume to plot probability density instead.
-- "Normalization Method" drop-down: if "Normalize" is checked and "Domain Size" is unchecked, select the normalization method. "Total" normalizes the measured volume/area against the entire volume/area in each slice while "Phase" normalizes each segmented phase's volume/area against the total volume/area of that phase measured in all slices combined.
+- "Normalization Method" drop-down: if "Normalize" is checked, select the normalization method. "Total" normalizes the measured volume/area against the entire volume/area in each slice while "Phase" normalizes each segmented phase's volume/area against the total volume/area of that phase measured in all slices combined.
 - "Remove Edges" checkbox: check to remove the end values in the case of anomalous extremes.
 - "X Min" float: input the minimum X value to plot.
 - "X Max" float: input the maximum X value to plot.
@@ -830,9 +828,8 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 **Domain Size Distribution**
 
 A widget for generating a domain size distribution plot for a segmented image/stack. If the image is not already labeled (see the label widget in the Segmentation tab), it will be labeled with the connectivity method.
-- "Image" drop-down: images in the layer list. Select the image to plot a segmented domain size distribution.
+- "Labels" drop-down: label layers in the layer list. Select the labels layer to plot a domain size distribution.
 - "Type" drop-down: select the format to calculate domain size. Volume and area are the total measured volume/area for each domain while diameter and radius initially calculate the area/volume and then calculate the diameter/radius assuming a circular or spherical domain shape.
-- "Connectivity" drop-down: if the image is not labeled, select the number of orthogonal hops allowed to consider a neighboring pixel connected.
 - "Background" float: input the background intensity.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.
