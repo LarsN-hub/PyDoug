@@ -500,11 +500,17 @@ def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "ti
     
     if any(ext == x for x in write_exts):
         
+        start = timer()
         io.imsave(save_path, im_array, check_contrast = False)
+        end = timer()
+        print(f"\nFinished export in {(end - start):.2} s!")
     
     elif any(ext == x for x in h5_exts):
         
+        start = timer()
         write_h5(im_array, save_path)
+        end = timer()
+        print(f"\nFinished export in {(end - start):.2} s!")
         
     else:
         

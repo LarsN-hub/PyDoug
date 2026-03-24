@@ -169,7 +169,12 @@ class ImageProcessor:
             for func_name in self.funcguis:
                 
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
+                    
+                if hasattr(funcgui, "Labels"):
+                    
+                    funcgui.Labels.reset_choices()
+                    funcgui.Labels.value = layer
+                    
                 if hasattr(funcgui, "Paint"):
                 
                     funcgui.Paint.reset_choices()
@@ -226,6 +231,48 @@ class ImageProcessor:
                     if last_image is not None:
                         
                         funcgui.Mask_2.value = last_image
+                        
+        elif isinstance(layer, napari.layers.Shapes):
+            
+            shapes_layers = [lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Shapes)]
+            last_shapes = shapes_layers[-1] if shapes_layers else None
+            
+            for func_name in self.funcguis:
+                
+                funcgui: widgets.FunctionGui = getattr(self, func_name)
+                
+                if hasattr(funcgui, "Shapes"):
+                
+                    funcgui.Shapes.reset_choices()
+                    
+                    if last_shapes is not None:
+                        
+                        funcgui.Shapes.value = layer
+        
+        elif isinstance(layer, napari.layers.Labels):
+            
+            labels_layers = [lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Labels)]
+            last_labels = labels_layers[-1] if labels_layers else None
+            
+            for func_name in self.funcguis:
+                
+                funcgui: widgets.FunctionGui = getattr(self, func_name)
+                
+                if hasattr(funcgui, "Labels"):
+                    
+                    funcgui.Labels.reset_choices()
+                    
+                    if last_labels is not None:
+                        
+                        funcgui.Labels.value = layer
+                        
+                if hasattr(funcgui, "Paint"):
+                    
+                    funcgui.Paint.reset_choices()
+                    
+                    if last_labels is not None:
+                        
+                        funcgui.Paint.value = layer
                     
     def _update_intensity_range(self, event = None) -> None:
         
@@ -332,6 +379,25 @@ class ImageProcessor:
         else:
             
             rw.write_im(Image.data, str(Save_Folder), Save_Name, Method.lower())
+            
+    @magicgui(
+        Method = {"choices": ["Tiff", "HDF5"]},
+        Save_Folder = {"mode": "d"},
+        call_button = "Export Labels")
+    def lab_export_widget(self,
+        Labels: napari.layers.Labels,
+        Method: str = "Tiff",
+        Multi_Page: bool = True,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        Save_Name: str = "Name") -> None:
+        
+        if Labels.data.ndim == 3:
+            
+            rw.write_stack(Labels.data, str(Save_Folder), Save_Name, ext = Method.lower(), multi_page = Multi_Page)
+
+        else:
+            
+            rw.write_im(Labels.data, str(Save_Folder), Save_Name, Method.lower())
             
     @magicgui(
         Save_Folder = {"mode": "d"},
@@ -668,10 +734,10 @@ class ImageProcessor:
     ###################
     
     @magicgui(
-        Shape_Type = {"choices": ["Ellipse", "Rectangle", "Polygon", "Line"]},
+        Shape_Type = {"choices": ["Rectangle", "Ellipse", "Polygon", "Line"]},
         call_button = "Add Shape")
     def add_shape_widget(self,
-        Shape_Type: str = "Ellipse",
+        Shape_Type: str = "Rectangle",
         Polygon_Vertices: int = 3) -> None:
         
         sv.add_shape(self.viewer, Shape_Type.lower(), n_vertices = Polygon_Vertices)
@@ -694,15 +760,23 @@ class ImageProcessor:
             
             if Specify_Slice_Range:
             
-                self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes, slice_range = (Slice_Start, Slice_End)), name = param_layer_name, opacity = 0.5)
+                self.viewer.add_image(cc.get_mask(Image.data, self.viewer,
+                                                  shapes_layer = Shapes,
+                                                  slice_range = (Slice_Start, Slice_End)),
+                                      name = param_layer_name, opacity = 0.5)
                 
             else:
                 
-                self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes), name = param_layer_name, opacity = 0.5)
+                self.viewer.add_image(cc.get_mask(Image.data, self.viewer,
+                                                  shapes_layer = Shapes),
+                                      name = param_layer_name, opacity = 0.5)
             
         else:
             
-            self.viewer.add_image(cc.get_mask(Image.data, self.viewer, shapes_layer = Shapes, convert_to_3d = False), name = param_layer_name, opacity = 0.5)
+            self.viewer.add_image(cc.get_mask(Image.data, self.viewer,
+                                              shapes_layer = Shapes,
+                                              convert_to_3d = False),
+                                  name = param_layer_name, opacity = 0.5)
     
     @magicgui(
         call_button = "Paint")
@@ -960,6 +1034,16 @@ class ImageProcessor:
         self.parameters_log.append(
             {"Name": param_layer_name})
         self.viewer.add_image(pixels.rgb_2_gray(Image.data), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Labels to Image")
+    def labels_2_image_widget(self,
+        Labels: napari.layers.Labels) -> None:
+        
+        param_layer_name = get_param_layer_name("Labels to Image", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name})
+        self.viewer.add_image(pixels.labels_2_rgb(Labels.data), name = param_layer_name)
         
     
     #####################
@@ -1254,6 +1338,106 @@ class ImageProcessor:
              "Min": min(Range),
              "Max": max(Range)})
         self.viewer.add_image(thresh.gui_threshold(Image.data, Range), name = param_layer_name)
+        
+    @magicgui(
+        Method = {"choices": ["Connectivity", "Watershed"]},
+        Connectivity = {"choices": [1, 2, 3]},
+        Axis = {"choices": ["X", "Y", "Z"]},
+        call_button = "Label Segmentation")
+    def label_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Connectivity",
+        Connectivity: int = 3,
+        Watershed_Radius: int = 3,
+        Watershed_Compactness: float = 0,
+        Background: int = 0,
+        Along_Axis: bool = False,
+        Axis: str = "Z",
+        Apply_Mask: bool = False,
+        Mask: napari.layers.Image = None) -> None:
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            
+        else:
+            
+            mask_name = Mask.name
+            
+        if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        elif Connectivity > 2 and Along_Axis:
+            
+            Connectivity = 2
+        
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        
+        if Method == "Connectivity":
+                
+            param_layer_name = get_param_layer_name("Label", self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Background": Background,
+                 "Connectivity": Connectivity,
+                 "Watershed Compactness": Watershed_Compactness,
+                 "Along Axis": Along_Axis,
+                 "Axis": Axis,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name})
+            
+            if Apply_Mask:
+                
+                self.viewer.add_labels(thresh.label(Image.data,
+                                                    mask_array = Mask.data,
+                                                    connectivity = Connectivity,
+                                                    background = Background,
+                                                    positional = Along_Axis,
+                                                    axis = Axis), name = param_layer_name)
+            
+            else:
+                
+                self.viewer.add_labels(thresh.label(Image.data,
+                                                    connectivity = Connectivity,
+                                                    background = Background,
+                                                    positional = Along_Axis,
+                                                    axis = Axis), name = param_layer_name)
+                
+        elif Method == "Watershed":
+            
+            param_layer_name = get_param_layer_name("Watershed", self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Background": Background,
+                 "Connectivity": Connectivity,
+                 "Watershed Radius": Watershed_Radius,
+                 "Watershed Compactness": Watershed_Compactness,
+                 "Along Axis": Along_Axis,
+                 "Axis": Axis,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": Mask.name})
+            
+            if Apply_Mask:
+                
+                self.viewer.add_labels(detect.watershed(Image.data,
+                                                        background = Background,
+                                                        mask_array = Mask.data,
+                                                        connectivity = Connectivity,
+                                                        radius = Watershed_Radius,
+                                                        compactness = Watershed_Compactness,
+                                                        along_axis = Along_Axis,
+                                                        axis = Axis), name = param_layer_name)
+            
+            else:
+                
+                self.viewer.add_labels(detect.watershed(Image.data,
+                                                        background = Background,
+                                                        connectivity = Connectivity,
+                                                        radius = Watershed_Radius,
+                                                        compactness = Watershed_Compactness,
+                                                        along_axis = Along_Axis,
+                                                        axis = Axis), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]},
@@ -1341,106 +1525,6 @@ class ImageProcessor:
                                                window_size = Radius,
                                                k = Niblack_or_Savoula_Sigma_Weight,
                                                r = Savoula_Sigma_Range), name = param_layer_name)
-    
-    @magicgui(
-        Method = {"choices": ["Connectivity", "Watershed"]},
-        Connectivity = {"choices": [1, 2, 3]},
-        Axis = {"choices": ["X", "Y", "Z"]},
-        call_button = "Label Segmentation")
-    def label_widget(self,
-        Image: napari.layers.Image,
-        Method: str = "Connectivity",
-        Connectivity: int = 3,
-        Watershed_Radius: int = 3,
-        Watershed_Compactness: float = 0,
-        Background: int = 0,
-        Along_Axis: bool = False,
-        Axis: str = "Z",
-        Apply_Mask: bool = False,
-        Mask: napari.layers.Image = None) -> None:
-        
-        if not Apply_Mask:
-            
-            mask_name = None
-            
-        else:
-            
-            mask_name = Mask.name
-            
-        if Connectivity > Image.data.ndim:
-            
-            Connectivity = 2
-            
-        elif Connectivity > 2 and Along_Axis:
-            
-            Connectivity = 2
-        
-        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
-        
-        if Method == "Connectivity":
-                
-            param_layer_name = get_param_layer_name("Label", self.operation_count)
-            self.parameters_log.append(
-                {"Name": param_layer_name,
-                 "Background": Background,
-                 "Connectivity": Connectivity,
-                 "Watershed Compactness": Watershed_Compactness,
-                 "Along Axis": Along_Axis,
-                 "Axis": Axis,
-                 "Apply Mask": Apply_Mask,
-                 "Mask Used": mask_name})
-            
-            if Apply_Mask:
-                
-                self.viewer.add_image(thresh.label(Image.data,
-                                                   mask_array = Mask.data,
-                                                   connectivity = Connectivity,
-                                                   background = Background,
-                                                   positional = Along_Axis,
-                                                   axis = Axis), name = param_layer_name)
-            
-            else:
-                
-                self.viewer.add_image(thresh.label(Image.data,
-                                                   connectivity = Connectivity,
-                                                   background = Background,
-                                                   positional = Along_Axis,
-                                                   axis = Axis), name = param_layer_name)
-                
-        elif Method == "Watershed":
-            
-            param_layer_name = get_param_layer_name("Watershed", self.operation_count)
-            self.parameters_log.append(
-                {"Name": param_layer_name,
-                 "Background": Background,
-                 "Connectivity": Connectivity,
-                 "Watershed Radius": Watershed_Radius,
-                 "Watershed Compactness": Watershed_Compactness,
-                 "Along Axis": Along_Axis,
-                 "Axis": Axis,
-                 "Apply Mask": Apply_Mask,
-                 "Mask Used": Mask.name})
-            
-            if Apply_Mask:
-                
-                self.viewer.add_image(detect.watershed(Image.data,
-                                                       background = Background,
-                                                       mask_array = Mask.data,
-                                                       connectivity = Connectivity,
-                                                       radius = Watershed_Radius,
-                                                       compactness = Watershed_Compactness,
-                                                       along_axis = Along_Axis,
-                                                       axis = Axis), name = param_layer_name)
-            
-            else:
-                
-                self.viewer.add_image(detect.watershed(Image.data,
-                                                       background = Background,
-                                                       connectivity = Connectivity,
-                                                       radius = Watershed_Radius,
-                                                       compactness = Watershed_Compactness,
-                                                       along_axis = Along_Axis,
-                                                       axis = Axis), name = param_layer_name)
             
     @magicgui(
         call_button = "Segment")
@@ -2470,10 +2554,11 @@ def main() -> napari.viewer.Viewer:
     mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import File")
     mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
     mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
+    mod_lab_export: widgets.Container = modify_funcgui(ui.lab_export_widget, "Export Labels")
     mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
     mod_batch: widgets.Container = modify_funcgui(ui.batch_widget, "Batch Processing")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_param_export, mod_batch],
+        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_lab_export, mod_param_export, mod_batch],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
@@ -2526,8 +2611,9 @@ def main() -> napari.viewer.Viewer:
     mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
     mod_reassign: widgets.Container = modify_funcgui(ui.reassign_widget, "Re-Assign Intensities")
     mod_grayscale: widgets.Container = modify_funcgui(ui.grayscale_widget, "RGB to Grayscale")
+    mod_labels_2_image: widgets.Container = modify_funcgui(ui.labels_2_image_widget, "Labels to Image")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign, mod_grayscale],
+        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign, mod_grayscale, mod_labels_2_image],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
     

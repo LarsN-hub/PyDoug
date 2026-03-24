@@ -31,6 +31,10 @@ def rgb_2_gray(im_array: np.ndarray) -> np.ndarray:
     else:
     
         return convert_im_type(color.rgb2gray(im_array), "uint8")
+    
+def labels_2_rgb(im_array: np.ndarray) -> np.ndarray:
+    
+    return convert_im_type(color.label2rgb(im_array), "uint8")
 
 def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: tuple | str = None) -> np.ndarray:
      

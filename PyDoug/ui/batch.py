@@ -332,6 +332,11 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nConverting to grayscale...")
             im_array = pixels.rgb_2_gray(im_array)
+            
+        elif parameter["Name"].find("Labels to Image") == 0:
+            
+            print("\nConverting labels to image...")
+            im_array = pixels.labels_2_rgb(im_array)
         
         
         ########################

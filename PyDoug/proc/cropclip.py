@@ -171,7 +171,7 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
     
     for shape in list(shape_dict.keys()):
         
-        shape_coords: np.ndarray = shape_dict[shape]
+        shape_coords: np.ndarray = np.round(shape_dict[shape])
         shape_type: str = shape[:shape.find("-")]
         
         if shape_type == "ellipse":
