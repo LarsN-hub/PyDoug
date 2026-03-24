@@ -2,7 +2,7 @@
 Preface
 -------
 
-I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
+I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
 
 I have only ever used Windows systems, so I cannot say whether or not this works on Linux or Apple systems nor can I currently provide support for installing this on those systems.
 
