@@ -1085,6 +1085,7 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
                          mode: str = "vol",
                          units: str = "pix",
                          mask_array: np.ndarray = None,
+                         x_label: str = None,
                          xlims: tuple = None,
                          ylims: tuple = None,
                          pixel_size: float = 1.0,
@@ -1112,7 +1113,13 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         
         psd_df: pd.DataFrame = data.copy()
     
-    x_label = f"Domain Size ({psd_df.attrs["units"]})"
+    if x_label:
+        
+        x_label: str = f"{x_label} ({psd_df.attrs["units"]})"
+    
+    else:
+    
+        x_label: str = f"Domain Size ({psd_df.attrs["units"]})"
         
     psd_ax = input_ax
     psd_ax = histogram_axis(psd_df, psd_ax,
@@ -1131,6 +1138,7 @@ def size_distribution(data: np.ndarray | pd.DataFrame, *,
                       mode: str = "vol",
                       units: str = "pix",
                       mask_array: np.ndarray = None,
+                      x_label: str = None,
                       xlims: tuple = None,
                       ylims: tuple = None,
                       pixel_size: float = 1.0,
@@ -1146,6 +1154,7 @@ def size_distribution(data: np.ndarray | pd.DataFrame, *,
                                   mode = mode,
                                   units = units,
                                   mask_array = mask_array,
+                                  x_label = x_label,
                                   xlims = xlims,
                                   ylims = ylims,
                                   pixel_size = pixel_size,

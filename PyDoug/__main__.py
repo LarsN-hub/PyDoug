@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.3.4-alpha"
+version_str: str = "v0.3.5-alpha"
 
 
 # Classes
@@ -247,7 +247,7 @@ class ImageProcessor:
                     
                     if last_shapes is not None:
                         
-                        funcgui.Shapes.value = layer
+                        funcgui.Shapes.value = last_shapes
         
         elif isinstance(layer, napari.layers.Labels):
             
@@ -264,7 +264,7 @@ class ImageProcessor:
                     
                     if last_labels is not None:
                         
-                        funcgui.Labels.value = layer
+                        funcgui.Labels.value = last_labels
                         
                 if hasattr(funcgui, "Paint"):
                     
@@ -272,7 +272,7 @@ class ImageProcessor:
                     
                     if last_labels is not None:
                         
-                        funcgui.Paint.value = layer
+                        funcgui.Paint.value = last_labels
                     
     def _update_intensity_range(self, event = None) -> None:
         
@@ -734,6 +734,44 @@ class ImageProcessor:
     ###################
     
     @magicgui(
+        Mask_Method = {"choices": ["Out", "In"]},
+        Masked_Color = {"choices": ["Black", "White", "Gray"]},
+        call_button = "Mask")
+    def mask_widget(self,
+        Image: napari.layers.Image,
+        Mask: napari.layers.Image,
+        Mask_Method: str = "Out",
+        Masked_Color: str = "Black",
+        Specify_Color: bool = False,
+        Color_Value: float = 0) -> None:
+        
+        if not Specify_Color:
+            
+            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
+        
+        else:
+            
+            if Image.data.dtype in util.int_dtypes:
+                
+                color_spec: int = round(Color_Value)
+                
+            else:
+                
+                color_spec = Color_Value
+                
+        param_layer_name: str = get_param_layer_name("Masked", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Mask_Method.lower(),
+             "Masked Color": color_spec,
+             "Apply Mask": True,
+             "Mask Used": Mask.name})
+        self.viewer.add_image(cc.mask(Image.data, Mask.data,
+                                      method = Mask_Method.lower(),
+                                      mask_color = color_spec),
+                              name = param_layer_name)
+    
+    @magicgui(
         Shape_Type = {"choices": ["Rectangle", "Ellipse", "Polygon", "Line"]},
         call_button = "Add Shape")
     def add_shape_widget(self,
@@ -783,7 +821,13 @@ class ImageProcessor:
     def paint_widget(self,
         Image: napari.layers.Image) -> None:
         
-        sv.create_label_layer(Image.data, self.viewer)
+        if util.is_3d_rgb(Image.data)["RGB"]:
+            
+            sv.create_label_layer(pixels.rgb_2_gray(Image.data), self.viewer)
+        
+        else:
+        
+            sv.create_label_layer(Image.data, self.viewer)
     
     @magicgui(
         call_button = "Create Mask")
@@ -808,44 +852,6 @@ class ImageProcessor:
         param_layer_name: str = get_param_layer_name("Mask", self.operation_count)
         self.viewer.add_image(cc.mask_logic(Mask_1.data, Mask_2.data, Method.lower()),
                               name = param_layer_name, opacity = 0.5)
-    
-    @magicgui(
-        Mask_Method = {"choices": ["Out", "In"]},
-        Masked_Color = {"choices": ["Black", "White", "Gray"]},
-        call_button = "Mask")
-    def mask_widget(self,
-        Image: napari.layers.Image,
-        Mask: napari.layers.Image,
-        Mask_Method: str = "Out",
-        Masked_Color: str = "Black",
-        Specify_Color: bool = False,
-        Color_Value: float = 0) -> None:
-        
-        if not Specify_Color:
-            
-            color_spec: float | int = util.convert_color_to_intensity(Image.data, Masked_Color)
-        
-        else:
-            
-            if Image.data.dtype in util.int_dtypes:
-                
-                color_spec: int = round(Color_Value)
-                
-            else:
-                
-                color_spec = Color_Value
-                
-        param_layer_name: str = get_param_layer_name("Masked", self.operation_count)
-        self.parameters_log.append(
-            {"Name": param_layer_name,
-             "Method": Mask_Method.lower(),
-             "Masked Color": color_spec,
-             "Apply Mask": True,
-             "Mask Used": Mask.name})
-        self.viewer.add_image(cc.mask(Image.data, Mask.data,
-                                      method = Mask_Method.lower(),
-                                      mask_color = color_spec),
-                              name = param_layer_name)
 
 
     ########################
@@ -2205,6 +2211,8 @@ class ImageProcessor:
         X_Min: float = 0,
         X_Max: float = 0,
         Y_Max: float = 0,
+        Alternate_X_Label: bool = False,
+        X_Label: str = None,
         Num_Bins: int = 0,
         Max_Bound: float = 0,
         Apply_Mask: bool = False,
@@ -2236,6 +2244,14 @@ class ImageProcessor:
             
             mask_name = Mask.name
             mask_array = Mask.data
+            
+        if Alternate_X_Label:
+            
+            x_label: str = X_Label
+            
+        else:
+            
+            x_label: None = None
         
         if Add_as_Parameter:
             
@@ -2251,6 +2267,8 @@ class ImageProcessor:
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Max": Y_Max,
+                 "Alternate X Label": Alternate_X_Label,
+                 "X Label": x_label,
                  "Num Bins": Num_Bins,
                  "Max Bound": Max_Bound,
                  "Apply Mask": Apply_Mask,
@@ -2283,6 +2301,7 @@ class ImageProcessor:
         _ = plots.size_distribution(Labels.data,
                                     mode = Type,
                                     units = Units,
+                                    x_label = x_label,
                                     mask_array = mask_array,
                                     xlims = x_lims,
                                     ylims = y_lims,

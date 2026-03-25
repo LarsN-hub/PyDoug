@@ -292,7 +292,7 @@ A widget for masking an image using a pre-made mask.
 
 **Add Shape**
 
-A widget for creating a shapes layer if not already present and then add shapes to it. Modifying shapes is covered in General Info.
+A widget for creating a shapes layer if not already present and then add shapes to it. Modifying shapes is covered in General Info. If performing this operation after a mask was created from painting, delete the paint layer first (see Known Bugs section).
 Note, adding shapes will not go in the parameter log and cannot be performed in batch processing.
 - "Shape Type" drop-down: select the type of shape to add.
 - "Polygon Vertices" integer: enter the number of vertices that a polygon select in "Shape Type" should have (min. 3).
@@ -372,9 +372,10 @@ More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimag
 A widget for clipping the image's histogram at extreme intensity values. Contrast can then be enhanced by normalizing.
 - "Image" drop-down: images in the layer list. Select the image to saturate.
 - "Auto-Normalize" checkbox: leave checked to normalize the intensity values to the full width of the image's data type's range after saturation.
-- "Bounds as Percentages": leave checked to input the saturation bounds as percentages of the total image pixels. Uncheck to input specific intensity values. Regardless of the option used, the parameters log will record the specific intensity values used for consistency in batch processing. Note that leaving checked will require a calculation that may take some time depending on the image dimensions.
+- "Bounds as Percentages" checkbox: leave checked to input the saturation bounds as percentages of the total image pixels. Uncheck to input specific intensity values. Note that leaving checked will require a calculation that may take some time depending on the image dimensions and computer capabilities.
 - "Min Bound" float: input the minimum bound for saturation.
 - "Max Bound" float: input the maximum bound for saturation.
+- "Parameterize Percentages" checkbox: if "Bounds as Percentages" is checked, check this to add the percentages used (rather than the actual intensity values used) to the parameters log for batch processing of other images/stacks.
 - "Apply Mask" checkbox: check to apply a mask to the image during saturation. Pixels that are masked will not be considered in the calculation of bounds percentages. This has no effect if "Bounds as Percentages" is unchecked.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Saturate" button: click to perform the saturation operation.
@@ -838,6 +839,8 @@ A widget for generating a domain size distribution plot for a segmented image/st
 - "X Min" float: input the minimum X value to plot.
 - "X Max" float: input the maximum X value to plot.
 - "Y Max": float: input the maximum Y value.
+- "Alternate X Label" checkbox: check to input a different label for the x axis than "Domain Size".
+- "X Label" string: if "Alternate X Label" is checked, input the alternate x axis label.
 - "Num Bins" integer: input the number of bins for the domain size distribution.
 - "Max Bound" float: input the maximum bound to include in the bin generation. Leave as "0" to use the maximum measured value.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
@@ -858,7 +861,7 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Define Limits" checkbox: check to define the thickness/height limits for the heat map. Leave unchecked to use the smallest and largest values measured in the heat map calculation.
 - "Min Value" float: if "Define Limits" is checked, input the minimum heat mapped value.
 - "Max Value" float: if "Define Limits" is checked, input the maximum haet mapped value.
-- "Alternate Colorbar Label" checkbox: check to input a different label for the colorbar than "Thickness" or "Height"
+- "Alternate Colorbar Label" checkbox: check to input a different label for the colorbar than "Thickness" or "Height".
 - "Colorbar Label" string: if "Alternate Colorbar Label" is checked, input the alternate colorbar label.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
@@ -866,4 +869,8 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Add as Parameter" checkbox: check to add the heat map generation step to the parameters log.
 - "Plot Heat Map" button: click to generate the heat map.
 
-------------
+----------
+Known Bugs
+----------
+
+- When a shapes layer is added after painting, it can cause continuous OS Errors reading "exception: access violation reading ...". Images and parameters can still be saved while this is occurring. Restarting the program ends the errors. In the meantime, deleting the paint "Labels" layer before adding a shape or doing any other operation before adding the shape appears to prevent this issue.

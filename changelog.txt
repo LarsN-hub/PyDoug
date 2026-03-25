@@ -1,3 +1,9 @@
+v0.3.5-alpha
+- Updated mask projection function name in all locations that was changed previously and not updated in all locations.
+- Fixed bug with automatic drop-down updating of label layers
+- Fixed bug with painting on RGB images
+- Added alternate x axis labeling to domain size distribution plot widget
+
 v0.3.4-alpha
 - Fixed domain size distribution plot to accept label layers instead of image layers
 

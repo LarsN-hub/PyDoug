@@ -1225,10 +1225,19 @@ def apply_parameters(im_array: np.ndarray,
             else:
                 
                 max_bound: float = float(parameter["Max Bound"])
+                
+            if parameter["Alternate X Label"].lower() == "true":
+                
+                x_label: str = parameter["X Label"]
+                
+            else:
+                
+                x_label: None = None
             
             fig = plots.size_distribution(im_array,
                                           mode = parameter["Type"],
                                           units = parameter["Units"],
+                                          x_label = x_label,
                                           mask_array = mask_array,
                                           xlims = x_lims,
                                           ylims = y_lims,
