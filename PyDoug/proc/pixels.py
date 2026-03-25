@@ -58,7 +58,12 @@ def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: 
             
             return exposure.rescale_intensity(im_array, "image", "dtype")
 
-def saturate(im_array: np.ndarray, bounds: tuple, *, auto_normalize: bool = True, bounds_as_percents: bool = True, mask_array: np.ndarray = None, cdf_df: pd.DataFrame = None, conserve_mem: bool = False) -> np.ndarray:
+def saturate(im_array: np.ndarray, bounds: tuple, *,
+             auto_normalize: bool = True,
+             bounds_as_percents: bool = True,
+             mask_array: np.ndarray = None,
+             cdf_df: pd.DataFrame = None,
+             conserve_mem: bool = False) -> np.ndarray:
     
     if bounds_as_percents:
         
@@ -95,7 +100,9 @@ def saturate(im_array: np.ndarray, bounds: tuple, *, auto_normalize: bool = True
             
             return sat_array
 
-def convert_im_type(im_array: np.ndarray, convert_type: str, *, norm: bool = False, float_bounds: tuple[float] = None) -> np.ndarray:
+def convert_im_type(im_array: np.ndarray, convert_type: str, *,
+                    norm: bool = False,
+                    float_bounds: tuple[float] = None) -> np.ndarray:
     
     valid_types: tuple[str] = ("uint8", "uint16", "int16", "float", "float32", "float64", "bool")
     
@@ -151,7 +158,12 @@ def invert(im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)
 
-def equalize_histogram(im_array: np.ndarray, method: str = "global", *, mask_array: np.ndarray = None, clip_limit: float = 0.01, radius: int = 3, along_axis: bool = False, axis: int = 0) -> np.ndarray:
+def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
+                       mask_array: np.ndarray = None,
+                       clip_limit: float = 0.01,
+                       radius: int = 3,
+                       along_axis: bool = False,
+                       axis: int = 0) -> np.ndarray:
     
     if np.any(mask_array):
                 

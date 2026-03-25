@@ -288,9 +288,27 @@ def apply_parameters(im_array: np.ndarray,
                 
                 auto_normalize: bool = False
                 
+            if parameter["Bounds as Percentages"].lower() == "true":
+                
+                bounds_as_percentages: bool = True
+                
+            else:
+                
+                bounds_as_percentages: bool = False
+                
+            if bounds_as_percentages and parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
             im_array = pixels.saturate(im_array,
                                        (float(parameter["Min Bound"]), float(parameter["Max Bound"])),
-                                       auto_normalize = auto_normalize)
+                                       auto_normalize = auto_normalize,
+                                       bounds_as_percents = bounds_as_percentages,
+                                       mask_array = mask_array)
         
         elif parameter["Name"].find("Equalized") == 0:
             
@@ -1317,16 +1335,17 @@ def main(im_format: str = "Stacks",
             im_array: np.ndarray = rw.read_im(im_path)
             
         im_array = apply_parameters(im_array, parameters_dict, file_name, save_dir)
+        save_name: str = f"{file_name}_PyDoug"
         
         if export_images:
         
             if im_format == "Stacks":
                 
-                rw.write_stack(im_array, save_dir, file_name, multi_page = export_multi_page)
+                rw.write_stack(im_array, save_dir, save_name, multi_page = export_multi_page)
             
             elif im_format == "Singles":
                 
-                rw.write_im(im_array, save_dir, file_name)
+                rw.write_im(im_array, save_dir, save_name)
             
     print("\nFinished batch processing!")
     

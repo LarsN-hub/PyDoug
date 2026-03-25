@@ -420,7 +420,7 @@ class ImageProcessor:
         Stack_Format: str = "Multi-Page",
         Export_Images: bool = True,
         Export_Multi_Page: bool = True,
-        Copy_Parameters: bool = True) -> None:
+        Copy_Parameters: bool = False) -> None:
         
         batch.main(Image_Format, Stack_Format, Export_Images, Export_Multi_Page, Copy_Parameters)
             
@@ -806,7 +806,8 @@ class ImageProcessor:
         
         self.mask_count += 1
         param_layer_name: str = get_param_layer_name("Mask", self.operation_count)
-        self.viewer.add_image(cc.mask_logic(Mask_1.data, Mask_2.data, Method.lower()), name = param_layer_name, opacity = 0.5)
+        self.viewer.add_image(cc.mask_logic(Mask_1.data, Mask_2.data, Method.lower()),
+                              name = param_layer_name, opacity = 0.5)
     
     @magicgui(
         Mask_Method = {"choices": ["Out", "In"]},
@@ -841,7 +842,10 @@ class ImageProcessor:
              "Masked Color": color_spec,
              "Apply Mask": True,
              "Mask Used": Mask.name})
-        self.viewer.add_image(cc.mask(Image.data, Mask.data, method = Mask_Method.lower(), mask_color = color_spec), name = param_layer_name)
+        self.viewer.add_image(cc.mask(Image.data, Mask.data,
+                                      method = Mask_Method.lower(),
+                                      mask_color = color_spec),
+                              name = param_layer_name)
 
 
     ########################
@@ -872,11 +876,16 @@ class ImageProcessor:
         
         if Bounds:
             
-            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize), name = param_layer_name)
+            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(),
+                                                         norm = Auto_Normalize),
+                                  name = param_layer_name)
         
         else:
             
-            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(), norm = Auto_Normalize, float_bounds = (Min, Max)), name = param_layer_name)
+            self.viewer.add_image(pixels.convert_im_type(Image.data, Type.lower(),
+                                                         norm = Auto_Normalize,
+                                                         float_bounds = (Min, Max)),
+                                  name = param_layer_name)
 
     @magicgui(
         Input_Min = {"max": 65535, "min": -65535},
@@ -919,7 +928,10 @@ class ImageProcessor:
             
             out_range: str = "dtype"
         
-        self.viewer.add_image(pixels.normalize(Image.data, in_range = in_range, out_range = out_range), name = param_layer_name)
+        self.viewer.add_image(pixels.normalize(Image.data,
+                                               in_range = in_range,
+                                               out_range = out_range),
+                              name = param_layer_name)
 
     @magicgui(
         Min_Bound = {"max": 65535, "min": -65535},
@@ -931,6 +943,7 @@ class ImageProcessor:
         Bounds_as_Percentages: bool = True,
         Min_Bound: float = 0,
         Max_Bound: float = 100,
+        Parameterize_Percentages: bool = False,
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None) -> None:
         
@@ -952,15 +965,31 @@ class ImageProcessor:
             
             bounds = (Min_Bound, Max_Bound)
         
+        if Parameterize_Percentages and Bounds_as_Percentages:
+            
+            param_min: float = Min_Bound
+            param_max: float = Max_Bound
+            param_bounds_as_percentages: bool = True
+            
+        else:
+            
+            param_min: float = min(bounds)
+            param_max: float = max(bounds)
+            param_bounds_as_percentages: bool = False
+            
         param_layer_name = get_param_layer_name("Saturated", self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Auto Normalize": Auto_Normalize,
-             "Min Bound": min(bounds),
-             "Max Bound": max(bounds),
+             "Bounds as Percentages": param_bounds_as_percentages,
+             "Min Bound": param_min,
+             "Max Bound": param_max,
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
-        self.viewer.add_image(pixels.saturate(Image.data, bounds, auto_normalize = Auto_Normalize, bounds_as_percents = False), name = param_layer_name)
+        self.viewer.add_image(pixels.saturate(Image.data, bounds,
+                                              auto_normalize = Auto_Normalize,
+                                              bounds_as_percents = False),
+                              name = param_layer_name)
 
     @magicgui(
         Method = {"choices": ["Global", "Local", "Adaptive"]},
@@ -995,7 +1024,12 @@ class ImageProcessor:
              "Axis": Axis,
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
-        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower(), mask_array = mask_array, radius = Local_Radius, along_axis = Along_Axis, axis = Axis), name = param_layer_name)
+        self.viewer.add_image(pixels.equalize_histogram(Image.data, Method.lower(),
+                                                        mask_array = mask_array, 
+                                                        radius = Local_Radius,
+                                                        along_axis = Along_Axis,
+                                                        axis = Axis),
+                              name = param_layer_name)
 
     @magicgui(
         call_button = "Invert")
