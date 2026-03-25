@@ -321,7 +321,7 @@ class ImageProcessor:
             
         else:
             
-            self._live_mask_layer = self.viewer.add_labels(threshold_mask, name = "Live Threshold")
+            self._live_mask_layer = self.viewer.add_labels(threshold_mask, name = "Live Threshold", opacity = 0.4)
             
     def _on_live_toggled(self, event = None) -> None:
         
