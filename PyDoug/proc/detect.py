@@ -29,7 +29,7 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
         
         if mask_array.ndim < im_array.ndim:
             
-            mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
     if method == "sobel":
         

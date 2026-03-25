@@ -169,7 +169,7 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 
         if mask_array.shape != im_array.shape:
                     
-            mask_array = cc.mask_2d_to_3d(mask_array, im_array.shape[0])
+            mask_array = cc.project_mask(mask_array, im_array.shape[0])
             
         mask_array = np.bool(mask_array)
             

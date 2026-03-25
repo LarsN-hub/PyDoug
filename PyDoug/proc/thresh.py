@@ -91,7 +91,10 @@ def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusi
                 
     return thresh_array
     
-def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", otsu_classes: int = 2, mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
+def hist_thresholds(data: np.ndarray | pd.DataFrame, *,
+                    method: str = "otsu",
+                    otsu_classes: int = 2,
+                    mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
     
     if isinstance(data, np.ndarray):
         
@@ -99,7 +102,7 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
             
             if mask_array.ndim < data.ndim:
                 
-                mask_array = cc.mask_2d_to_3d(mask_array, data.shape[0])
+                mask_array = cc.project_mask(mask_array, data.shape[0])
         
         hist_df: pd.DataFrame = distrib.get_histogram(data, mask_array = mask_array)
         
@@ -143,9 +146,16 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *, method: str = "otsu", ot
         
         return filters.threshold_yen(hist = hist)
     
-def hist(im_array: np.ndarray, *, method: str = "otsu", otsu_classes: int = 2, mask_array: np.ndarray = None, return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
+def hist(im_array: np.ndarray, *,
+         method: str = "otsu",
+         otsu_classes: int = 2,
+         mask_array: np.ndarray = None,
+         return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
     
-    thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(im_array, otsu_classes = otsu_classes, mask_array = mask_array, method = method)
+    thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(im_array,
+                                                                     otsu_classes = otsu_classes,
+                                                                     mask_array = mask_array,
+                                                                     method = method)
     
     if return_thresholds:
         
@@ -155,7 +165,13 @@ def hist(im_array: np.ndarray, *, method: str = "otsu", otsu_classes: int = 2, m
     
         return threshold(im_array, thresholds)
     
-def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adaptive", radius: int = 3, window_size: int = 15, k: float = 0.2, r: float = None) -> np.ndarray:
+def local(im_array: np.ndarray, *,
+          mask_array: np.ndarray = None,
+          method = "adaptive",
+          radius: int = 3,
+          window_size: int = 15,
+          k: float = 0.2,
+          r: float = None) -> np.ndarray:
     
     if radius % 2 == 0:
         
@@ -191,9 +207,18 @@ def local(im_array: np.ndarray, *, mask_array: np.ndarray = None, method = "adap
             ball.radius = radius
             footprint = ball.get_footprint()
         
-        return pixels.convert_im_type(pixels.normalize(filters.rank.threshold(im_array, footprint, mask = mask_array)), "uint8")
+        return pixels.convert_im_type(pixels.normalize(filters.rank.threshold(im_array, footprint,
+                                                                              mask = mask_array)),
+                                      "uint8")
     
-def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: int = None, return_num: bool = False, background: float | int = 0, positional: bool = False, axis: int = 0, randomize: bool = True) -> np.ndarray | int:
+def label(im_array: np.ndarray, *,
+          mask_array: np.ndarray = None,
+          connectivity: int = None,
+          return_num: bool = False,
+          background: float | int = 0,
+          positional: bool = False,
+          axis: int = 0,
+          randomize: bool = True) -> np.ndarray | int:
     
     proc_array: np.ndarray = np.copy(im_array)
     
@@ -217,7 +242,10 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
                 
                 connectivity = 2
                 
-        lab_array: np.ndarray = measure.label(proc_array, background = background, return_num = return_num, connectivity = connectivity)
+        lab_array: np.ndarray = measure.label(proc_array,
+                                              background = background,
+                                              return_num = return_num,
+                                              connectivity = connectivity)
 
     else:
         
@@ -231,7 +259,10 @@ def label(im_array: np.ndarray, *, mask_array: np.ndarray = None, connectivity: 
         
         for slice_index in range(0, proc_array.shape[0]):
             
-            lab_array[slice_index], num_unique[slice_index] = measure.label(proc_array[slice_index], background = background, connectivity = connectivity, return_num = True)
+            lab_array[slice_index], num_unique[slice_index] = measure.label(proc_array[slice_index],
+                                                                            background = background,
+                                                                            connectivity = connectivity,
+                                                                            return_num = True)
         
         if return_num:
             
