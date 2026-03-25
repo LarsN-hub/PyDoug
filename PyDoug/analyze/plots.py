@@ -681,13 +681,19 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
         
         for index, patch in enumerate(bp["boxes"]):
             
-            if colors.ndim == 1:
+            if isinstance(colors, np.ndarray):
                 
-                patch.set_facecolor(colors)
+                if colors.ndim == 1:
                 
-            else:
+                    patch.set_facecolor(colors)
                 
-                patch.set_facecolor(colors[index, :])
+                else:
+                
+                    patch.set_facecolor(colors[index, :])
+                    
+            elif isinstance(colors, tuple):
+                
+                patch.set_facecolor(colors[index])
         
     return fig
 
