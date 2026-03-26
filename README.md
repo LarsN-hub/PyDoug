@@ -418,6 +418,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.c
 - "Grayscale" button: click to perform the RGB to grayscale operation.
 
 **Labels to Image**
+
 A widget for converting a labels layer to an image layer.
 More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.label2rgb
 - "Labels" drop-down: labels in the layer list. Select the labels layer to convert to an image layer.
