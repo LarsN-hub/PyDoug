@@ -33,7 +33,7 @@ Installing & Updating
 ---------------------
 
 **Windows Installation**
-1. Ensure that Python v3.13 is installed on your computer.
+1. Ensure that Python v3.13 is installed on your computer (NOT currently compatible with v3.14).
 2. Test that you have it by opening Windows PowerShell and typing "python".
    - If it worked, some information about python (3.13._) should pop up and the input line should have ">>>" in front of it.
    - If this is the case, type quit() to exit python and proceed. If this did not happen, do not continue with this process and figure this out first.
