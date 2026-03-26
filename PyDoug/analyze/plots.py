@@ -10,8 +10,7 @@ import numpy as np
 import napari
 import math
 
-from matplotlib import colorbar as cbar
-from matplotlib import pyplot as plt
+from matplotlib import colorbar as cbar, pyplot as plt, transforms as tr
 from typing import Callable
 
 from PyDoug.analyze import distrib, quant
@@ -194,6 +193,7 @@ def get_log_starts_widths(log_ax_values: np.ndarray, *,
     return offset_starts, widths
 
 def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
+             x_labels: tuple[str] = None,
              y_label: str = "Values",
              x_label: str = "Categories",
              y_units: str = None,
@@ -211,7 +211,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
              logx: bool = False,
              logy: bool = False,
              second_axis: bool = False,
-             edges: bool = True) -> plt.Axes:
+             edges: bool = True,
+             sci: bool = False) -> plt.Axes:
     
     if edges:
         
@@ -320,7 +321,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                                label = labels[label_index],
                                align = align,
                                linewidth = line_width,
-                               edgecolor = "k")
+                               edgecolor = "k",
+                               tick_label = x_labels)
                     label_index += 1
                     
                 else:
@@ -331,7 +333,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                                color = color,
                                align = align,
                                linewidth = line_width,
-                               edgecolor = "k")
+                               edgecolor = "k",
+                               tick_label = x_labels)
             
             else:
                 
@@ -343,7 +346,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                                color = color,
                                label = labels[label_index],
                                linewidth = line_width,
-                               edgecolor = "k")
+                               edgecolor = "k",
+                               tick_label = x_labels)
                     label_index += 1
                     
                 else:
@@ -353,7 +357,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                                width = width,
                                color = color,
                                linewidth = line_width,
-                               edgecolor = "k")
+                               edgecolor = "k",
+                               tick_label = x_labels)
                 
             if add_lines:
                 
@@ -450,7 +455,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                            width = widths[index],
                            color = grad_colors[index, :],
                            linewidth = line_width,
-                           edgecolor = "k")
+                           edgecolor = "k",
+                           tick_label = x_labels)
                 
         else:
                 
@@ -462,7 +468,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                            color = colors,
                            label = labels[label_index],
                            linewidth = line_width,
-                           edgecolor = "k")
+                           edgecolor = "k",
+                           tick_label = x_labels)
                     
             else:
                     
@@ -471,7 +478,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                            width = widths, 
                            color = colors,
                            linewidth = line_width,
-                           edgecolor = "k")
+                           edgecolor = "k",
+                           tick_label = x_labels)
         
             if add_lines:
                 
@@ -514,10 +522,15 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
         if ymax:
             
             bar_ax.set_ylim(0, ymax)
+            
+    if sci:
+        
+        bar_ax.ticklabel_format(axis = "y", style = "sci", scilimits = (0, 0))
     
     return bar_ax, label_index
 
 def simple_bar(x: np.ndarray, y: np.ndarray, *,
+               x_labels: tuple[str] = None,
                y_label: str = "Values",
                x_label: str = "Categories",
                y_units: str = None,
@@ -531,6 +544,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                add_lines: bool | tuple[bool] = False,
                logx: bool = False,
                logy: bool = False,
+               sci: bool = False,
                axis2: bool = False,
                y2: np.ndarray = None,
                y2_label: str = "Values",
@@ -540,7 +554,8 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                add_lines2: bool = False,
                logy2: bool = False,
                legend_axis: int = 2,
-               edges: bool = True) -> plt.Figure:
+               edges: bool = True,
+               sci2: bool = False) -> plt.Figure:
     
     if y.ndim > 1:
         
@@ -562,6 +577,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
     fig, bar_ax = plt.subplots()
     bar_ax, label_index = bar_axis(x, y, bar_ax,
+                                   x_labels = x_labels,
                                    y_label = y_label,
                                    x_label = x_label,
                                    y_units = y_units,
@@ -577,7 +593,8 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                                    add_lines = add_lines,
                                    logx = logx,
                                    logy = logy,
-                                   edges = edges)
+                                   edges = edges,
+                                   sci = sci)
     
     if axis2:
         
@@ -592,6 +609,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             y_count_index: int = 1
         
         bar_ax2, _ = bar_axis(x, y2, bar_ax2,
+                              x_labels = x_labels,
                               y_label = y2_label,
                               y_units = y2_units,
                               width = width,
@@ -606,7 +624,20 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                               logx = logx,
                               logy = logy2,
                               second_axis = axis2,
-                              edges = edges)
+                              edges = edges,
+                              sci = sci2)
+        
+    if x_labels:
+        
+        dx: float = 0
+        dy: float = 0
+        bar_ax.tick_params(axis = "x", length = 0)
+        offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+        
+        for label, line in zip(bar_ax.xaxis.get_majorticklabels(), bar_ax.xaxis.get_majorticklines()):
+            
+            label.set_transform(label.get_transform() + offset)
+            #line.set_transform(line.get_transform() + offset)
         
     if labels:
         
