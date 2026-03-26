@@ -59,7 +59,7 @@ Installing & Updating
 ```
 9. Open Windows Powershell if not already open from before.
 10. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
-   - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
+    - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
 11. Type 'python -m venv PyDoug_Env' then enter. This will create a new folder named 'PyDoug_Env' in your C:\Users\Your_Name folder.
 12. Once it is finished, type 'PyDoug_Env\Scripts\pip install -r requirements_dist.txt' then enter.
     - Note, this will take some time. Allow it to install everything before doing anything else.
