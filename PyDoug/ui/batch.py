@@ -7,12 +7,13 @@ Module for batch processing of images from pre-made parameters
 
 import pandas as pd
 import numpy as np
+import napari
 import shutil
 import os
 
 from matplotlib import pyplot as plt
 
-from PyDoug.ui import readwrite as rw
+from PyDoug.ui import readwrite as rw, sliceview as sv
 from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixels, thresh, trans, util
 from PyDoug.analyze import quant, plots
 
@@ -25,6 +26,7 @@ def apply_parameters(im_array: np.ndarray,
                      save_dir: str = None) -> np.ndarray:
     
     parameters_log: list[dict] = parameters_dict["Parameters"]
+    screenshot_index: int = 0
     stats_index: int = 0
     vol_area_index: int = 0
     surf_index: int = 0
@@ -36,6 +38,36 @@ def apply_parameters(im_array: np.ndarray,
     heat_index: int = 0
     
     for parameter in parameters_log:
+        
+        ##################
+        # I/O Operations #
+        ##################
+        
+        if parameter["Name"].find("Screenshot") == 0:
+            
+            viewer: napari.viewer.Viewer = sv.create_viewer()
+            viewer.window._qt_window.showFullScreen()
+            layer: napari.layers.Layer = sv.create_layer_type(viewer, parameter["Layer Type"], im_array)
+            layer.opacity = float(parameter["Opacity"])
+            viewer.dims.ndisplay = int(parameter["Dimensions"])
+            center: tuple = (float(parameter["Center 0"]),
+                             float(parameter["Center 1"]),
+                             float(parameter["Center 2"]))
+            angles: tuple = (float(parameter["Angle 0"]),
+                             float(parameter["Angle 1"]),
+                             float(parameter["Angle 2"]))
+            orientation: tuple = (parameter["Orientation Depth"],
+                                  parameter["Orientation Vert"],
+                                  parameter["Orientation Horiz"])
+            viewer.camera.center = center
+            viewer.camera.zoom = float(parameter["Zoom"])
+            viewer.camera.angles = angles
+            viewer.camera.perspective = float(parameter["Perspective"])
+            viewer.camera.orientation = orientation
+            screenshot_array: np.ndarray = sv.get_screenshot(viewer)
+            sv.close_viewer(viewer)  
+            rw.write_im(screenshot_array, save_dir, f"{file_name}_screenshot_{screenshot_index}")
+            
         
         #########################
         # Manipulate Operations #
@@ -1342,9 +1374,9 @@ def main(im_format: str = "Stacks",
         elif im_format == "Singles":
             
             im_array: np.ndarray = rw.read_im(im_path)
-            
-        im_array = apply_parameters(im_array, parameters_dict, file_name, save_dir)
+        
         save_name: str = f"{file_name}_PyDoug"
+        im_array = apply_parameters(im_array, parameters_dict, save_name, save_dir)
         
         if export_images:
         

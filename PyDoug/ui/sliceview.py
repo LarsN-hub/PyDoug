@@ -147,8 +147,60 @@ def extract_shapes(viewer: napari.viewer.Viewer = None, shapes_layer: napari.lay
 def create_label_layer(im_array: np.ndarray, viewer: napari.viewer.Viewer) -> napari.layers.Labels:
     
     return viewer.add_labels(np.zeros(im_array.shape, np.uint8))
+
+def get_screenshot(viewer: napari.viewer.Viewer) -> np.ndarray:
+    
+    return viewer.screenshot()
+
+def get_topmost_visible_layer(viewer: napari.viewer.Viewer) -> napari.layers.Layer:
+    
+    layers: napari.components.LayerList = viewer.layers
+    retrieved_layer: napari.layers.Layer = None
+    
+    for layer in layers:
         
-def quick_get_line_scan(viewer: napari.viewer.Viewer = None, im_array: np.ndarray = None, shapes_layer: napari.layers.Shapes = None, slice_range: tuple | str | None = None, *, pixel_size: float | int = 1.0, units: str = "pix") -> pd.DataFrame:
+        if layer.visible:
+            
+            retrieved_layer = layer
+            
+    return retrieved_layer
+
+def create_layer_type(viewer: napari.viewer.Viewer, layer_type: str = "image", data_array: np.ndarray = None) -> napari.layers.Layer:
+    
+    if layer_type == "image":
+        
+        return create_im_layer(data_array, viewer)
+    
+    elif layer_type == "shapes":
+        
+        return create_shape_layer(viewer)
+    
+    elif layer_type == "labels":
+        
+        return viewer.add_labels(data_array)
+    
+    elif layer_type == "points":
+        
+        return viewer.add_points(data_array)
+    
+    elif layer_type == "tracks":
+        
+        return viewer.add_tracks(data_array)
+    
+    elif layer_type == "vectors":
+        
+        return viewer.add_vectors(data_array)
+    
+    else:
+        
+        return None
+        
+def quick_get_line_scan(viewer: napari.viewer.Viewer = None,
+                        im_array: np.ndarray = None,
+                        shapes_layer: napari.layers.Shapes = None,
+                        slice_range: tuple | str | None = None, *,
+                        pixel_size: float | int = 1.0,
+                        units: str = "pix") -> pd.DataFrame:
     
     if units == "um":
         

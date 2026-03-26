@@ -6,6 +6,7 @@ Module containing miscellaneous utilities
 # Imports
 
 import numpy as np
+import napari
 import math
 
 from numba import jit
@@ -14,6 +15,40 @@ from PyDoug.proc import trans
 
 
 # Functions
+
+def get_layer_type(layer: napari.layers.Layer) -> str:
+    
+    if isinstance(layer, napari.layers.Image):
+        
+        return "image"
+    
+    elif isinstance(layer, napari.layers.Shapes):
+        
+        return "shapes"
+    
+    elif isinstance(layer, napari.layers.Labels):
+        
+        return "labels"
+    
+    elif isinstance(layer, napari.layers.Points):
+        
+        return "points"
+    
+    elif isinstance(layer, napari.layers.Surface):
+        
+        return "surface"
+    
+    elif isinstance(layer, napari.layers.Tracks):
+        
+        return "tracks"
+    
+    elif isinstance(layer, napari.layers.Vectors):
+        
+        return "vectors"
+    
+    else:
+        
+        return None
 
 def get_in_plane_dims(im_array: np.ndarray) -> tuple[int]:
     

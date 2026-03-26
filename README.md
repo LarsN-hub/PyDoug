@@ -77,22 +77,25 @@ Installing & Updating
 General Info
 ------------
 
-When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Aside from the widgets area, everything with any imported image files works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
+When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
 
 - Any single image file (other than .h5-type formats) can simply be dragged and dropped into the napari window to open.
 - You can move the image around by clicking and dragging with the mouse.
 - Toggle between 2D/3D view with the second from the left button at the bottom left of the gui.
-- Toggle visibility of any imported image with the eyeball icon to the left of its name in the layer list (lower left).
+- In 3D, rotate by clicking and dragging and move the volume by holding shift before clicking and dragging.
+- Right click on the 2D/3D button for additional view settings.
+- Toggle visibility of any image layer with the eyeball icon to the left of its name in the layer list (lower left).
 - Open up visibility settings for any image layer by clicking on it (they appear above it, in the upper left).
 - Delete any image layer by clicking on it and hitting the trashcan icon.
 - All widgets can be collapsed by clicking on their name box (contains a triangle in front of the name as indication).
+- The theme/appearance of napari can be changed in File/Preferences under Appearance.
 
 Buttons/functionality native to napari that you should NOT use in PyDoug:
 - The points, shapes, or labels layer creation buttons (immediately above the layers list)
 - The axis transpose buttons (bottom left, immediately right of the 2D/3D button)
 - The image layer renaming feature (activated by double-clicking on a layer's name)
 
-PyDoug has its own functionality for shapes and labels that napari handles differently. Additionally, transposing axes with napari's buttons rather than PyDoug's reslice widget will not record what you have done in the constantly-updating parameters log, meaning you cannot recreate those transpositions in any later batch processing if needed. Finally, chaning a layer's name will not update the parameters log, so if you remove the image later the parameters log will not be able to find the operation to remove. Otherwise, these buttons will not "break" PyDoug, just potentially harm its functionality.
+PyDoug has its own functionality for shapes and labels that napari handles differently. Additionally, transposing axes with napari's buttons rather than PyDoug's reslice widget will not record what you have done in the constantly-updating parameters log, meaning you cannot recreate those transpositions in any later batch processing if needed. Finally, changing a layer's name will not update the parameters log, so if you remove the image layer later the parameters log will not be able to find the operation to remove. Otherwise, these buttons will not "break" PyDoug, just potentially harm its functionality.
 
 Whenever you modify an image with one of PyDoug's widgets, a parameters log will update with the operation performed and the parameters used for the operation. When you delete an image layer from the layers list, the parameters log will delete the entry corresponding to that layer's name. By exporting these parameters, you can use them for batch processing of other datasets without you having to manually do so for each image.
 
@@ -133,24 +136,33 @@ A wiget for exporting images (2D or 3D).
 - "Method" drop-down: available export formats (tiff or hdf5)
 - "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence. Has no functionality if "Method" is "HDF5".
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder if exporting as a tiff sequence.
-- "Save Name": type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
+- "Save Name" string: type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
 - "Export Image(s)" button: click to export the image(s).
 
 **Export Labels**
+
 - "Labels" drop-down: labels in the layer list. Select the labels layer to export.
 - "Method" drop-down: available export formats (tiff or hdf5)
 - "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence. Has no functionality if "Method" is "HDF5".
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder if exporting as a tiff sequence.
-- "Save Name": type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
+- "Save Name" string: type in a name for the exported image(s). This will be the name of the folder if exporting as a tiff sequence.
 - "Export Labels" button: click to export the image(s).
 
 **Export Parameters**
 
 A widget for exporting the current parameters log.
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder with the name provided in "Folder Name".
-- "Folder Name": type in a name for the parameters folder.
+- "Folder Name" string: type in a name for the parameters folder.
 - "Compress Masks" checkbox: leave checked to convert any masks used to 2D slices of their original 3D volume (if processing 3D images). If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices, DO NOT leave this checked.
 - "Export Parameters" button: click to export the parameters.
+
+**Capture Screenshot**
+
+A widget for exporting a screenshot of the current view. If you prefer a white background for your screenshots, simply change napari's theme to light mode (this will carry over to batch processing screenshots).
+- "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder.
+- "Save Name" string: type in a name for the exported screenshot.
+- "Add as Parameter" checkbox: check to add the screenshot capture step to the parameters log.
+- "Capture Screenshot" button: click to capture and export the screenshot.
 
 **Batch Processing**
 

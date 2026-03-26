@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.3.5-alpha"
+version_str: str = "v0.4.0-alpha"
 
 
 # Classes
@@ -411,6 +411,47 @@ class ImageProcessor:
         os.makedirs(save_dir)
         rw.write_parameters(self.parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
         
+    @magicgui(
+        Save_Folder = {"mode": "d"},
+        call_button = "Capture Screenshot")
+    def screenshot_widget(self,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        Save_Name: str = "Name",
+        Add_as_Parameter: bool = False) -> None:
+        
+        param_layer_name = get_param_layer_name("Screenshot", self.operation_count)
+        
+        if Add_as_Parameter:
+            
+            topmost_visible_layer: napari.layers.Layer = sv.get_topmost_visible_layer(self.viewer)
+            
+            if topmost_visible_layer:
+                
+                opacity: float = topmost_visible_layer.opacity
+                
+            else:
+                
+                opacity: float = 0
+            
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Center 0": self.viewer.camera.center[0],
+                 "Center 1": self.viewer.camera.center[1],
+                 "Center 2": self.viewer.camera.center[2],
+                 "Zoom": self.viewer.camera.zoom,
+                 "Angle 0": self.viewer.camera.angles[0],
+                 "Angle 1": self.viewer.camera.angles[1],
+                 "Angle 2": self.viewer.camera.angles[2],
+                 "Perspective": self.viewer.camera.perspective,
+                 "Orientation Depth": self.viewer.camera.orientation[0],
+                 "Orientation Vert": self.viewer.camera.orientation[1],
+                 "Orientation Horiz": self.viewer.camera.orientation[2],
+                 "Opacity": opacity,
+                 "Layer Type": util.get_layer_type(topmost_visible_layer),
+                 "Dimensions": self.viewer.dims.ndisplay})
+        
+        rw.write_im(sv.get_screenshot(self.viewer), str(Save_Folder), Save_Name)
+    
     @magicgui(
         Image_Format = {"choices": ["Singles", "Stacks"]},
         Stack_Format = {"choices": ["Multi-Page", "Sequence"]},
@@ -2412,6 +2453,13 @@ class ImageProcessor:
             
         plt.show(block = False)
         
+    
+    #####################
+    # Visualize Widgets #
+    #####################
+    
+    
+        
         
 # Functions
 
@@ -2487,9 +2535,10 @@ def main() -> napari.viewer.Viewer:
     mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
     mod_lab_export: widgets.Container = modify_funcgui(ui.lab_export_widget, "Export Labels")
     mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
+    mod_screenshot: widgets.Container = modify_funcgui(ui.screenshot_widget, "Capture Screenshot")
     mod_batch: widgets.Container = modify_funcgui(ui.batch_widget, "Batch Processing")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_lab_export, mod_param_export, mod_batch],
+        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_lab_export, mod_param_export, mod_screenshot, mod_batch],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
@@ -2618,6 +2667,10 @@ def main() -> napari.viewer.Viewer:
         widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_fft, mod_misc_calc, mod_axis_distribution, mod_psd, mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
+    
+    # Visualize Widgets
+    
+    
     
     
     # Launch

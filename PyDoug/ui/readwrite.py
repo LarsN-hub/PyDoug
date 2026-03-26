@@ -161,6 +161,7 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
 def get_path(directory = False, title: str = "Select image file") -> str:
                 
     root = Tk()
+    root.withdraw()
     
     if directory:
         
@@ -190,6 +191,7 @@ def get_paths(directories = False, title: str = "Select image sequence directori
     else:
         
         root = Tk()
+        root.withdraw()
         file_paths: list[str] = filedialog.askopenfilenames(title = title)
         root.destroy()
         
