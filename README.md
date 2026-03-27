@@ -844,6 +844,7 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 A widget for generating a domain size distribution plot for a segmented image/stack. If the image is not already labeled (see the label widget in the Segmentation tab), it will be labeled with the connectivity method.
 - "Labels" drop-down: label layers in the layer list. Select the labels layer to plot a domain size distribution.
 - "Type" drop-down: select the format to calculate domain size. Volume and area are the total measured volume/area for each domain while diameter and radius initially calculate the area/volume and then calculate the diameter/radius assuming a circular or spherical domain shape.
+- "Diameter Radius Mode" drop-down: select the method for calculating the diameter/radius if "Type" is "Diameter" or "Radius".
 - "Background" float: input the background intensity.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.

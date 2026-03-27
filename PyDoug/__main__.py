@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.4.0-alpha"
+version_str: str = "v0.4.1-alpha"
 
 
 # Classes

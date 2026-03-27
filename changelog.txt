@@ -1,3 +1,7 @@
+v0.4.1-alpha
+- Added volume vs. area distinction for calculating domain diameter/radius in domain size distribution widget
+- Fixed bug in calculating diameter and radius in domain size distribution widget (math is hard)
+
 v0.4.0-alpha
 - Added screenshot capture widget to I/O tab
 - Added screenshot batch processing for same view of other 3D volumes
