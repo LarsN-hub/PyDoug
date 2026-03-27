@@ -171,7 +171,7 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
     
     for shape in list(shape_dict.keys()):
         
-        shape_coords: np.ndarray = np.round(shape_dict[shape])
+        shape_coords: np.ndarray = np.astype(np.round(shape_dict[shape]), np.int32)
         shape_type: str = shape[:shape.find("-")]
         
         if shape_type == "ellipse":
@@ -189,6 +189,13 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
             r_coords: np.ndarray = shape_coords[:, 0]
             c_coords: np.ndarray = shape_coords[:, 1]
             rr, cc = draw.polygon(r_coords, c_coords, shape = mask_shape)
+            mask_array[rr, cc] = 1
+            
+        elif shape_type == "line":
+            
+            r_coords: np.ndarray = shape_coords[:, 0]
+            c_coords: np.ndarray = shape_coords[:, 1]
+            rr, cc = draw.line(r_coords[0], c_coords[0], r_coords[1], c_coords[1])
             mask_array[rr, cc] = 1
             
     return mask_array
