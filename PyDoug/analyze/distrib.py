@@ -57,7 +57,7 @@ def extend_histogram_bins(bins: np.ndarray, counts: np.ndarray) -> np.ndarray:
             
         bin_loc += 1
         
-    return ext_bins
+    return np.squeeze(ext_bins)
 
 def get_cdf(im_array: np.ndarray, *,
             mask_array: np.ndarray = None) -> pd.DataFrame:
@@ -248,6 +248,7 @@ def get_position_distribution(im_array: np.ndarray, *,
 def __get_size_distribution(im_array: np.ndarray, *,
                             mask_array: np.ndarray = None,
                             mode: str = "vol",
+                            diam_rad_mode: str = "vol",
                             pixel_size: float = 1.0,
                             units: str = "pix",
                             background: float | int = 0,
@@ -283,12 +284,24 @@ def __get_size_distribution(im_array: np.ndarray, *,
         counts = counts * (pixel_size ** 2)
             
     elif mode == "diam":
+        
+        if diam_rad_mode == "vol":
             
-        counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi)
+            counts = np.cbrt((counts * (pixel_size ** 3)) / ((4 / 3) * np.pi)) * 2
+        
+        elif diam_rad_mode == "area":
+            
+            counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi) * 2
             
     elif mode == "rad":
         
-        counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi) / 2
+        if diam_rad_mode == "vol":
+            
+            counts = np.cbrt((counts * (pixel_size ** 3)) / ((4 / 3) * np.pi))
+        
+        elif diam_rad_mode == "area":
+        
+            counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi)
     
     if len(counts) != 0:
         
@@ -338,6 +351,7 @@ def __get_size_distribution(im_array: np.ndarray, *,
 def get_size_distribution(im_array: np.ndarray, *,
                           mask_array: np.ndarray = None,
                           mode: str = "vol",
+                          diam_rad_mode: str = "vol",
                           pixel_size: float = 1.0,
                           units: str = "pix",
                           connectivity: int = None,
@@ -367,6 +381,7 @@ def get_size_distribution(im_array: np.ndarray, *,
             size_df: pd.DataFrame = __get_size_distribution(lab_array,
                                                             mask_array = mask_array,
                                                             mode = mode,
+                                                            diam_rad_mode = diam_rad_mode,
                                                             pixel_size = pixel_size,
                                                             units = units,
                                                             background = background,
@@ -379,6 +394,7 @@ def get_size_distribution(im_array: np.ndarray, *,
             size_df: pd.DataFrame = __get_size_distribution(im_array,
                                                             mask_array = mask_array,
                                                             mode = mode,
+                                                            diam_rad_mode = diam_rad_mode,
                                                             pixel_size = pixel_size,
                                                             units = units,
                                                             background = background,
@@ -433,6 +449,7 @@ def get_size_distribution(im_array: np.ndarray, *,
                 int_df: pd.DataFrame = __get_size_distribution(int_im_array,
                                                                mask_array = mask_array[slice_index],
                                                                mode = mode,
+                                                               diam_rad_mode = diam_rad_mode,
                                                                pixel_size = pixel_size,
                                                                units = units,
                                                                background = background,
@@ -444,6 +461,7 @@ def get_size_distribution(im_array: np.ndarray, *,
                 
                 int_df: pd.DataFrame = __get_size_distribution(int_im_array,
                                                                mode = mode,
+                                                               diam_rad_mode = diam_rad_mode,
                                                                pixel_size = pixel_size,
                                                                units = units,
                                                                background = background,

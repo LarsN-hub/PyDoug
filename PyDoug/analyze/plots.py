@@ -296,7 +296,7 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                 
                 cur_y: np.ndarray = y
             
-            if np.any(colors):
+            if colors is not None:
                 
                 if isinstance(colors, tuple):
                 
@@ -629,7 +629,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
     if x_labels:
         
-        dx: float = 0
+        dx: float = -0.15
         dy: float = 0
         bar_ax.tick_params(axis = "x", length = 0)
         offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
@@ -1114,6 +1114,7 @@ def histogram(data: np.ndarray | pd.DataFrame, *,
 
 def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
                          mode: str = "vol",
+                         diam_rad_mode = "vol",
                          units: str = "pix",
                          mask_array: np.ndarray = None,
                          x_label: str = None,
@@ -1132,6 +1133,7 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         psd_df: pd.DataFrame = distrib.get_size_distribution(data,
                                                              mask_array = mask_array,
                                                              mode = mode,
+                                                             diam_rad_mode = diam_rad_mode,
                                                              pixel_size = pixel_size,
                                                              units = units,
                                                              connectivity = connectivity,
@@ -1167,6 +1169,7 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
 
 def size_distribution(data: np.ndarray | pd.DataFrame, *,
                       mode: str = "vol",
+                      diam_rad_mode: str = "vol",
                       units: str = "pix",
                       mask_array: np.ndarray = None,
                       x_label: str = None,
@@ -1183,6 +1186,7 @@ def size_distribution(data: np.ndarray | pd.DataFrame, *,
     fig, psd_ax = plt.subplots()
     psd_ax = size_distribution_ax(data, psd_ax,
                                   mode = mode,
+                                  diam_rad_mode = diam_rad_mode,
                                   units = units,
                                   mask_array = mask_array,
                                   x_label = x_label,

@@ -2237,6 +2237,7 @@ class ImageProcessor:
         
     @magicgui(
         Type = {"choices": ["Volume", "Area", "Diameter", "Radius"]},
+        Diameter_Radius_Mode = {"choices": ["Volume", "Area"]},
         X_Max = {"max": 1000000},
         Y_Max = {"max": 1000000},
         Max_Bound = {"max": 1000000},
@@ -2244,6 +2245,7 @@ class ImageProcessor:
     def psd_widget(self,
         Labels: napari.layers.Labels,
         Type: str = "Volume",
+        Diameter_Radius_Mode: str = "Volume",
         Background: int = 0,
         Pixel_Scale: float = 1,
         Units: str = "pixels",
@@ -2275,6 +2277,14 @@ class ImageProcessor:
         elif Type == "Radius":
             
             Type: str = "rad"
+            
+        if Diameter_Radius_Mode == "Volume":
+            
+            diam_rad_mode: str = "vol"
+            
+        elif Diameter_Radius_Mode == "Area":
+            
+            diam_rad_mode: str = "area"
         
         if not Apply_Mask:
             
@@ -2300,6 +2310,7 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Type": Type,
+                 "Diameter Radius Mode": diam_rad_mode,
                  "Background": Background,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
@@ -2341,6 +2352,7 @@ class ImageProcessor:
             
         _ = plots.size_distribution(Labels.data,
                                     mode = Type,
+                                    diam_rad_mode = diam_rad_mode,
                                     units = Units,
                                     x_label = x_label,
                                     mask_array = mask_array,

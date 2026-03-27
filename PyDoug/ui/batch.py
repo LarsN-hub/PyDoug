@@ -1268,6 +1268,7 @@ def apply_parameters(im_array: np.ndarray,
             
             fig = plots.size_distribution(im_array,
                                           mode = parameter["Type"],
+                                          diam_rad_mode = parameter["Diameter Radius Mode"],
                                           units = parameter["Units"],
                                           x_label = x_label,
                                           mask_array = mask_array,
