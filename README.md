@@ -804,7 +804,8 @@ A widget for calculating miscellaneous information about an image/stack such as 
 - "Method" drop-down: select the calculation to be performed.
 - "Min Percent" float: if "Method" is "Percent Intensities", input the minimum percentage to calculate.
 - "Max Percent" float: if "Method" is "Percent Intensities", input the maximum percentage to calculate.
-- "Include Background" checkbox: if "Method" is "Volume/Area", check to include the volume/area of the background phase in the case of a segmented image/stack.
+- "Quantity Measured" drop-down: if "Method" is "Total Quantity", select the quantity to be measured (volume, area, or length of segmented phase).
+- "Include Background" checkbox: if "Method" is "Total Quantity", check to include the volume/area of the background phase in the case of a segmented image/stack.
 - "Surface Phase" float: if "Method" is "Surface Area/Perimeter", input the intensity of the phase to calculate surface area/perimeter.
 - "Contact Phase 1" float: if "Method" is "Contact Area/Perimeter", input the intensity of one of the phases.
 - "Contact Phase 2" float: if "Method" is "Contact Area/Perimeter", input the intensity of the other phase.

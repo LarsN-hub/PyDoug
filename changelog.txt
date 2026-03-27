@@ -1,3 +1,7 @@
+v0.4.2-alpha
+- Changed "Volume/Area" in Misc Calculations widget to "Total Quantity" with selection drop-down
+- Added length measurement to total quantity drop-down selection options
+
 v0.4.1-alpha
 - Added volume vs. area distinction for calculating domain diameter/radius in domain size distribution widget
 - Fixed bug in calculating diameter and radius in domain size distribution widget (math is hard)

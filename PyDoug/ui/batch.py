@@ -14,7 +14,7 @@ import os
 from matplotlib import pyplot as plt
 
 from PyDoug.ui import readwrite as rw, sliceview as sv
-from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixels, thresh, trans, util
+from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixels, thresh, trans
 from PyDoug.analyze import quant, plots
 
 
@@ -28,7 +28,7 @@ def apply_parameters(im_array: np.ndarray,
     parameters_log: list[dict] = parameters_dict["Parameters"]
     screenshot_index: int = 0
     stats_index: int = 0
-    vol_area_index: int = 0
+    quantity_index: int = 0
     surf_index: int = 0
     cont_index: int = 0
     hist_index: int = 0
@@ -1015,9 +1015,7 @@ def apply_parameters(im_array: np.ndarray,
                                                   percentages = (float(parameter["Min Percent"]), float(parameter["Max Percent"])),
                                                   mask_array = mask_array)
                 
-            elif parameter["Method"] == "Volume/Area":
-                
-                print("\nCalculating volume/area...")
+            elif parameter["Method"] == "Total Quantity":
                 
                 if parameter["Include Background"].lower() == "true":
                     
@@ -1035,9 +1033,10 @@ def apply_parameters(im_array: np.ndarray,
                     
                     auto_normalize: bool = False
                 
-                if util.is_3d_rgb(im_array)["3D"]:
+                if parameter["Quantity Measured"] == "Volume":
                     
-                    vol_area_df: pd.DataFrame = quant.get_volume(im_array,
+                    print("\nMeasuring volume...")
+                    quantity_df: pd.DataFrame = quant.get_volume(im_array,
                                                                  mask_array = mask_array,
                                                                  scale = float(parameter["Pixel Size"]),
                                                                  units = parameter["Units"],
@@ -1045,9 +1044,10 @@ def apply_parameters(im_array: np.ndarray,
                                                                  background = float(parameter["Background"]),
                                                                  normalize = auto_normalize)
                 
-                else:
+                elif parameter["Quantity Measured"] == "Area":
                     
-                    vol_area_df: pd.DataFrame = quant.get_area(im_array,
+                    print("\nMeasuring area...")
+                    quantity_df: pd.DataFrame = quant.get_area(im_array,
                                                                mask_array = mask_array,
                                                                scale = float(parameter["Pixel Size"]),
                                                                units = parameter["Units"],
@@ -1055,19 +1055,30 @@ def apply_parameters(im_array: np.ndarray,
                                                                background = float(parameter["Background"]),
                                                                normalize = auto_normalize)
                     
-                vol_area_df.insert(0, "File Name", file_name)
-                vol_area_df["Units"] = vol_area_df.attrs["units"]
-                save_path: str = save_dir + f"/Volume_Area_{vol_area_index}.csv"
+                elif parameter["Quantity Measured"] == "Length":
+                    
+                    print("\nMeasuring length...")
+                    quantity_df: pd.DataFrame = quant.get_length(im_array,
+                                                                 mask_array = mask_array,
+                                                                 scale = float(parameter["Pixel Size"]),
+                                                                 units = parameter["Units"],
+                                                                 include_background = include_background,
+                                                                 background = float(parameter["Background"]),
+                                                                 normalize = auto_normalize)
+                    
+                quantity_df.insert(0, "File Name", file_name)
+                quantity_df["Units"] = quantity_df.attrs["units"]
+                save_path: str = save_dir + f"/Measured_Quantity_{quantity_index}.csv"
                 
                 if not os.path.isfile(save_path):
                     
-                    vol_area_df.to_csv(save_path, header = "column_names", index = False)
+                    quantity_df.to_csv(save_path, header = "column_names", index = False)
                     
                 else:
                     
-                    vol_area_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    quantity_df.to_csv(save_path, mode = "a", header = False, index = False)
                     
-                vol_area_index += 1
+                quantity_index += 1
                 
             elif parameter["Method"] == "Surface Perimeter/Area":
                 

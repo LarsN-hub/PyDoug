@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.4.1-alpha"
+version_str: str = "v0.4.2-alpha"
 
 
 # Classes
@@ -2024,13 +2024,15 @@ class ImageProcessor:
         self.viewer.add_image(pixels.convert_im_type(np.real(fourier.ft(Image.data, Along_Z_Axis)), "uint8", norm = True), name = param_layer_name)
         
     @magicgui(
-        Method = {"choices": ["Stats", "Percent Intensities", "Volume/Area", "Surface Perimeter/Area", "Contact Perimeter/Area"]},
+        Method = {"choices": ["Stats", "Percent Intensities", "Total Quantity", "Surface Perimeter/Area", "Contact Perimeter/Area"]},
+        Quantity_Measured = {"choices": ["Volume", "Area", "Length"]},
         call_button = "Calculate")
     def misc_calc_widget(self,
         Image: napari.layers.Image,
         Method: str = "Stats",
         Min_Percent: float = 0,
         Max_Percent: float = 100,
+        Quantity_Measured: str = "Volume",
         Include_Background: bool = False,
         Background: float = 0,
         Normalize: bool = False,
@@ -2061,6 +2063,7 @@ class ImageProcessor:
                  "Method": Method,
                  "Min Percent": Min_Percent,
                  "Max Percent": Max_Percent,
+                 "Quantity Measured": Quantity_Measured,
                  "Include Background": Include_Background,
                  "Background": Background,
                  "Normalize": Normalize,
@@ -2082,9 +2085,9 @@ class ImageProcessor:
                                               (Min_Percent, Max_Percent),
                                               mask_array = mask_array)
         
-        elif Method == "Volume/Area":
+        elif Method == "Total Quantity":
             
-            if util.is_3d_rgb(Image.data)["3D"]:
+            if Quantity_Measured == "Volume":
                 
                 _ = quant.get_volume(Image.data,
                                      mask_array = mask_array,
@@ -2094,7 +2097,7 @@ class ImageProcessor:
                                      background = Background,
                                      normalize = Normalize)
                 
-            else:
+            elif Quantity_Measured == "Area":
                 
                 _ = quant.get_area(Image.data,
                                    mask_array = mask_array,
@@ -2102,7 +2105,17 @@ class ImageProcessor:
                                    units = Units,
                                    include_background = Include_Background,
                                    background = Background,
-                                   normalize = Normalize)          
+                                   normalize = Normalize)  
+                
+            elif Quantity_Measured == "Length":
+                
+                _ = quant.get_length(Image.data,
+                                     mask_array = mask_array,
+                                     scale = Pixel_Scale,
+                                     units = Units,
+                                     include_background = Include_Background,
+                                     background = Background,
+                                     normalize = Normalize)
         
         elif Method == "Surface Perimeter/Area":
             

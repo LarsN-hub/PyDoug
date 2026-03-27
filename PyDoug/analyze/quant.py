@@ -325,7 +325,13 @@ def __vol_area_precondition(im_array: np.ndarray, *,
     
     return count_array.T    
     
-def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def get_volume(im_array: np.ndarray, *,
+               mask_array: np.ndarray = None,
+               scale: float = 1.0,
+               units: str = "pix",
+               include_background: bool = False,
+               background: float | int = 0,
+               normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -367,7 +373,13 @@ def get_volume(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: fl
     
     return vol_df
 
-def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: float = 1.0, units: str = "pix", include_background: bool = False, background: float | int = 0, normalize: bool = False) -> pd.DataFrame:
+def get_area(im_array: np.ndarray, *,
+             mask_array: np.ndarray = None,
+             scale: float = 1.0,
+             units: str = "pix",
+             include_background: bool = False,
+             background: float | int = 0,
+             normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
@@ -408,6 +420,54 @@ def get_area(im_array: np.ndarray, *, mask_array: np.ndarray = None, scale: floa
             print(f"\n{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
     
     return area_df
+
+def get_length(im_array: np.ndarray, *,
+               mask_array: np.ndarray = None,
+               scale = 1.0,
+               units: str = "pix",
+               include_background: bool = False,
+               background: float | int = 0,
+               normalize: bool = False) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
+    
+    count_array = __vol_area_precondition(im_array,
+                                          mask_array = mask_array,
+                                          include_background = include_background,
+                                          background = background,
+                                          normalize = normalize)
+    
+    if not normalize:
+        
+        count_array[1:, :] = count_array[1:, :] * scale
+        
+    length_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
+    
+    if not normalize:
+        
+        length_df.attrs = {"units": f"{units}"}
+        
+    else:
+        
+        length_df.attrs = {"units": "dimensionless"}
+    
+    if normalize:
+        
+        for col in length_df:
+            
+            current_str: str = str(col) + ":"
+            print(f"\n{current_str:<16} {length_df[col][0]}")
+    
+    else:
+    
+        for col in length_df:
+            
+            current_str: str = str(col) + ":"
+            print(f"\n{current_str:<16} {length_df[col][0]} {length_df.attrs["units"]}")
+    
+    return length_df
 
 def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
                 mask_array: np.ndarray = None,
