@@ -629,7 +629,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
     if x_labels:
         
-        dx: float = -0.15
+        dx: float = -0.2
         dy: float = 0
         bar_ax.tick_params(axis = "x", length = 0)
         offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
@@ -674,9 +674,17 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
     
     if cat_units:
         
+        if cat_units == "um":
+            
+            cat_units = "\u00b5m"
+        
         cat_label = f"{cat_label} ({cat_units})"
         
     if data_units:
+        
+        if data_units == "um":
+            
+            data_units = "\u00b5m"
         
         data_label = f"{data_label} ({data_units})"
         
