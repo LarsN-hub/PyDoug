@@ -555,7 +555,8 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
                logy2: bool = False,
                legend_axis: int = 2,
                edges: bool = True,
-               sci2: bool = False) -> plt.Figure:
+               sci2: bool = False,
+               dx: float = 0) -> plt.Figure:
     
     if y.ndim > 1:
         
@@ -629,7 +630,6 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
         
     if x_labels:
         
-        dx: float = -0.2
         dy: float = 0
         bar_ax.tick_params(axis = "x", length = 0)
         offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
