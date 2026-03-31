@@ -77,7 +77,7 @@ Installing & Updating
 General Info
 ------------
 
-When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
+When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Also, DO NOT close Windows PowerShell or PyDoug will force close as well. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
 
 - Any single image file (other than .h5-type formats) can simply be dragged and dropped into the napari window to open.
 - You can move the image around by clicking and dragging with the mouse.
