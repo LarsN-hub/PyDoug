@@ -838,6 +838,9 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Add as Parameter" checkbox: check to add the axial distribution plot generation to the parameters log.
+- "Export Data" checkbox: check to export the axial distribution data as a csv file upon generating the plot.
+- "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
+- "Save Name" string: if "Export Data" is checked, type in a name for the exported data file.
 - "Plot Distribution" button: click to generate the axial distribution plot.
 
 **Domain Size Distribution**

@@ -929,7 +929,7 @@ def apply_parameters(im_array: np.ndarray,
                 
                 nbins: int = int(parameter["Num Bins"])
                 
-            fig, hist_ax = plt.subplots()
+            fig, hist_ax = plt.subplots(layout = "constrained")
             hist_ax: plt.Axes = plots.histogram_axis(im_array, hist_ax,
                                                      x_label = "Gray Value",
                                                      mask_array = mask_array,
@@ -1190,23 +1190,29 @@ def apply_parameters(im_array: np.ndarray,
                 temporal_scale = None
                 temporal_units = None
             
-            fig = plots.line(im_array, mode,
-                             distrib_mode = distrib_mode,
-                             size_mode = parameter["Type"],
-                             pixel_size = float(parameter["Pixel Size"]),
-                             units = parameter["Units"],
-                             mask_array = mask_array,
-                             temporal_scale = temporal_scale,
-                             temporal_units = temporal_units,
-                             axis = int(parameter["Axis"]),
-                             include_background = include_background,
-                             background = float(parameter["Background"]),
-                             ignore_edges = ignore_edges,
-                             normalize = normalize,
-                             norm_method = parameter["Normalize Method"],
-                             xlims = x_lims,
-                             ylims = y_lims)
+            fig, line_df = plots.line(im_array, mode,
+                                      distrib_mode = distrib_mode,
+                                      size_mode = parameter["Type"],
+                                      pixel_size = float(parameter["Pixel Size"]),
+                                      units = parameter["Units"],
+                                      mask_array = mask_array,
+                                      temporal_scale = temporal_scale,
+                                      temporal_units = temporal_units,
+                                      axis = int(parameter["Axis"]),
+                                      include_background = include_background,
+                                      background = float(parameter["Background"]),
+                                      ignore_edges = ignore_edges,
+                                      normalize = normalize,
+                                      norm_method = parameter["Normalize Method"],
+                                      xlims = x_lims,
+                                      ylims = y_lims,
+                                      return_df = True)
             rw.write_plot(fig, f"{file_name}_axial_distribution_{axis_dist_index}", save_dir)
+            
+            if parameter["Export Data"].lower() == "true":
+                
+                line_df.to_csv(f"{save_dir}/{file_name}_axial_distribution_{axis_dist_index}.csv", header = "column names", index = False)
+                
             axis_dist_index += 1
         
         elif parameter["Name"].find("Domain Size Distribution Plot") == 0:

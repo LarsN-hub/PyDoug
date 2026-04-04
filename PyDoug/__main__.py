@@ -1940,7 +1940,7 @@ class ImageProcessor:
             
             y_lims = (0, Y_Max)
             
-        fig, hist_ax = plt.subplots()
+        fig, hist_ax = plt.subplots(layout = "constrained")
         
         hist_ax: plt.Axes = plots.histogram_axis(Image.data,
                                                  hist_ax,
@@ -2135,6 +2135,7 @@ class ImageProcessor:
         Type = {"choices": ["Volume", "Area"]},
         Axis = {"choices": ["X", "Y", "Z"]},
         Normalize_Method = {"choices": ["Total", "Phase"]},
+        Save_Folder = {"mode": "d"},
         call_button = "Plot Distribution")
     def axis_distribution_widget(self,
         Image: napari.layers.Image,
@@ -2155,7 +2156,10 @@ class ImageProcessor:
         Time_Scale: float = 1,
         Apply_Mask: bool = False,
         Mask: napari.layers.Image = None,
-        Add_as_Parameter: bool = False) -> None:
+        Add_as_Parameter: bool = False,
+        Export_Data: bool = False,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        Save_Name: str = "Name") -> None:
         
         if Type == "Volume":
             
@@ -2198,7 +2202,8 @@ class ImageProcessor:
                  "Time Units": Time_Units,
                  "Time Scale": Time_Scale,
                  "Apply Mask": Apply_Mask,
-                 "Mask Used": mask_name})
+                 "Mask Used": mask_name,
+                 "Export Data": Export_Data})
             
         if X_Max == 0:
             
@@ -2228,25 +2233,30 @@ class ImageProcessor:
             Time_Units = None
             Time_Scale = None
             
-        _ = plots.line(Image.data,
-                       mode = mode,
-                       distrib_mode = distrib_mode,
-                       size_mode = Type.lower(),
-                       pixel_size = Pixel_Scale,
-                       units = Pixel_Units,
-                       mask_array = mask_array,
-                       temporal_scale = Time_Scale,
-                       temporal_units = Time_Units,
-                       axis = Axis,
-                       include_background = Include_Background,
-                       background = Background,
-                       ignore_edges = Remove_Edges,
-                       normalize = Normalize,
-                       norm_method = Normalize_Method.lower(),
-                       xlims = x_lims,
-                       ylims = y_lims)
+        _, line_df = plots.line(Image.data,
+                                mode = mode,
+                                distrib_mode = distrib_mode,
+                                size_mode = Type.lower(),
+                                pixel_size = Pixel_Scale,
+                                units = Pixel_Units,
+                                mask_array = mask_array,
+                                temporal_scale = Time_Scale,
+                                temporal_units = Time_Units,
+                                axis = Axis,
+                                include_background = Include_Background,
+                                background = Background,
+                                ignore_edges = Remove_Edges,
+                                normalize = Normalize,
+                                norm_method = Normalize_Method.lower(),
+                                xlims = x_lims,
+                                ylims = y_lims,
+                                return_df = True)
             
         plt.show(block = False)
+        
+        if Export_Data:
+            
+            line_df.to_csv(f"{str(Save_Folder)}/{Save_Name}.csv", header = "column names", index = False)
         
     @magicgui(
         Type = {"choices": ["Volume", "Area", "Diameter", "Radius"]},

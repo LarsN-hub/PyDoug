@@ -1,3 +1,7 @@
+v0.4.3-alpha
+- Changed plot borders to tighter layout
+- Added option to export axial distribution data instead of just the plot
+
 v0.4.2-alpha
 - Changed "Volume/Area" in Misc Calculations widget to "Total Quantity" with selection drop-down
 - Added length measurement to total quantity drop-down selection options

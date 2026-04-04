@@ -576,7 +576,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             y_count += 1
         
-    fig, bar_ax = plt.subplots()
+    fig, bar_ax = plt.subplots(layout = "constrained")
     bar_ax, label_index = bar_axis(x, y, bar_ax,
                                    x_labels = x_labels,
                                    y_label = y_label,
@@ -688,7 +688,7 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
         
         data_label = f"{data_label} ({data_units})"
         
-    fig, box_ax = plt.subplots()
+    fig, box_ax = plt.subplots(layout = "constrained")
     bp = box_ax.boxplot(data, orientation = orientation,
                         tick_labels = categories,
                         widths = widths,
@@ -757,7 +757,8 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
               normalize: bool = False,
               norm_method: str = "total",
               xlims: tuple = None,
-              ylims: tuple = None) -> plt.Axes:
+              ylims: tuple = None,
+              return_df: bool = False) -> plt.Axes:
     
     if not isinstance(data, pd.DataFrame):
         
@@ -953,7 +954,13 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
         
         line_ax.set_ylim(0)
         
-    return line_ax
+    if return_df:
+        
+        return line_ax, line_df
+    
+    else:
+        
+        return line_ax
 
 def line(data: np.ndarray | pd.DataFrame,
          mode: str = "line scan", *,
@@ -975,7 +982,8 @@ def line(data: np.ndarray | pd.DataFrame,
          normalize: bool = False,
          norm_method: str = "total",
          xlims: tuple = None,
-         ylims: tuple = None) -> plt.Figure:
+         ylims: tuple = None,
+         return_df: bool = False) -> plt.Figure:
     
     # if mode == "psd distrib":
         
@@ -985,38 +993,47 @@ def line(data: np.ndarray | pd.DataFrame,
         
     #     c_label: str = f"Height ({units})"
     
-    fig, line_ax = plt.subplots()
-    line_ax = line_axis(data,
-                        line_ax,
-                        mode = mode,
-                        color_mode = color_mode,
-                        viewer = viewer,
-                        slice_range = slice_range,
-                        distrib_mode = distrib_mode,
-                        size_mode = size_mode,
-                        pixel_size = pixel_size,
-                        units = units,
-                        mask_array = mask_array,
-                        temporal_scale = temporal_scale,
-                        temporal_units = temporal_units,
-                        axis = axis,
-                        include_background = include_background,
-                        background = background,
-                        connectivity = connectivity,
-                        ignore_edges = ignore_edges,
-                        normalize = normalize,
-                        norm_method = norm_method,
-                        xlims = xlims,
-                        ylims = ylims)
+    fig, line_ax = plt.subplots(layout = "constrained")
+    
+    line_ax, line_df = line_axis(data,
+                                 line_ax,
+                                 mode = mode,
+                                 color_mode = color_mode,
+                                 viewer = viewer,
+                                 slice_range = slice_range,
+                                 distrib_mode = distrib_mode,
+                                 size_mode = size_mode,
+                                 pixel_size = pixel_size,
+                                 units = units,
+                                 mask_array = mask_array,
+                                 temporal_scale = temporal_scale,
+                                 temporal_units = temporal_units,
+                                 axis = axis,
+                                 include_background = include_background,
+                                 background = background,
+                                 connectivity = connectivity,
+                                 ignore_edges = ignore_edges,
+                                 normalize = normalize,
+                                 norm_method = norm_method,
+                                 xlims = xlims,
+                                 ylims = ylims,
+                                 return_df = True)
+        
     # fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     # fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
     
-    return fig
+    if return_df:
+        
+        return fig, line_df
+    
+    else:
+        
+        return fig
 
 def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> plt.Figure:
     
     line_scan_df: pd.DataFrame = sv.quick_get_line_scan(im_array = im_array, shapes_layer = shapes_layer)
-    fig, ls_ax = plt.subplots()
+    fig, ls_ax = plt.subplots(layout = "constrained")
     ls_ax.set_xlabel("Position [pix]")
     ls_ax.set_ylabel("Gray Value")
     ls_ax.plot(line_scan_df["Position"], line_scan_df["Gray Value"], "red")
@@ -1107,7 +1124,7 @@ def histogram(data: np.ndarray | pd.DataFrame, *,
               nbins: int | None = None,
               logx: bool = False) -> plt.Figure:
     
-    fig, hist_ax = plt.subplots()
+    fig, hist_ax = plt.subplots(layout = "constrained")
     hist_ax = histogram_axis(data, hist_ax,
                              x_label = x_label,
                              mask_array = mask_array,
@@ -1191,7 +1208,7 @@ def size_distribution(data: np.ndarray | pd.DataFrame, *,
                       nbins: int = 100,
                       max_bound: float | None = None) -> plt.Figure:
     
-    fig, psd_ax = plt.subplots()
+    fig, psd_ax = plt.subplots(layout = "constrained")
     psd_ax = size_distribution_ax(data, psd_ax,
                                   mode = mode,
                                   diam_rad_mode = diam_rad_mode,
@@ -1250,7 +1267,7 @@ def cdf(data: np.ndarray | pd.DataFrame, *,
         xlims: tuple = None,
         ylims: tuple = None) -> plt.Figure:
     
-    fig, cdf_ax = plt.subplots()
+    fig, cdf_ax = plt.subplots(layout = "constrained")
     cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
     
     return fig
@@ -1263,7 +1280,7 @@ def hist_cdf(data: np.ndarray | dict, *,
              ignore_edges: bool = False,
              normalize: bool = False) -> plt.Figure:
     
-    fig, hist_ax = plt.subplots()
+    fig, hist_ax = plt.subplots(layout = "constrained")
     hist_ax = histogram_axis(data, hist_ax,
                              x_label = x_label,
                              mask_array = mask_array,
@@ -1402,7 +1419,7 @@ def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.nda
                 stride: int = 4,
                 approximate_loss: bool = True) -> plt.Figure:
     
-    fig, ssl_ax = plt.subplots()
+    fig, ssl_ax = plt.subplots(layout = "constrained")
     ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
                               stride = stride, approximate_loss = approximate_loss)
     
@@ -1477,7 +1494,7 @@ def heat_map(data: np.ndarray, *,
         
         c_label: str = f"{cbar_label} ({units})"
     
-    fig, heat_ax = plt.subplots()
+    fig, heat_ax = plt.subplots(layout = "constrained")
     heat_ax, ax_im, heat_array = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation, return_array = True)
     fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
