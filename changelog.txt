@@ -1,3 +1,7 @@
+v0.5.0-alpha
+- Added ridge detection widget to Features tab
+- Added blob detection widget to Features tab
+
 v0.4.3-alpha
 - Changed plot borders to tighter layout
 - Added option to export axial distribution data instead of just the plot

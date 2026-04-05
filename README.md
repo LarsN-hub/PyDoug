@@ -744,6 +744,43 @@ https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.co
 - "Return Mode" drop-down: select the ouput mode for corner analysis.
 - "Detect Corners" button: click to perform the coner detection operation.
 
+**Ridge Detection**
+A widget for detecting ridges in images/stacks.
+More info: https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.frangi,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.hessian,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.meijering,
+https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.sato
+- "Image" drop-down: images in the layer list. Select the image to detect ridges.
+- "Method" drop-down: select the ridge detection algorithm.
+- "Scale Min" integer: input the minimum sigma for ridge detection.
+- "Scale Max" integer: input the maximum sigma for ridge detection.
+- "Scale Step" integer: input the increment by which to ascend from "Scale Min" to "Scale Max".
+- "Alpha" float: if "Method" is "Frangi" or "Hessian", input the correction constant for plate-like structure deviation.
+- "Beta" float: if "Method" is "Frangi" or "Hessian", input the correction constant for blob-like structure deviation.
+- "Gamma" float: if "Method" is "Frangi" or "Hessian", input the correction constant for high variance regions. Leave as 0 to estimate.
+- "Black Ridges" checkbox: leave checked to detect black ridges. Uncheck to detect white ridges.
+- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
+- "Constant Value" float: input the value to be used if "Edges Method" is "Constant".
+- "Detect Ridges" button: click to perform the ridge detection operation.
+
+**Blob Detection**
+A widget for detecting blobs in images/stacks.
+More info: https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.blob_dog,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.blob_doh,
+https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.blob_log
+- "Image" drop-down: images in the layer list. Select the image to detect blobs.
+- "Method" drop-down: select the blob detection algorithm.
+- "Min Sigma" integer: input the minimum sigma for blob detection.
+- "Max Sigma" integer: input the maximum sigma for blob detection.
+- "Sigma Ratio" float: if "Method" is "DoG", input the ratio for determining the difference of Gaussians.
+- "Threshold" float: input the lower bound for blob space maxima to be detected.
+- "Overlap" float: input the value between 0 and 1 to determine at what ratio the smaller blob between two overlapping blobs is eliminated.
+- "Num Sigma" integer: input the number of sigma values to use on the "Min Sigma" to "Max Sigma" range.
+- "Threshold Rel" float = input a value between 0 and 1 for the minimum intensity of peaks. Leave as 0 to use "Threshold".
+- "Exclude Border" checkbox: check to exclude border pixels from the operation.
+- "Log Scale" checkbox: check to use a log scale to find intermediate values between "Min Sigma" and "Max Sigma".
+- "Detect Blobs" button: click to perform the blob detection operation.
+
 **Skeleton Detection**
 
 A widget for detecting the skeleton of segmented features in an image/stack.

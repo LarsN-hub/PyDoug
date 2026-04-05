@@ -820,9 +820,9 @@ def apply_parameters(im_array: np.ndarray,
                                     along_axis = along_axis)
             
             
-        ######################
-        # Feature Operations #
-        ######################
+        #######################
+        # Features Operations #
+        #######################
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
@@ -866,6 +866,77 @@ def apply_parameters(im_array: np.ndarray,
                                       window_size = int(parameter["Window Size"]),
                                       correct_anomalies = correct_anomalies,
                                       return_mode = parameter["Return Mode"])
+            
+        elif parameter["Name"].find("Ridge Detection") == 0:
+            
+            print("\nDetecting ridges...")
+            
+            if parameter["Black Ridges"].lower() == "true":
+                
+                black_ridges: bool = True
+                
+            else:
+                
+                black_ridges: bool = False
+                
+            if float(parameter["Gamma"]) == 0:
+                
+                gamma: None = None
+                
+            else:
+                
+                gamma: float = float(parameter["Gamma"])
+                
+            im_array = detect.ridges(im_array,
+                                     method = parameter["Method"],
+                                     scale_range = (int(parameter["Scale Min"]), int(parameter["Scale Max"])),
+                                     scale_step = int(parameter["Scale Step"]),
+                                     alpha = float(parameter["Alpha"]),
+                                     beta = float(parameter["Beta"]),
+                                     gamma = gamma,
+                                     black_ridges = black_ridges,
+                                     mode = parameter["Mode"],
+                                     cval = float(parameter["Constant Value"]))
+            
+        elif parameter["Name"].find("Blob Detection") == 0:
+            
+            print("\nDetecting blobs...")
+            
+            if float(parameter["Threshold_Rel"]) == 0:
+                
+                threshold_rel: None = None
+                
+            else:
+                
+                threshold_rel: float = float(parameter["Threshold_Rel"])
+                
+            if parameter["Exclude Border"].lower() == "true":
+                
+                exclude_border: bool = True
+                
+            else:
+                
+                exclude_border: bool = False
+                
+            if parameter["Log Scale"].lower() == "true":
+                
+                log_scale: bool = True
+                
+            else:
+                
+                log_scale: bool = False
+                
+            im_array = detect.blobs(im_array,
+                                    method = parameter["Method"],
+                                    min_sigma = int(parameter["Min Sigma"]),
+                                    max_sigma = int(parameter["Max Sigma"]),
+                                    sigma_ratio = float(parameter["Sigma Ratio"]),
+                                    threshold = float(parameter["Threshold"]),
+                                    overlap = float(parameter["Overlap"]),
+                                    num_sigma = int(parameter["Num Sigma"]),
+                                    threshold_rel = threshold_rel,
+                                    exclude_border = exclude_border,
+                                    log_scale = log_scale)
             
         elif parameter["Name"].find("Skeleton Detection") == 0:
             

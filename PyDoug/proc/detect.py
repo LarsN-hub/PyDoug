@@ -413,6 +413,149 @@ def corners(im_array: np.ndarray, method = "fast", *,
 def skeleton(im_array: np.ndarray, method: str = None) -> np.ndarray:
     
     return pixels.convert_im_type(morphology.skeletonize(im_array, method = method), "uint8")
+
+def ridges(im_array: np.ndarray, method: str = "frangi", *,
+           scale_range: tuple = (1, 10),
+           scale_step: float = 2,
+           alpha: float = 0.5,
+           beta: float = 0.5,
+           gamma: float = None,
+           black_ridges: bool = True,
+           mode: str = "nearest",
+           cval: float = 0) -> np.ndarray:
+    
+    sigmas: tuple = (scale_range[0], scale_range[1], scale_step)
+    
+    if method == "frangi":
+        
+        return pixels.convert_im_type(filters.frangi(im_array,
+                                                     sigmas = sigmas,
+                                                     alpha = alpha,
+                                                     beta = beta,
+                                                     gamma = gamma,
+                                                     black_ridges = black_ridges,
+                                                     mode = mode,
+                                                     cval = cval),
+                                      im_array.dtype)
+    
+    elif method == "hessian":
+        
+        return pixels.convert_im_type(filters.hessian(im_array,
+                                                      sigmas = sigmas,
+                                                      alpha = alpha,
+                                                      beta = beta,
+                                                      gamma = gamma,
+                                                      black_ridges = black_ridges,
+                                                      mode = mode,
+                                                      cval = cval),
+                                      im_array.dtype)
+    
+    elif method == "meijering":
+        
+        return pixels.convert_im_type(filters.meijering(im_array,
+                                                        sigmas = sigmas,
+                                                        alpha = alpha,
+                                                        black_ridges = black_ridges,
+                                                        mode = mode,
+                                                        cval = cval),
+                                      im_array.dtype)
+    
+    elif method == "sato":
+        
+        return pixels.convert_im_type(filters.sato(im_array,
+                                                   sigmas = sigmas,
+                                                   black_ridges = black_ridges,
+                                                   mode = mode,
+                                                   cval = cval),
+                                      im_array.dtype)
+    
+def blobs(im_array: np.ndarray, method: str = "dog", *,
+          min_sigma: int = 1,
+          max_sigma: int = 50,
+          sigma_ratio: float = 1.6,
+          threshold: float = 0.5,
+          overlap: float = 0.5,
+          threshold_rel: float = None,
+          exclude_border: bool = False,
+          num_sigma: int = 10,
+          log_scale: bool = False,
+          return_mode: str = "coords") -> np.ndarray:
+    
+    if method == "dog":
+        
+        blobs_coords: np.ndarray = feature.blob_dog(im_array,
+                                                    min_sigma = min_sigma,
+                                                    max_sigma = max_sigma,
+                                                    sigma_ratio = sigma_ratio,
+                                                    threshold = threshold,
+                                                    overlap = overlap,
+                                                    threshold_rel = threshold_rel,
+                                                    exclude_border = exclude_border)
+    
+    elif method == "doh":
+        
+        if im_array.ndim > 2:
+            
+            blobs_coords: np.ndarray = np.zeros((1, 4))
+            
+            for slice_index in range(0, im_array.shape[0]):
+                
+                current_coords: np.ndarray = feature.blob_doh(im_array[slice_index],
+                                                              min_sigma = min_sigma,
+                                                              max_sigma = max_sigma,
+                                                              num_sigma = num_sigma,
+                                                              threshold = threshold,
+                                                              overlap = overlap,
+                                                              log_scale = log_scale,
+                                                              threshold_rel = threshold_rel)
+                slice_append: np.ndarray = np.repeat(np.expand_dims(np.array([slice_index]), axis = 1), current_coords.shape[0], axis = 0)
+                current_coords = np.append(slice_append, current_coords, axis = 1)
+                blobs_coords = np.append(blobs_coords, current_coords, axis = 0)
+
+            blobs_coords = blobs_coords[1:, :]    
+
+        else:            
+        
+            blobs_coords: np.ndarray = feature.blob_doh(im_array,
+                                                        min_sigma = min_sigma,
+                                                        max_sigma = max_sigma,
+                                                        num_sigma = num_sigma,
+                                                        threshold = threshold,
+                                                        overlap = overlap,
+                                                        log_scale = log_scale,
+                                                        threshold_rel = threshold_rel)
+    
+    elif method == "log":
+        
+        blobs_coords: np.ndarray = feature.blob_log(im_array,
+                                                    min_sigma = min_sigma,
+                                                    max_sigma = max_sigma,
+                                                    num_sigma = num_sigma,
+                                                    threshold = threshold,
+                                                    overlap = overlap,
+                                                    log_scale = log_scale,
+                                                    threshold_rel = threshold_rel,
+                                                    exclude_border = exclude_border)
+    
+    if return_mode == "coords":
+        
+        return blobs_coords
+    
+    elif return_mode == "array":
+        
+        blobs_array: np.ndarray = np.zeros(im_array.shape, np.uint8)
+        
+        if blobs_coords.shape[0] > 0:
+        
+            if im_array.ndim > 2:
+                
+                blobs_array[blobs_coords[:, 0], blobs_coords[:, 1], blobs_coords[:, 2]] = 255
+                
+            else:
+                
+                blobs_array[blobs_coords[:, 0], blobs_coords[:, 1]] = 255
+        
+        return blobs_array
                 
 
 # Main

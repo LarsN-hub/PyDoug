@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.4.3-alpha"
+version_str: str = "v0.5.0-alpha"
 
 
 # Classes
@@ -1751,9 +1751,9 @@ class ImageProcessor:
         self.viewer.add_image(morph.tophat(Image.data, Method, Dilations, Erosions, along_axis = Along_Z_Axis), name = param_layer_name)
         
     
-    ###################
-    # Feature Widgets #
-    ###################
+    ####################
+    # Features Widgets #
+    ####################
     
     @magicgui(
         Method = {"choices": ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]},
@@ -1853,8 +1853,103 @@ class ImageProcessor:
                                              return_mode = Return_Mode), name = param_layer_name)
         
     @magicgui(
+        Method = {"choices": ["Frangi", "Hessian", "Meijering", "Sato"]},
+        Edges_Method = {"choices": ["Constant", "Reflect", "Wrap", "Nearest", "Mirror"]},
+        call_button = "Detect Ridges")
+    def ridge_detect_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "Frangi",
+        Scale_Min: int = 1,
+        Scale_Max: int = 10,
+        Scale_Step: int = 2,
+        Alpha: float = 0.5,
+        Beta: float = 0.5,
+        Gamma: float = 0,
+        Black_Ridges: bool = True,
+        Edges_Method: str = "Nearest",
+        Constant_Value: float = 0) -> None:
+        
+        param_layer_name: str = get_param_layer_name("Ridge Detection", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method.lower(),
+             "Scale Min": Scale_Min,
+             "Scale Max": Scale_Max,
+             "Scale_Step": Scale_Step,
+             "Alpha": Alpha,
+             "Beta": Beta,
+             "Gamma": Gamma,
+             "Black Ridges": Black_Ridges,
+             "Mode": Edges_Method.lower(),
+             "Constant Value": Constant_Value})
+        
+        if Gamma == 0:
+            
+            Gamma: None = None
+        
+        self.viewer.add_image(detect.ridges(Image.data,
+                                            method = Method.lower(),
+                                            scale_range = (Scale_Min, Scale_Max),
+                                            scale_step = Scale_Step,
+                                            alpha = Alpha,
+                                            beta = Beta,
+                                            gamma = Gamma,
+                                            black_ridges = Black_Ridges,
+                                            mode = Edges_Method.lower(),
+                                            cval = Constant_Value),
+                              name = param_layer_name)
+        
+    @magicgui(
+        Method = {"choices": ["DoG", "DoH", "LoG"]},
+        call_button = "Detect Blobs")
+    def blob_detect_widget(self,
+        Image: napari.layers.Image,
+        Method: str = "DoG",
+        Min_Sigma: int = 1,
+        Max_Sigma: int = 50,
+        Sigma_Ratio: float = 1.6,
+        Threshold: float = 0.5,
+        Overlap: float = 0.5,
+        Num_Sigma: int = 10,
+        Threshold_Rel: float = 0,
+        Exclude_Border: bool = False,
+        Log_Scale: bool = False) -> None:
+        
+        param_layer_name: str = get_param_layer_name("Blob Detection", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Method": Method.lower(),
+             "Min Sigma": Min_Sigma,
+             "Max Sigma": Max_Sigma,
+             "Sigma Ratio": Sigma_Ratio,
+             "Threshold": Threshold,
+             "Overlap": Overlap,
+             "Num Sigma": Num_Sigma,
+             "Threshold Rel": Threshold_Rel,
+             "Exclude Border": Exclude_Border,
+             "Log Scale": Log_Scale})
+        
+        if Threshold_Rel == 0:
+            
+            Threshold_Rel: None = None
+            
+        self.viewer.add_image(detect.blobs(Image.data,
+                                           method = Method.lower(),
+                                           min_sigma = Min_Sigma,
+                                           max_sigma = Max_Sigma,
+                                           sigma_ratio = Sigma_Ratio,
+                                           threshold = Threshold,
+                                           overlap = Overlap,
+                                           num_sigma = Num_Sigma,
+                                           threshold_rel = Threshold_Rel,
+                                           exclude_border = Exclude_Border,
+                                           log_scale = Log_Scale,
+                                           return_mode = "array"),
+                              name = param_layer_name)
+        
+    @magicgui(
         Method = {"choices": ["Lee (2D/3D)", "Zhang (2D)"]},
-        call_button = "Detect skeleton")
+        call_button = "Detect Skeleton")
     def skeleton_detect_widget(self,
         Image: napari.layers.Image,
         Method: str = "Lee (2D/3D)") -> None:
@@ -2677,13 +2772,15 @@ def main() -> napari.viewer.Viewer:
     tabs.addTab(morphology_container.native, "Morphology")
     
     
-    # Feature Widgets
+    # Features Widgets
     
     mod_edge_detect: widgets.Container = modify_funcgui(ui.edge_detect_widget, "Edge Detection")
     mod_corner_detect: widgets.Container = modify_funcgui(ui.corner_detect_widget, "Corner Detection")
+    mod_ridge_detect: widgets.Container = modify_funcgui(ui.ridge_detect_widget, "Ridge Detection")
+    mod_blob_detect: widgets.Container = modify_funcgui(ui.blob_detect_widget, "Blob Detection")
     mod_skeleton_detect: widgets.Container = modify_funcgui(ui.skeleton_detect_widget, "Skeleton Detection")
     feature_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_edge_detect, mod_corner_detect, mod_skeleton_detect],
+        widgets = [mod_edge_detect, mod_corner_detect, mod_ridge_detect, mod_blob_detect, mod_skeleton_detect],
         labels = False)
     tabs.addTab(feature_container.native, "Features")
     
