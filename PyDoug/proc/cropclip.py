@@ -66,7 +66,7 @@ def trim(im_array: np.ndarray,
         
         else:
                 
-            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
+            return np.squeeze(im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]])
             
     else:
         
@@ -76,7 +76,7 @@ def trim(im_array: np.ndarray,
                 
         else:
                 
-            trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
+            trim_array: np.ndarray = np.squeeze(im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]])
         
         return trim_array
     

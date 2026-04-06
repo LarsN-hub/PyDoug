@@ -242,7 +242,12 @@ def convert_ax_str_to_int(im_array: np.ndarray, rgb: bool, axis: str) -> int:
         
         return axes_dict_2d[axis]
     
-def reformat_bounds(bounds: int | list[int] = None, ax_len: int = 0, bounds_as_slices: bool = False, method: str = "trim") -> list[int]:
+def reformat_bounds(bounds: int | list[int] = None,
+                    ax_len: int = 0,
+                    bounds_as_slices: bool = False,
+                    method: str = "trim") -> list[int]:
+    
+    print(bounds)
     
     if bounds == None:
         
@@ -285,6 +290,12 @@ def reformat_bounds(bounds: int | list[int] = None, ax_len: int = 0, bounds_as_s
             elif len(new_bounds) == 1:
                 
                 new_bounds = [new_bounds[0], ax_len]
+                
+            else:
+                
+                if new_bounds[1] == 0:
+                    
+                    new_bounds[1] = ax_len
                 
     elif method == "pad":
         
