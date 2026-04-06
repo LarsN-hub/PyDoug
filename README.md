@@ -141,6 +141,7 @@ A wiget for exporting images (2D or 3D).
 
 **Export Labels**
 
+A widget for exporting labels (2D or 3D).
 - "Labels" drop-down: labels in the layer list. Select the labels layer to export.
 - "Method" drop-down: available export formats (tiff or hdf5)
 - "Multi Page" checkbox: leave checked if "Method" is "Tiff" to export as multi-page (3D) tiff. Otherwise exports as tiff sequence. Has no functionality if "Method" is "HDF5".

@@ -46,26 +46,24 @@ class ImageProcessor:
         self.operation_count: int = 0
         self.mask_count: int = 0
         
-        Epsilon: float = 0.001
+        self.rescale_widget.Scale.native.setDecimals(3)
+        self.rescale_widget.Scale.step = 0.001
+        self.rescale_widget.Scale.value = 0.5
         self.tv_bregman_widget.Epsilon.native.setDecimals(4)
         self.tv_bregman_widget.Epsilon.step = 0.0001
-        self.tv_bregman_widget.Epsilon.value = Epsilon
-        Epsilon: float = 0.0002
+        self.tv_bregman_widget.Epsilon.value = 0.001
         self.tv_chambolle_widget.Epsilon.native.setDecimals(4)
         self.tv_chambolle_widget.Epsilon.step = 0.0001
-        self.tv_chambolle_widget.Epsilon.value = Epsilon
-        Epsilon: float = 0.000001
+        self.tv_chambolle_widget.Epsilon.value = 0.0002
         self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
         self.corner_detect_widget.Harris_Epsilon.step = 0.000001
-        self.corner_detect_widget.Harris_Epsilon.value = Epsilon
-        Y_Max: float = 0
+        self.corner_detect_widget.Harris_Epsilon.value = 0.000001
         self.histogram_widget.Y_Max.native.setDecimals(3)
         self.histogram_widget.Y_Max.step = 0.001
-        self.histogram_widget.Y_Max.value = Y_Max
-        Pixel_Scale = 1
+        self.histogram_widget.Y_Max.value = 0
         self.heat_map_widget.Pixel_Scale.native.setDecimals(3)
         self.heat_map_widget.Pixel_Scale.step = 0.001
-        self.heat_map_widget.Pixel_Scale.value = Pixel_Scale
+        self.heat_map_widget.Pixel_Scale.value = 1
         self.heat_map_widget.Min_Value.native.setDecimals(3)
         self.heat_map_widget.Min_Value.step = 0.001
         self.heat_map_widget.Min_Value.value = 0
@@ -74,16 +72,16 @@ class ImageProcessor:
         self.heat_map_widget.Max_Value.value = 0
         self.psd_widget.Pixel_Scale.native.setDecimals(3)
         self.psd_widget.Pixel_Scale.step = 0.001
-        self.psd_widget.Pixel_Scale.value = Pixel_Scale
+        self.psd_widget.Pixel_Scale.value = 1
         self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
         self.axis_distribution_widget.Pixel_Scale.step = 0.001
-        self.axis_distribution_widget.Pixel_Scale.value = Pixel_Scale
+        self.axis_distribution_widget.Pixel_Scale.value = 1
         self.misc_calc_widget.Pixel_Scale.native.setDecimals(3)
         self.misc_calc_widget.Pixel_Scale.step = 0.001
-        self.misc_calc_widget.Pixel_Scale.value = Pixel_Scale
+        self.misc_calc_widget.Pixel_Scale.value = 1
         self.remove_objects_widget.Pixel_Scale.native.setDecimals(3)
         self.remove_objects_widget.Pixel_Scale.step = 0.001
-        self.remove_objects_widget.Pixel_Scale.value = Pixel_Scale
+        self.remove_objects_widget.Pixel_Scale.value = 1
         
         self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
         self.manual_threshold_widget.Range.changed.connect(self._live_threshold)

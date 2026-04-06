@@ -9,7 +9,7 @@ import numpy as np
 
 from skimage import transform
 
-from PyDoug.proc import pixels
+from PyDoug.proc import pixels, util
 
 
 # Functions
@@ -98,17 +98,36 @@ def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
         
         return im_array
     
-    elif 1 > scale > 0:
-        
-        return pixels.convert_im_type(transform.rescale(im_array, scale, anti_aliasing = True), im_array.dtype)
-    
-    elif scale > 1:
-        
-        return pixels.convert_im_type(transform.rescale(im_array, scale), im_array.dtype)
-    
     else:
         
-        print("\nInvalid rescaling factor!")
+        dim_rgb_info: dict = util.is_3d_rgb(im_array)
+        
+        if dim_rgb_info["RGB"]:
+            
+            if dim_rgb_info["3D"]:
+            
+                channel_axis: int = 3
+                
+            else:
+                
+                channel_axis: int = 2
+            
+        else:
+            
+            channel_axis: None = None
+    
+        if 1 > scale > 0:
+            
+            return pixels.convert_im_type(transform.rescale(im_array, scale,
+                                                            anti_aliasing = True,
+                                                            channel_axis = channel_axis),
+                                          im_array.dtype)
+        
+        elif scale > 1:
+            
+            return pixels.convert_im_type(transform.rescale(im_array, scale,
+                                                            channel_axis = channel_axis),
+                                          im_array.dtype)
 
 def translate(im_array: np.ndarray, trans_vector: tuple[int], *, x_direction: str = "right", y_direction: str = "down") -> np.ndarray:
     
