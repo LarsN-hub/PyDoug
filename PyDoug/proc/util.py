@@ -16,6 +16,110 @@ from PyDoug.proc import trans
 
 # Functions
 
+def get_color_grad_dict(cmap: str, label_count: int) -> dict:
+    
+    if cmap == "bg":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": 0,
+            "g start": 0,
+            "g inc": (1 / label_count),
+            "b start": 1,
+            "b inc": 0}
+        
+    elif cmap == "br":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": (1 / label_count),
+            "g start": 0,
+            "g inc": 0,
+            "b start": 1,
+            "b inc": 0}
+        
+    elif cmap == "gb":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": 0,
+            "g start": 1,
+            "g inc": 0,
+            "b start": 0,
+            "b inc": (1 / label_count)}
+        
+    elif cmap == "gr":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": (1 / label_count),
+            "g start": 1,
+            "g inc": 0,
+            "b start": 0,
+            "b inc": 0}
+        
+    elif cmap == "rb":
+        
+        color_grad_dict: dict = {
+            "r start": 1,
+            "r inc": 0,
+            "g start": 0,
+            "g inc": 0,
+            "b start": 0,
+            "b inc": (1 / label_count)}
+        
+    elif cmap == "rg":
+        
+        color_grad_dict: dict = {
+            "r start": 1,
+            "r inc": 0,
+            "g start": 0,
+            "g inc": (1 / label_count),
+            "b start": 0,
+            "b inc": 0}
+        
+    elif cmap == "r":
+        
+        color_grad_dict: dict = {
+            "r start": 1,
+            "r inc": 0,
+            "g start": 0,
+            "g inc": (1 / label_count),
+            "b start": 0,
+            "b inc": (1 / label_count)}
+        
+    elif cmap == "g":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": (1 / label_count),
+            "g start": 1,
+            "g inc": 0,
+            "b start": 0,
+            "b inc": (1 / label_count)}
+        
+    elif cmap == "b":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": (1 / label_count),
+            "g start": 0,
+            "g inc": (1 / label_count),
+            "b start": 1,
+            "b inc": 0}
+        
+    elif cmap == "k":
+        
+        color_grad_dict: dict = {
+            "r start": 0,
+            "r inc": (1 / label_count),
+            "g start": 0,
+            "g inc": (1 / label_count),
+            "b start": 0,
+            "b inc": (1 / label_count)}
+        
+    return color_grad_dict
+
 def get_layer_type(layer: napari.layers.Layer) -> str:
     
     if isinstance(layer, napari.layers.Image):
