@@ -14,7 +14,7 @@ import os
 from matplotlib import pyplot as plt
 
 from PyDoug.ui import readwrite as rw, sliceview as sv
-from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixels, thresh, trans
+from PyDoug.proc import cropclip as cc, denoising, detect, fourier, morph, pixels, thresh, trans, util
 from PyDoug.analyze import quant, plots
 
 
@@ -188,29 +188,6 @@ def apply_parameters(im_array: np.ndarray,
             print("\nExtending...")
             
             im_array = cc.project_mask(im_array, num_slices = int(parameter["Slice Count"]) - 1)
-            
-        
-        ######################
-        # Masking Operations #
-        ######################
-        
-        elif parameter["Name"].find("Masked") == 0:
-            
-            print("\nMasking...")
-            
-            if np.issubdtype(im_array.dtype, np.floating):
-                
-                mask_color: float = float(parameter["Masked Color"])
-                
-            else:
-                
-                mask_color: int = int(parameter["Masked Color"])
-                
-            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
-            im_array = cc.mask(im_array, mask_array,
-                               method = parameter["Method"],
-                               mask_color = mask_color,
-                               conserve_mem = True)
         
         
         ########################
@@ -248,11 +225,72 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nMirroring...")
             im_array = trans.mirror(im_array, int(parameter["Direction"]))
+            
+        elif parameter["Name"].find("Resized") == 0:
+            
+            print("\nResizing...")
+            
+            if int(parameter["X Dim"]) == 0:
+                
+                x_dim: int = util.get_ax_str_dim(im_array, "x")
+                
+            else:
+                
+                x_dim: int = int(parameter["X Dim"])
+                
+            if int(parameter["Y Dim"]) == 0:
+                
+                y_dim: int = util.get_ax_str_dim(im_array, "y")
+                
+            else:
+                
+                y_dim: int = int(parameter["Y Dim"])
+                
+            if int(parameter["Z Dim"]) == 0:
+                
+                z_dim: int = util.get_ax_str_dim(im_array, "z")
+                
+            else:
+                
+                z_dim: int = int(parameter["Z Dim"])
+                
+            if util.is_3d_rgb["3D"]:
+                
+                dims: tuple = (z_dim, y_dim, x_dim)
+                
+            else:
+                
+                dims: tuple = (y_dim, x_dim)
+                
+            im_array = trans.resize(im_array, dims)
         
         elif parameter["Name"].find("Rescaled") == 0:
             
             print("\nRescaling...")
             im_array = trans.rescale(im_array, float(parameter["Scale"]))
+        
+        
+        ######################
+        # Masking Operations #
+        ######################
+        
+        elif parameter["Name"].find("Masked") == 0:
+            
+            print("\nMasking...")
+            
+            if np.issubdtype(im_array.dtype, np.floating):
+                
+                mask_color: float = float(parameter["Masked Color"])
+                
+            else:
+                
+                mask_color: int = int(parameter["Masked Color"])
+                
+            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+            im_array = cc.mask(im_array, mask_array,
+                               method = parameter["Method"],
+                               mask_color = mask_color,
+                               conserve_mem = True)
         
         
         ###########################

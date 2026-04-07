@@ -379,6 +379,18 @@ class ImageProcessor:
             rw.write_im(Image.data, str(Save_Folder), Save_Name, Method.lower())
             
     @magicgui(
+        Save_Folder = {"mode": "d"},
+        call_button = "Export Parameters")
+    def export_parameters_widget(self,
+        Save_Folder: pathlib.Path = pathlib.Path("~"),
+        Folder_Name: str = "Parameters",
+        Compress_Masks: bool = True) -> None:
+        
+        save_dir: str = str(Save_Folder) + "/" + str(Folder_Name)
+        os.makedirs(save_dir)
+        rw.write_parameters(self.parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
+        
+    @magicgui(
         Method = {"choices": ["Tiff", "HDF5"]},
         Save_Folder = {"mode": "d"},
         call_button = "Export Labels")
@@ -396,18 +408,6 @@ class ImageProcessor:
         else:
             
             rw.write_im(Labels.data, str(Save_Folder), Save_Name, Method.lower())
-            
-    @magicgui(
-        Save_Folder = {"mode": "d"},
-        call_button = "Export Parameters")
-    def export_parameters_widget(self,
-        Save_Folder: pathlib.Path = pathlib.Path("~"),
-        Folder_Name: str = "Parameters",
-        Compress_Masks: bool = True) -> None:
-        
-        save_dir: str = str(Save_Folder) + "/" + str(Folder_Name)
-        os.makedirs(save_dir)
-        rw.write_parameters(self.parameters_log, "Parameters", save_dir, viewer = self.viewer, compress_masks = Compress_Masks)
         
     @magicgui(
         Save_Folder = {"mode": "d"},
@@ -754,6 +754,43 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Direction": Direction})
         self.viewer.add_image(trans.mirror(Image.data, Direction), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Resize")
+    def resize_widget(self,
+        Image: napari.layers.Image,
+        X_Dim: int = 0,
+        Y_Dim: int = 0,
+        Z_Dim: int = 0) -> None:
+        
+        param_layer_name: str = get_param_layer_name("Resized", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "X Dim": X_Dim,
+             "Y Dim": Y_Dim,
+             "Z Dim": Z_Dim})
+        
+        if X_Dim == 0:
+            
+            X_Dim: int = util.get_ax_str_dim(Image.data, "x")
+            
+        if Y_Dim == 0:
+            
+            Y_Dim: int = util.get_ax_str_dim(Image.data, "y")
+            
+        if Z_Dim == 0:
+            
+            Z_Dim: int | None = util.get_ax_str_dim(Image.data, "z")
+            
+        if Z_Dim:
+            
+            dims: tuple = (Z_Dim, Y_Dim, X_Dim)
+            
+        else:
+            
+            dims: tuple = (Y_Dim, X_Dim)
+            
+        self.viewer.add_image(trans.resize(Image.data, dims), name = param_layer_name)
 
     @magicgui(
         call_button = "Rescale")
@@ -761,7 +798,7 @@ class ImageProcessor:
         Image: napari.layers.Image,
         Scale: float = 0.5) -> None:
         
-        param_layer_name = get_param_layer_name("Rescaled", self.operation_count)
+        param_layer_name: str = get_param_layer_name("Rescaled", self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Scale": Scale})
@@ -2661,12 +2698,18 @@ def main() -> napari.viewer.Viewer:
     mod_im_import: widgets.Container = modify_funcgui(ui.im_import_widget, "Import File")
     mod_dir_import: widgets.Container = modify_funcgui(ui.dir_import_widget, "Import File Sequence")
     mod_im_export: widgets.Container = modify_funcgui(ui.im_export_widget, "Export Image(s)")
-    mod_lab_export: widgets.Container = modify_funcgui(ui.lab_export_widget, "Export Labels")
     mod_param_export: widgets.Container = modify_funcgui(ui.export_parameters_widget, "Export Parameters")
+    mod_lab_export: widgets.Container = modify_funcgui(ui.lab_export_widget, "Export Labels")
     mod_screenshot: widgets.Container = modify_funcgui(ui.screenshot_widget, "Capture Screenshot")
     mod_batch: widgets.Container = modify_funcgui(ui.batch_widget, "Batch Processing")
     io_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_im_import, mod_dir_import, mod_im_export, mod_lab_export, mod_param_export, mod_screenshot, mod_batch],
+        widgets = [mod_im_import,
+                   mod_dir_import,
+                   mod_im_export,
+                   mod_param_export,
+                   mod_lab_export,
+                   mod_screenshot,
+                   mod_batch],
         labels = False)
     tabs.addTab(io_container.native, "I/O")
     
@@ -2679,7 +2722,11 @@ def main() -> napari.viewer.Viewer:
     mod_join: widgets.Container = modify_funcgui(ui.join_widget, "Join")
     mod_extend: widgets.Container = modify_funcgui(ui.extend_widget, "Extend")
     manipulate_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_trim_pad, mod_crop, mod_split, mod_join, mod_extend],
+        widgets = [mod_trim_pad,
+                   mod_crop,
+                   mod_split,
+                   mod_join,
+                   mod_extend],
         labels = False)
     tabs.addTab(manipulate_container.native, "Manipulate")
     
@@ -2689,9 +2736,14 @@ def main() -> napari.viewer.Viewer:
     mod_reslice: widgets.Container = modify_funcgui(ui.reslice_widget, "Reslice")
     mod_rotate: widgets.Container = modify_funcgui(ui.rotate_widget, "Rotate")
     mod_mirror: widgets.Container = modify_funcgui(ui.mirror_widget, "Mirror")
+    mod_resize: widgets.Container = modify_funcgui(ui.resize_widget, "Resize")
     mod_rescale: widgets.Container = modify_funcgui(ui.rescale_widget, "Rescale")
     trans_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_reslice, mod_rotate, mod_mirror, mod_rescale],
+        widgets = [mod_reslice,
+                   mod_rotate,
+                   mod_mirror,
+                   mod_resize,
+                   mod_rescale],
         labels = False)
     tabs.addTab(trans_container.native, "Transform")
     
@@ -2705,7 +2757,12 @@ def main() -> napari.viewer.Viewer:
     mod_create_paint_mask: widgets.Container = modify_funcgui(ui.create_paint_mask_widget, "Create Mask from Paint")
     mod_mask_logic: widgets.Container = modify_funcgui(ui.mask_logic_widget, "Mask Logic Operations")
     masking_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_mask, mod_add_shape, mod_create_shape_mask, mod_paint, mod_create_paint_mask, mod_mask_logic],
+        widgets = [mod_mask,
+                   mod_add_shape,
+                   mod_create_shape_mask,
+                   mod_paint,
+                   mod_create_paint_mask,
+                   mod_mask_logic],
         labels = False)
     tabs.addTab(masking_container.native, "Masking")
     
@@ -2721,7 +2778,14 @@ def main() -> napari.viewer.Viewer:
     mod_grayscale: widgets.Container = modify_funcgui(ui.grayscale_widget, "RGB to Grayscale")
     mod_labels_2_image: widgets.Container = modify_funcgui(ui.labels_2_image_widget, "Labels to Image")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_convert_type, mod_normalize, mod_saturate, mod_equalize, mod_invert, mod_reassign, mod_grayscale, mod_labels_2_image],
+        widgets = [mod_convert_type,
+                   mod_normalize,
+                   mod_saturate,
+                   mod_equalize,
+                   mod_invert,
+                   mod_reassign,
+                   mod_grayscale,
+                   mod_labels_2_image],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
     
@@ -2737,7 +2801,14 @@ def main() -> napari.viewer.Viewer:
     mod_tv_chambolle: widgets.Container = modify_funcgui(ui.tv_chambolle_widget, "TV Chambolle Filter")
     mod_wavelet: widgets.Container = modify_funcgui(ui.wavelet_widget, "Wavelet Filter")
     denoising_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_bilateral, mod_gaussian, mod_nl_means, mod_remove_background, mod_ring_removal, mod_tv_bregman, mod_tv_chambolle, mod_wavelet],
+        widgets = [mod_bilateral,
+                   mod_gaussian,
+                   mod_nl_means,
+                   mod_remove_background,
+                   mod_ring_removal,
+                   mod_tv_bregman,
+                   mod_tv_chambolle,
+                   mod_wavelet],
         labels = False)
     tabs.addTab(denoising_container.native, "Denoising")
     
@@ -2751,7 +2822,12 @@ def main() -> napari.viewer.Viewer:
     mod_rand_walk: widgets.Container = modify_funcgui(ui.rand_walk_widget, "Random Walk")
     mod_morph_snakes: widgets.Container = modify_funcgui(ui.morph_snakes_widget, "Morphological Snakes")
     segmentation_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_manual_threshold, mod_label, mod_hist_threshold, mod_local_threshold, mod_rand_walk, mod_morph_snakes],
+        widgets = [mod_manual_threshold,
+                   mod_label,
+                   mod_hist_threshold,
+                   mod_local_threshold,
+                   mod_rand_walk,
+                   mod_morph_snakes],
         labels = False)
     tabs.addTab(segmentation_container.native, "Segmentation")
     
@@ -2765,7 +2841,12 @@ def main() -> napari.viewer.Viewer:
     mod_open: widgets.Container = modify_funcgui(ui.open_widget, "Opening")
     mod_tophat: widgets.Container = modify_funcgui(ui.tophat_widget, "Top Hat")
     morphology_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_remove_objects, mod_dilate, mod_erode, mod_close, mod_open, mod_tophat],
+        widgets = [mod_remove_objects,
+                   mod_dilate,
+                   mod_erode,
+                   mod_close,
+                   mod_open,
+                   mod_tophat],
         labels = False)
     tabs.addTab(morphology_container.native, "Morphology")
     
@@ -2778,7 +2859,11 @@ def main() -> napari.viewer.Viewer:
     mod_blob_detect: widgets.Container = modify_funcgui(ui.blob_detect_widget, "Blob Detection")
     mod_skeleton_detect: widgets.Container = modify_funcgui(ui.skeleton_detect_widget, "Skeleton Detection")
     feature_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_edge_detect, mod_corner_detect, mod_ridge_detect, mod_blob_detect, mod_skeleton_detect],
+        widgets = [mod_edge_detect,
+                   mod_corner_detect,
+                   mod_ridge_detect,
+                   mod_blob_detect,
+                   mod_skeleton_detect],
         labels = False)
     tabs.addTab(feature_container.native, "Features")
     
@@ -2794,7 +2879,14 @@ def main() -> napari.viewer.Viewer:
     mod_psd: widgets.Container = modify_funcgui(ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(ui.heat_map_widget, "Heat Maps")
     analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
-        widgets = [mod_histogram, mod_line_scan, mod_gray_level, mod_fft, mod_misc_calc, mod_axis_distribution, mod_psd, mod_heat_map],
+        widgets = [mod_histogram,
+                   mod_line_scan,
+                   mod_gray_level,
+                   mod_fft,
+                   mod_misc_calc,
+                   mod_axis_distribution,
+                   mod_psd,
+                   mod_heat_map],
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     

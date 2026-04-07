@@ -128,6 +128,20 @@ def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
             return pixels.convert_im_type(transform.rescale(im_array, scale,
                                                             channel_axis = channel_axis),
                                           im_array.dtype)
+        
+def resize(im_array: np.ndarray, out_shape: tuple) -> np.ndarray:
+    
+    if out_shape == im_array.shape:
+        
+        return im_array
+    
+    elif util.is_3d_rgb(im_array)["RGB"] and out_shape == im_array.shape[:-1]:
+            
+        return im_array
+        
+    else:
+        
+        return pixels.convert_im_type(transform.resize(im_array, out_shape), im_array.dtype)
 
 def translate(im_array: np.ndarray, trans_vector: tuple[int], *, x_direction: str = "right", y_direction: str = "down") -> np.ndarray:
     

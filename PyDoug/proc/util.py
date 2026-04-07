@@ -225,6 +225,38 @@ def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
         
     return {"3D": is_3d, "RGB": is_rgb}
 
+def get_ax_str_dim(im_array: np.ndarray, ax_str: str) -> int:
+    
+    if ax_str.lower() == "x":
+        
+        if is_3d_rgb(im_array)["3D"]:
+            
+            return im_array.shape[2]
+        
+        else:
+            
+            return im_array.shape[1]
+        
+    elif ax_str.lower() == "y":
+        
+        if is_3d_rgb(im_array)["3D"]:
+            
+            return im_array.shape[1]
+        
+        else:
+            
+            return im_array.shape[0]
+        
+    elif ax_str.lower() == "z":
+        
+        if is_3d_rgb(im_array)["3D"]:
+            
+            return im_array.shape[0]
+        
+        else:
+            
+            return None
+
 def convert_ax_str_to_int(im_array: np.ndarray, rgb: bool, axis: str) -> int:
     
     axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
