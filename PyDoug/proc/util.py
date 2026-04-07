@@ -247,8 +247,6 @@ def reformat_bounds(bounds: int | list[int] = None,
                     bounds_as_slices: bool = False,
                     method: str = "trim") -> list[int]:
     
-    print(bounds)
-    
     if bounds == None:
         
         new_bounds = None
