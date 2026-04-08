@@ -2623,7 +2623,13 @@ class ImageProcessor:
     # Visualize Widgets #
     #####################
     
-    
+    @magicgui(
+        call_button = "Map Positional Colors")
+    def positional_colormap_widget(self,
+        Image: napari.layers.Image,
+        ) -> None:
+        
+        pass
         
         
 # Functions
