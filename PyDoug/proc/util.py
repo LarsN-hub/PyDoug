@@ -9,116 +9,85 @@ import numpy as np
 import napari
 import math
 
+from matplotlib import colormaps, colorbar as cbar, colors, pyplot as plt
 from numba import jit
 
 from PyDoug.proc import trans
 
 
+# Globals
+
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = "Arial"
+
+
 # Functions
 
-def get_color_grad_dict(cmap: str, label_count: int) -> dict:
+def get_colormap(im_array: np.ndarray = None, *,
+                 lab_limits: tuple = None,
+                 cmap: str = "inferno",
+                 return_cbar: bool = True,
+                 cbar_scale: float = 1,
+                 cbar_units: str = "pix",
+                 cbar_label: str = "Units") -> napari.utils.DirectLabelColormap:
     
-    if cmap == "bg":
+    if not lab_limits:
         
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": 0,
-            "g start": 0,
-            "g inc": (1 / label_count),
-            "b start": 1,
-            "b inc": 0}
+        lab_limits: tuple = (np.unique(im_array)[0], np.unique(im_array)[-1])
         
-    elif cmap == "br":
+    else:
+          
+        if lab_limits[0] == 0:
+            
+            lab_limits: tuple = (0, int(lab_limits[1] / cbar_scale))
         
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": (1 / label_count),
-            "g start": 0,
-            "g inc": 0,
-            "b start": 1,
-            "b inc": 0}
+        else:
+            
+            lab_limits: tuple = (int(lab_limits[0] / cbar_scale), int(lab_limits[1] / cbar_scale))
         
-    elif cmap == "gb":
+    color_dict: dict = {0: np.array([0, 0, 0, 0])}
+    nonzero_label_count: int = np.count_nonzero(np.arange(min(lab_limits), max(lab_limits) + 1))
         
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": 0,
-            "g start": 1,
-            "g inc": 0,
-            "b start": 0,
-            "b inc": (1 / label_count)}
+    if min(lab_limits) == 0:
+            
+        lab_limits = (1, max(lab_limits))
         
-    elif cmap == "gr":
+    color_grad_array: np.ndarray = colormaps[cmap](np.linspace(0, 1, nonzero_label_count))
+    color_dict[None] = color_grad_array[-1, :]
+            
+    for label_index, actual_label in enumerate(range(min(lab_limits), (max(lab_limits) + 1))):
+                
+        color_dict[actual_label] = color_grad_array[label_index, :]
+            
+    for actual_label in range(1, min(lab_limits)):
+                
+        color_dict[actual_label] = color_grad_array[0, :]
         
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": (1 / label_count),
-            "g start": 1,
-            "g inc": 0,
-            "b start": 0,
-            "b inc": 0}
+    if return_cbar:
         
-    elif cmap == "rb":
+        if cbar_units == "um":
+            
+            cbar_units = "\u00b5m"
         
-        color_grad_dict: dict = {
-            "r start": 1,
-            "r inc": 0,
-            "g start": 0,
-            "g inc": 0,
-            "b start": 0,
-            "b inc": (1 / label_count)}
+        if cbar_units:
+            
+            c_label: str = f"{cbar_label} ({cbar_units})"
+            
+        else:
+            
+            c_label: str = cbar_label
+            
+        fig, cbar_ax = plt.subplots()
+        fig_cbar: cbar.Colorbar = cbar.Colorbar(cbar_ax,
+                                                cmap = cmap,
+                                                norm = colors.Normalize((min(lab_limits) * cbar_scale), (max(lab_limits) * cbar_scale)))
+        fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
         
-    elif cmap == "rg":
+        return napari.utils.DirectLabelColormap(color_dict = color_dict), fig
+    
+    else:
         
-        color_grad_dict: dict = {
-            "r start": 1,
-            "r inc": 0,
-            "g start": 0,
-            "g inc": (1 / label_count),
-            "b start": 0,
-            "b inc": 0}
-        
-    elif cmap == "r":
-        
-        color_grad_dict: dict = {
-            "r start": 1,
-            "r inc": 0,
-            "g start": 0,
-            "g inc": (1 / label_count),
-            "b start": 0,
-            "b inc": (1 / label_count)}
-        
-    elif cmap == "g":
-        
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": (1 / label_count),
-            "g start": 1,
-            "g inc": 0,
-            "b start": 0,
-            "b inc": (1 / label_count)}
-        
-    elif cmap == "b":
-        
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": (1 / label_count),
-            "g start": 0,
-            "g inc": (1 / label_count),
-            "b start": 1,
-            "b inc": 0}
-        
-    elif cmap == "k":
-        
-        color_grad_dict: dict = {
-            "r start": 0,
-            "r inc": (1 / label_count),
-            "g start": 0,
-            "g inc": (1 / label_count),
-            "b start": 0,
-            "b inc": (1 / label_count)}
-        
-    return color_grad_dict
+        return napari.utils.DirectLabelColormap(color_dict = color_dict)
 
 def get_layer_type(layer: napari.layers.Layer) -> str:
     

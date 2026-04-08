@@ -10,10 +10,7 @@ import numpy as np
 import napari
 import math
 
-from matplotlib import colormaps
 from skimage import draw
-
-from PyDoug.proc import util
 
 
 # Functions
@@ -273,40 +270,6 @@ def quick_get_line_scan(viewer: napari.viewer.Viewer = None,
         ls_df.attrs = {"pos_units": units}
     
     return ls_df
-
-def create_colormap(im_array: np.ndarray = None, *,
-                    lab_limits: tuple = None,
-                    cmap: str = "bg") -> napari.utils.DirectLabelColormap:
-    
-    if not np.any(im_array) and not lab_limits:
-        
-        color_dict: dict = {None: np.array([1, 1, 1, 0]),
-                            0: np.array([0, 0, 0, 0])}
-        
-    else:
-        
-        if not lab_limits:
-        
-            lab_limits: tuple = (np.unique(im_array)[0], np.unique(im_array)[-1])
-            
-        color_dict: dict = {None: np.array([0, 0, 0, 0])}
-        
-        if cmap not in colormaps:
-            
-            nonzero_label_count: int = np.count_nonzero(np.arange(min(lab_limits), max(lab_limits) + 1))
-            color_grad_dict: dict = util.get_color_grad_dict(cmap, nonzero_label_count)
-            
-        if min(lab_limits) == 0:
-            
-            lab_limits = (1, max(lab_limits))
-        
-        for label_index, actual_label in enumerate(range(min(lab_limits), (max(lab_limits) + 1)), start = 1):
-            
-            color_dict[actual_label] = np.array([(color_grad_dict["r start"] + (label_index * color_grad_dict["r inc"])),
-                                                     (color_grad_dict["g start"] + (label_index * color_grad_dict["g inc"])),
-                                                     (color_grad_dict["b start"] + (label_index * color_grad_dict["b inc"]))])
-        
-    return napari.utils.DirectLabelColormap(color_dict = color_dict)
                  
 
 # Main

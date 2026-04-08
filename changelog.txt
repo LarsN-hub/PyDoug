@@ -2,7 +2,7 @@ v0.6.0-alpha
 - Added functionality to trim widget: with bounds as slices checked, leave max as 0 to go from min to end of axis
 - Fixed bug in trim widget where a trimming one slice out of a 3D array would leave a 3D array with one slice instead of a 2D array
 - Added resize widget in transform tab with batch processing capability
-- Added "Visualize" tab with widgets for altering colors of segmented images
+- Added "Visualize" tab with widgets for converting images to labels and vice versa with colormap gradient control
 
 v0.5.0-alpha
 - Added ridge detection widget to Features tab

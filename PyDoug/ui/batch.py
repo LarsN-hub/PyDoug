@@ -36,6 +36,7 @@ def apply_parameters(im_array: np.ndarray,
     axis_dist_index: int = 0
     psd_index: int = 0
     heat_index: int = 0
+    cmaps: dict = {}
     
     for parameter in parameters_log:
         
@@ -405,26 +406,21 @@ def apply_parameters(im_array: np.ndarray,
                                                  radius = int(parameter["Local Radius"]),
                                                  along_axis = along_axis,
                                                  axis = int(parameter["Axis"]))
-        
-        elif parameter["Name"].find("Inverted") == 0:
             
-            print("\nInverting...")
-            im_array = pixels.invert(im_array)
-        
         elif parameter["Name"].find("Re-assigned") == 0:
             
             print("\nRe-assigning...")
-            im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])
+            im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])  
             
         elif parameter["Name"].find("Grayscale") == 0:
             
             print("\nConverting to grayscale...")
             im_array = pixels.rgb_2_gray(im_array)
             
-        elif parameter["Name"].find("Labels to Image") == 0:
+        elif parameter["Name"].find("Inverted") == 0:
             
-            print("\nConverting labels to image...")
-            im_array = pixels.labels_2_rgb(im_array)
+            print("\nInverting...")
+            im_array = pixels.invert(im_array)
         
         
         ########################
@@ -1449,6 +1445,45 @@ def apply_parameters(im_array: np.ndarray,
                                  cbar_label = colorbar_label)
             rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
             heat_index += 1
+            
+            
+        ########################
+        # Visualize Operations #
+        ########################
+        
+        elif parameter["Name"].find("Labels to Image") == 0:
+            
+            print("\nConverting labels to image...")
+            im_array = pixels.labels_2_rgb(im_array)
+            
+        elif parameter["Name"].find("Image to Labels") == 0:
+            
+            print("\nConverting image to labels...")
+            
+            if parameter["Gradient"].lower() == "true":
+                
+                im_array = thresh.create_axial_labels(im_array, int(parameter["Gradient Axis"]))
+                
+                if parameter["Define Limits"].lower() == "true":
+                    
+                    lab_limits: tuple = (float(parameter["Min_Value"]), float(parameter["Max_Value"]))
+                    
+                else:
+                    
+                    lab_limits: tuple = ((np.unique(im_array)[0] * float(parameter["Pixel_Scale"])), (np.unique(im_array)[-1] * float(parameter["Pixel_Scale"])))
+                    
+                cmap, cbar = util.get_colormap(im_array,
+                                               lab_limits = lab_limits, 
+                                               cmap = parameter["Color Map"],
+                                               cbar_scale = float(parameter["Pixel_Scale"]),
+                                               cbar_units = parameter["Units"],
+                                               cbar_label = parameter["Colorbar Label"])
+                
+            else:
+                
+                cmap: None = None
+                
+            cmaps[parameter["Name"]] = cmap
         
     
     return im_array

@@ -293,7 +293,26 @@ def randomize_labels(im_array: np.ndarray) -> np.ndarray:
         rand_array[im_array == og_label] = rand_labels[index]
         
     return rand_array
+
+def create_axial_labels(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
+    
+    lab_array: np.ndarray = np.zeros(im_array.shape, np.int32)
+    
+    for label_index, slice_index in enumerate(range(0, im_array.shape[axis]), start = 1):
         
+        if axis == 0:
+            
+            lab_array[slice_index][np.bool(im_array[slice_index])] = label_index
+            
+        elif axis == 1:
+            
+            lab_array[:, slice_index, :][np.bool(im_array[:, slice_index, :])] = label_index
+            
+        elif axis == 2:
+            
+            lab_array[:, :, slice_index][np.bool(im_array[:, :, slice_index])] = label_index
+        
+    return lab_array
 
 # Main
 

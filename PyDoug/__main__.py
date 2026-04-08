@@ -25,7 +25,9 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.5.1-alpha"
+version_str: str = "v0.6.0-alpha"
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = "Arial"
 
 
 # Classes
@@ -55,12 +57,24 @@ class ImageProcessor:
         self.tv_chambolle_widget.Epsilon.native.setDecimals(4)
         self.tv_chambolle_widget.Epsilon.step = 0.0001
         self.tv_chambolle_widget.Epsilon.value = 0.0002
+        self.remove_objects_widget.Pixel_Scale.native.setDecimals(3)
+        self.remove_objects_widget.Pixel_Scale.step = 0.001
+        self.remove_objects_widget.Pixel_Scale.value = 1
         self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
         self.corner_detect_widget.Harris_Epsilon.step = 0.000001
         self.corner_detect_widget.Harris_Epsilon.value = 0.000001
         self.histogram_widget.Y_Max.native.setDecimals(3)
         self.histogram_widget.Y_Max.step = 0.001
         self.histogram_widget.Y_Max.value = 0
+        self.misc_calc_widget.Pixel_Scale.native.setDecimals(3)
+        self.misc_calc_widget.Pixel_Scale.step = 0.001
+        self.misc_calc_widget.Pixel_Scale.value = 1
+        self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
+        self.axis_distribution_widget.Pixel_Scale.step = 0.001
+        self.axis_distribution_widget.Pixel_Scale.value = 1
+        self.psd_widget.Pixel_Scale.native.setDecimals(3)
+        self.psd_widget.Pixel_Scale.step = 0.001
+        self.psd_widget.Pixel_Scale.value = 1
         self.heat_map_widget.Pixel_Scale.native.setDecimals(3)
         self.heat_map_widget.Pixel_Scale.step = 0.001
         self.heat_map_widget.Pixel_Scale.value = 1
@@ -70,18 +84,15 @@ class ImageProcessor:
         self.heat_map_widget.Max_Value.native.setDecimals(3)
         self.heat_map_widget.Max_Value.step = 0.001
         self.heat_map_widget.Max_Value.value = 0
-        self.psd_widget.Pixel_Scale.native.setDecimals(3)
-        self.psd_widget.Pixel_Scale.step = 0.001
-        self.psd_widget.Pixel_Scale.value = 1
-        self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
-        self.axis_distribution_widget.Pixel_Scale.step = 0.001
-        self.axis_distribution_widget.Pixel_Scale.value = 1
-        self.misc_calc_widget.Pixel_Scale.native.setDecimals(3)
-        self.misc_calc_widget.Pixel_Scale.step = 0.001
-        self.misc_calc_widget.Pixel_Scale.value = 1
-        self.remove_objects_widget.Pixel_Scale.native.setDecimals(3)
-        self.remove_objects_widget.Pixel_Scale.step = 0.001
-        self.remove_objects_widget.Pixel_Scale.value = 1
+        self.image_2_labels_widget.Min_Value.native.setDecimals(3)
+        self.image_2_labels_widget.Min_Value.step = 0.001
+        self.image_2_labels_widget.Min_Value.value = 0
+        self.image_2_labels_widget.Max_Value.native.setDecimals(3)
+        self.image_2_labels_widget.Max_Value.step = 0.001
+        self.image_2_labels_widget.Max_Value.value = 0
+        self.image_2_labels_widget.Pixel_Scale.native.setDecimals(3)
+        self.image_2_labels_widget.Pixel_Scale.step = 0.001
+        self.image_2_labels_widget.Pixel_Scale.value = 1
         
         self.manual_threshold_widget.Image.changed.connect(self._update_intensity_range)
         self.manual_threshold_widget.Range.changed.connect(self._live_threshold)
@@ -426,27 +437,53 @@ class ImageProcessor:
             if topmost_visible_layer:
                 
                 opacity: float = topmost_visible_layer.opacity
+                blending: str = topmost_visible_layer.blending
                 
             else:
                 
                 opacity: float = 0
+                blending: str = "translucent"
             
-            self.parameters_log.append(
-                {"Name": param_layer_name,
-                 "Center 0": self.viewer.camera.center[0],
-                 "Center 1": self.viewer.camera.center[1],
-                 "Center 2": self.viewer.camera.center[2],
-                 "Zoom": self.viewer.camera.zoom,
-                 "Angle 0": self.viewer.camera.angles[0],
-                 "Angle 1": self.viewer.camera.angles[1],
-                 "Angle 2": self.viewer.camera.angles[2],
-                 "Perspective": self.viewer.camera.perspective,
-                 "Orientation Depth": self.viewer.camera.orientation[0],
-                 "Orientation Vert": self.viewer.camera.orientation[1],
-                 "Orientation Horiz": self.viewer.camera.orientation[2],
-                 "Opacity": opacity,
-                 "Layer Type": util.get_layer_type(topmost_visible_layer),
-                 "Dimensions": self.viewer.dims.ndisplay})
+            parameters_append: dict = {
+                "Name": param_layer_name,
+                "Center 0": self.viewer.camera.center[0],
+                "Center 1": self.viewer.camera.center[1],
+                "Center 2": self.viewer.camera.center[2],
+                "Zoom": self.viewer.camera.zoom,
+                "Angle 0": self.viewer.camera.angles[0],
+                "Angle 1": self.viewer.camera.angles[1],
+                "Angle 2": self.viewer.camera.angles[2],
+                "Perspective": self.viewer.camera.perspective,
+                "Orientation Depth": self.viewer.camera.orientation[0],
+                "Orientation Vert": self.viewer.camera.orientation[1],
+                "Orientation Horiz": self.viewer.camera.orientation[2],
+                "Blending": blending,
+                "Opacity": opacity,
+                "Layer Type": util.get_layer_type(topmost_visible_layer),
+                "Dimensions": self.viewer.dims.ndisplay}
+            
+            if parameters_append["Layer Type"] == "labels":
+                
+                parameters_append["ISO Gradient Mode"] = topmost_visible_layer.iso_gradient_mode
+                parameters_append["Rendering"] = topmost_visible_layer.rendering
+                parameters_append["Colormap Used"] = topmost_visible_layer.name
+                
+            elif parameters_append["Layer Type"] == "image":
+                
+                parameters_append["Contrast Min"] = topmost_visible_layer.contrast_limits[0]
+                parameters_append["Contrast Max"] = topmost_visible_layer.contrast_limits[1]
+                parameters_append["Gamma"] = topmost_visible_layer.gamma
+                parameters_append["Projection Mode"] = topmost_visible_layer.projection_mode
+                parameters_append["Rendering"] = topmost_visible_layer.rendering
+                parameters_append["Rendering"] = topmost_visible_layer.rendering
+                parameters_append["Interpolation 2D"] = topmost_visible_layer.interpolation2d
+                parameters_append["Interpolation 3D"] = topmost_visible_layer.interpolation3d
+                parameters_append["Colormap"] = topmost_visible_layer.colormap
+                parameters_append["Depiction"] = topmost_visible_layer.depiction
+                parameters_append["Colormap"] = topmost_visible_layer.colormap
+                parameters_append["ISO Threshold"] = topmost_visible_layer.iso_threshold
+                
+            self.parameters_log.append(parameters_append)
         
         rw.write_im(sv.get_screenshot(self.viewer), str(Save_Folder), Save_Name)
     
@@ -1112,16 +1149,6 @@ class ImageProcessor:
                                                         along_axis = Along_Axis,
                                                         axis = Axis),
                               name = param_layer_name)
-
-    @magicgui(
-        call_button = "Invert")
-    def invert_widget(self,
-        Image: napari.layers.Image) -> None:
-        
-        param_layer_name = get_param_layer_name("Inverted", self.operation_count)
-        self.parameters_log.append(
-            {"Name": param_layer_name})
-        self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
     @magicgui(
         Input_Intensity = {"max": 65535, "min": -65535},
@@ -1152,14 +1179,14 @@ class ImageProcessor:
         self.viewer.add_image(pixels.rgb_2_gray(Image.data), name = param_layer_name)
         
     @magicgui(
-        call_button = "Labels to Image")
-    def labels_2_image_widget(self,
-        Labels: napari.layers.Labels) -> None:
-        
-        param_layer_name = get_param_layer_name("Labels to Image", self.operation_count)
+        call_button = "Invert")
+    def invert_widget(self,
+        Image: napari.layers.Image) -> None:
+            
+        param_layer_name = get_param_layer_name("Inverted", self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name})
-        self.viewer.add_image(pixels.labels_2_rgb(Labels.data), name = param_layer_name)
+        self.viewer.add_image(pixels.invert(Image.data), name = param_layer_name)
         
     
     #####################
@@ -2525,6 +2552,8 @@ class ImageProcessor:
         Color_Map = {"choices": list(colormaps)},
         Height_Direction = {"choices": ["Far", "Near"]},
         Axis = {"choices": ["X", "Y", "Z"]},
+        Min_Value = {"max": 1000000},
+        Max_Value = {"max": 1000000},
         call_button = "Plot Heat Map")
     def heat_map_widget(self,
         Image: napari.layers.Image,
@@ -2622,14 +2651,76 @@ class ImageProcessor:
     #####################
     # Visualize Widgets #
     #####################
-    
-    @magicgui(
-        call_button = "Map Positional Colors")
-    def positional_colormap_widget(self,
-        Image: napari.layers.Image,
-        ) -> None:
         
-        pass
+    @magicgui(
+        call_button = "Labels to Image")
+    def labels_2_image_widget(self,
+        Labels: napari.layers.Labels) -> None:
+        
+        param_layer_name = get_param_layer_name("Labels to Image", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name})
+        self.viewer.add_image(pixels.labels_2_rgb(Labels.data), name = param_layer_name)
+        
+    @magicgui(
+        Gradient_Axis = {"choices": ["X", "Y", "Z"]},
+        Color_Map = {"choices": list(colormaps)},
+        call_button = "Image to Labels")
+    def image_2_labels_widget(self,
+        Image: napari.layers.Image,
+        Gradient: bool = False,
+        Gradient_Axis: str = "Z",
+        Color_Map: str = "inferno",
+        Define_Limits: bool = False,
+        Min_Value: float = 0,
+        Max_Value: float = 0,
+        Pixel_Scale: float = 1,
+        Units: str = "pix",
+        Colorbar_Label: str = "Position") -> None:
+        
+        Gradient_Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Gradient_Axis)
+        param_layer_name = get_param_layer_name("Image to Labels", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Gradient": Gradient,
+             "Gradient Axis": Gradient_Axis,
+             "Color Map": Color_Map,
+             "Define Limits": Define_Limits,
+             "Min Value": Min_Value,
+             "Max Value": Max_Value,
+             "Pixel Scale": Pixel_Scale,
+             "Units": Units,
+             "Colorbar Label": Colorbar_Label})
+        
+        if Gradient:
+            
+            lab_array: np.ndarray = thresh.create_axial_labels(Image.data, Gradient_Axis)
+            
+            if Define_Limits:
+                
+                lab_limits: tuple = (Min_Value, Max_Value)
+                
+            else:
+                
+                lab_limits: tuple = ((np.unique(lab_array)[0] * Pixel_Scale), (np.unique(lab_array)[-1] * Pixel_Scale))
+            
+            cmap, cbar = util.get_colormap(lab_array,
+                                           lab_limits = lab_limits, 
+                                           cmap = Color_Map,
+                                           cbar_scale = Pixel_Scale,
+                                           cbar_units = Units,
+                                           cbar_label = Colorbar_Label)
+            self.viewer.add_labels(lab_array,
+                                   colormap = cmap,
+                                   opacity = 1,
+                                   name = param_layer_name)
+            plt.show(block = False)
+            
+        else:
+            
+            self.viewer.add_labels(Image.data,
+                                   opacity = 1,
+                                   name = param_layer_name)
         
         
 # Functions
@@ -2779,19 +2870,17 @@ def main() -> napari.viewer.Viewer:
     mod_normalize: widgets.Container = modify_funcgui(ui.normalize_widget, "Normalize")
     mod_saturate: widgets.Container = modify_funcgui(ui.saturate_widget, "Saturate")
     mod_equalize: widgets.Container = modify_funcgui(ui.equalize_widget, "Equalize Histogram")
-    mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
     mod_reassign: widgets.Container = modify_funcgui(ui.reassign_widget, "Re-Assign Intensities")
     mod_grayscale: widgets.Container = modify_funcgui(ui.grayscale_widget, "RGB to Grayscale")
-    mod_labels_2_image: widgets.Container = modify_funcgui(ui.labels_2_image_widget, "Labels to Image")
+    mod_invert: widgets.Container = modify_funcgui(ui.invert_widget, "Invert")
     pixels_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [mod_convert_type,
                    mod_normalize,
                    mod_saturate,
                    mod_equalize,
-                   mod_invert,
                    mod_reassign,
                    mod_grayscale,
-                   mod_labels_2_image],
+                   mod_invert],
         labels = False)
     tabs.addTab(pixels_container.native, "Pixel Values")
     
@@ -2896,9 +2985,16 @@ def main() -> napari.viewer.Viewer:
         labels = False)
     tabs.addTab(analysis_container.native, "Analysis")
     
+    
     # Visualize Widgets
     
-    
+    mod_labels_2_image: widgets.Container = modify_funcgui(ui.labels_2_image_widget, "Labels to Image")
+    mod_image_2_labels: widgets.Container = modify_funcgui(ui.image_2_labels_widget, "Image to Labels")
+    visualize_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [mod_labels_2_image,
+                   mod_image_2_labels],
+        labels = False)
+    tabs.addTab(visualize_container.native, "Visualize")
     
     
     # Launch
