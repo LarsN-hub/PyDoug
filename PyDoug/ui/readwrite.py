@@ -20,6 +20,7 @@ from tkinter_unblur import Tk
 from qtpy.QtWidgets import (
     QApplication,
     QDialog,
+    QFileDialog,
     QVBoxLayout,
     QFileSystemModel,
     QTreeView,
@@ -119,10 +120,10 @@ class MultiFolderDialog(QDialog):
         layout = QVBoxLayout(self)
         self.model = QFileSystemModel()
         self.model.setFilter(QDir.AllDirs | QDir.NoDotAndDotDot)
-        self.model.setRootPath(start_dir or QDir.rootPath())
+        self.model.setRootPath("")
         self.tree = QTreeView()
         self.tree.setModel(self.model)
-        self.tree.setRootIndex(self.model.index(start_dir or QDir.rootPath()))
+        self.tree.setRootIndex(self.model.index(""))
         self.tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.tree.setHeaderHidden(True)
         
@@ -139,6 +140,10 @@ class MultiFolderDialog(QDialog):
         
         indexes = self.tree.selectionModel().selectedRows()
         return [self.model.filePath(i) for i in indexes]
+    
+class DirectoryDialog(QDialog):
+    
+    pass
 
 # Functions
 
@@ -150,7 +155,11 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
         
             file_paths = file_paths.replace("\\", "/")
             
-        elif isinstance(file_paths, list):
+        elif isinstance(file_paths, list) or isinstance(file_paths, tuple):
+            
+            if isinstance(file_paths, tuple):
+                
+                file_paths = list(file_paths)
             
             for index, path in enumerate(file_paths):
                 
@@ -185,8 +194,6 @@ def get_paths(directories = False, title: str = "Select image sequence directori
         if dialog.exec():
             
             return dialog.selected_folders()
-             
-        return universalize_paths([])
     
     else:
         
