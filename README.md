@@ -106,7 +106,7 @@ More info here: https://napari.org/stable/howtos/layers/shapes.html.
 
 **Labels Layer**
 
-After adding a labels layer (covered in the Masking Tab), the labels layer can be interacted with by clicking on it in the layer list. Use the paintbrush option to draw on the image. The brush size can be altered and drawing in 2D or 3D can be performed. Change the label index to change the color. Note that all label colors will be converted to the white portion of the mask (if painting a mask). Use the paint-fill bucket to color an entire image/slice or within a pre-drawn boundary. DO NOT try to paint fill in 3D or the program will almost certainly crash. Use the eraser option to remove previously drawn labels.
+After adding a labels layer (covered in the Masking Tab and Visualize Tab), the labels layer can be interacted with by clicking on it in the layer list. Use the paintbrush option to draw on the image. The brush size can be altered and drawing in 2D or 3D can be performed. Change the label index to change the color. Note that all label colors will be converted to the white portion of the mask (if painting a mask). Use the paint-fill bucket to color an entire image/slice or within a pre-drawn boundary. DO NOT try to paint fill in 3D or the program will almost certainly crash. Use the eraser option to remove previously drawn labels. In the case of labels layers created after image segmentation for color rendering purposes, click the shuffle button to shuffle the colors ascribed to each layer (if not using a pre-made color map from the Visualize tab).
 More info here: https://napari.org/stable/howtos/layers/labels.html.
 
 -------
@@ -154,7 +154,7 @@ A widget for exporting labels (2D or 3D).
 A widget for exporting the current parameters log.
 - "Save Folder": click "Choose directory" to open a directory selector dialog to locate the save folder. Note that a folder will be created in this folder with the name provided in "Folder Name".
 - "Folder Name" string: type in a name for the parameters folder.
-- "Compress Masks" checkbox: leave checked to convert any masks used to 2D slices of their original 3D volume (if processing 3D images). If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices, DO NOT leave this checked.
+- "Compress Masks" checkbox: check to convert any masks used to 2D slices of their original 3D volume (if processing 3D images). If a mask has the same shape throughout every slice, this can save on storage space. If a mask has a unique shape on different slices, DO NOT check this.
 - "Export Parameters" button: click to export the parameters.
 
 **Capture Screenshot**
@@ -192,14 +192,14 @@ A widget for removing (trimming) or adding (padding) specific amounts from/to ea
    - Trim: if "Bounds as Slices" is checked, enter pixel column number left-of-which all columns will be removed. If "Bounds as Slices" is unchecked, enter number of pixel columns to remove from the left of the image.
    - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel columns to add to the left of the image.
 - "X Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel column number right-of-which all columns will be removed. If "Bounds as Slices" is unchecked, enter number of pixel columns to remove from the right of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel column number right-of-which all columns will be removed or leave as 0 to include the rest of the X axis. If "Bounds as Slices" is unchecked, enter number of pixel columns to remove from the right of the image.
    - Pad: if "Bounds as Slices" is checked, enter dimension to expand X axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel columns to add to the right of the image.
 - "Y Bounds" checkbox: leave checked to affect the Y axis with "Y Min" and "Y Max". Un-check to leave Y axis untouched.
 - "Y Min" integer:
    - Trim: if "Bounds as Slices" is checked, enter pixel row number above-which all rows will be removed. If "Bounds as Slices" is unchecked, enter number of pixel rows to remove from the top of the image.
    - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel rows to add to the top of the image.
 - "Y Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel row number below-which all rows will be removed. If "Bounds as Slices" is unchecked, enter number of pixel rows to remove from the bottom of the image.
+   - Trim: if "Bounds as Slices" is checked, enter pixel row number below-which all rows will be removed or leave as 0 to include the rest of the Y axis. If "Bounds as Slices" is unchecked, enter number of pixel rows to remove from the bottom of the image.
    - Pad: if "Bounds as Slices" is checked, enter dimension to expand Y axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel rows to add to the bottom of the image.
 - "Z Bounds" checkbox: leave checked to affect the Z axis with "Z Min" and "Z Max". Un-check to leave Z axis untouched. No effect if the
   image is not 3D.
@@ -207,7 +207,7 @@ A widget for removing (trimming) or adding (padding) specific amounts from/to ea
    - Trim: if "Bounds as Slices" is checked, enter pixel slice number before-which all slices will be removed. If "Bounds as Slices" is unchecked, enter number of pixel slices to remove from the front of the stack.
    - Pad: if "Bounds as Slices" is checked, this value is ignored. If "Bounds as Slices" is unchecked, enter number of pixel slices to add to the front of the stack.
 - "Z Max" integer:
-   - Trim: if "Bounds as Slices" is checked, enter pixel slice number after-which all slices will be removed. If "Bounds as Slices" is unchecked, enter number of pixel slices to remove from the back of the stack.
+   - Trim: if "Bounds as Slices" is checked, enter pixel slice number after-which all slices will be removed or leave as 0 to include the rest of the Z axis. If "Bounds as Slices" is unchecked, enter number of pixel slices to remove from the back of the stack.
    - Pad: if "Bounds as Slices" is checked, enter dimension to expand Z axis to meet. If "Bounds as Slices" is unchecked, enter number of pixel slices to add to the back of the stack.
 - "Padded Color" drop-down: select the default color to assign to pixels added by padding.
 - "Specify Color" checkbox: leave unchecked to use default "Padded Color". Check to specify a color in "Color Value".
@@ -280,9 +280,19 @@ A widget for mirroring (flipping) an image or stack along an axis.
 - "Direction" drop-down: select the axis direction to flip the image / stack along.
 - "Mirror" button: click to perform the mirror operation.
 
+**Resize**
+
+A widget for resizing image arrays to specified dimensions.
+More info: https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.resize
+- "Image" drop-down: images in the layer list. Select the image to resize.
+- "X Dim" integer: input the new dimension for the X axis.
+- "Y Dim" integer: input the new dimension for the Y axis.
+- "Z Dim" integer: input the new dimension for the Z axis (in the case of an image stack).
+- "Resize" button: click to perform the resize operation.
+
 **Rescale**
 
-A widget for rescaling pixels (image) or voxels (stack).
+A widget for rescaling pixel (image) or voxel (stack) resolutions.
 More info: https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.rescale
 - "Image" drop-down: images in the layer list. Select the image to rescale.
 - "Scale" float: enter the scale by which to downsize (<1) or upsize (>1) the image.
@@ -408,13 +418,6 @@ https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filte
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Equalize Histogram" button: click to perform the equalization operation.
 
-**Invert**
-
-A widget for inverting the intensity values of images within the data type's range (bright becomes dark and vice versa).
-More info: https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.invert
-- "Image" drop-down: images in the layer list. Select the image to invert.
-- "Invert" button: click to perform the inversion operation.
-
 **Re-Assign Intensities**
 
 A widget for assigning specific intensity values to new intensity values.
@@ -430,12 +433,12 @@ More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.c
 - "Image" drop-down: images in the layer list. Select the RGB image to convert to grayscale.
 - "Grayscale" button: click to perform the RGB to grayscale operation.
 
-**Labels to Image**
+**Invert**
 
-A widget for converting a labels layer to an image layer.
-More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.label2rgb
-- "Labels" drop-down: labels in the layer list. Select the labels layer to convert to an image layer.
-- "Labels to Image" button: click to perform the labels to image operation.
+A widget for inverting the intensity values of images within the data type's range (bright becomes dark and vice versa).
+More info: https://scikit-image.org/docs/stable/api/skimage.util.html#skimage.util.invert
+- "Image" drop-down: images in the layer list. Select the image to invert.
+- "Invert" button: click to perform the inversion operation.
 
 Denoising Tab
 -------------
@@ -915,8 +918,8 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units.
 - "Define Limits" checkbox: check to define the thickness/height limits for the heat map. Leave unchecked to use the smallest and largest values measured in the heat map calculation.
-- "Min Value" float: if "Define Limits" is checked, input the minimum heat mapped value.
-- "Max Value" float: if "Define Limits" is checked, input the maximum haet mapped value.
+- "Min Value" float: if "Define Limits" is checked, input the minimum heat mapped value in the specified units.
+- "Max Value" float: if "Define Limits" is checked, input the maximum haet mapped value in the specified units.
 - "Alternate Colorbar Label" checkbox: check to input a different label for the colorbar than "Thickness" or "Height".
 - "Colorbar Label" string: if "Alternate Colorbar Label" is checked, input the alternate colorbar label.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
@@ -924,6 +927,31 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Return Array" checkbox: check to return the generated heat map array as an image in the layers list for processing.
 - "Add as Parameter" checkbox: check to add the heat map generation step to the parameters log.
 - "Plot Heat Map" button: click to generate the heat map.
+
+Visualize Tab
+-------------
+A tab containing widgets that change the rendering style and colors of images, particularly for 3D viewing.
+
+**Labels to Image**
+
+A widget for converting a labels layer to an RGB image layer.
+More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.color.label2rgb
+- "Labels" drop-down: labels in the layer list. Select the labels layer to convert to an image layer.
+- "Labels to Image" button: click to perform the labels to image operation.
+
+**Image to Labels**
+A widget for converting a 3D segmented image layer to a colorful labels layer.
+- "Image" drop-down: images in the layer list. Select the image layer to convert to a labels layer.
+- "Gradient" checkbox: check to apply a color gradient from a pre-defined color map to the created labels layer. Leave unchecked to apply a random single color that can be changed with the shuffle button to the labels layer.
+- "Gradient Axis" drop-down: if "Gradient" is checked, select the axis along which the color gradient should be applied.
+- "Color Map" drop-down: if "Gradient" is checked, select the color map to use for the gradient.
+- "Define Limits" checkbox: if "Gradient" is checked, check to define the limits of the colorbar for operando batch processing. Leave unchecked to use the range of the gradient axis.
+- "Min Value" float: if "Define Limits" is checked, input the minimum gradient value in the specified units.
+- "Max Value" float: if "Define Limits" is checked, input the maximum gradient value in the specified units.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Units": input the pixel units.
+- "Colorbar Label": input the label for the gradient colorbar.
+- "Image to Labels" button: click to perform the image to labels operation.
 
 ----------
 Known Bugs

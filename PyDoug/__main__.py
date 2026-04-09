@@ -395,7 +395,7 @@ class ImageProcessor:
     def export_parameters_widget(self,
         Save_Folder: pathlib.Path = pathlib.Path("~"),
         Folder_Name: str = "Parameters",
-        Compress_Masks: bool = True) -> None:
+        Compress_Masks: bool = False) -> None:
         
         save_dir: str = str(Save_Folder) + "/" + str(Folder_Name)
         os.makedirs(save_dir)
@@ -475,12 +475,10 @@ class ImageProcessor:
                 parameters_append["Gamma"] = topmost_visible_layer.gamma
                 parameters_append["Projection Mode"] = topmost_visible_layer.projection_mode
                 parameters_append["Rendering"] = topmost_visible_layer.rendering
-                parameters_append["Rendering"] = topmost_visible_layer.rendering
                 parameters_append["Interpolation 2D"] = topmost_visible_layer.interpolation2d
                 parameters_append["Interpolation 3D"] = topmost_visible_layer.interpolation3d
-                parameters_append["Colormap"] = topmost_visible_layer.colormap
+                parameters_append["Colormap"] = topmost_visible_layer.colormap.name
                 parameters_append["Depiction"] = topmost_visible_layer.depiction
-                parameters_append["Colormap"] = topmost_visible_layer.colormap
                 parameters_append["ISO Threshold"] = topmost_visible_layer.iso_threshold
                 
             self.parameters_log.append(parameters_append)

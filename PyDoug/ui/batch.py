@@ -48,9 +48,34 @@ def apply_parameters(im_array: np.ndarray,
             
             viewer: napari.viewer.Viewer = sv.create_viewer()
             viewer.window._qt_window.showFullScreen()
-            layer: napari.layers.Layer = sv.create_layer_type(viewer, parameter["Layer Type"], im_array)
-            layer.opacity = float(parameter["Opacity"])
             viewer.dims.ndisplay = int(parameter["Dimensions"])
+            
+            if parameter["Layer Type"] == "labels":
+                
+                layer: napari.layers.Labels = viewer.add_labels(im_array)
+                layer.iso_gradient_mode = parameter["ISO Gradient Mode"]
+                layer.rendering = parameter["Rendering"],
+                layer.colormap = cmaps[parameter["Colormap Used"]]
+            
+            elif parameter["Layer Type"] == "image":
+                
+                layer: napari.layers.Image = viewer.add_image(im_array)
+                layer.colormap = parameter["Colormap"]
+                layer.contrast_limits = (float(parameter["Contrast Min"]), float(parameter["Contrast Max"]))
+                layer.gamma = float(parameter["Gamma"])
+                layer.projection_mode = parameter["Projection Mode"]
+                layer.rendering = parameter["Rendering"]
+                layer.interpolation2d = parameter["Interpolation 2D"]
+                layer.interpolation3d = parameter["Interpolation 3D"]
+                layer.depiction = parameter["Depiction"]
+                layer.iso_threshold = float(parameter["ISO Threshold"])
+            
+            else:
+                
+                layer: napari.layers.Layer = sv.create_layer_type(viewer, parameter["Layer Type"], im_array)
+            
+            layer.blending = parameter["Blending"]
+            layer.opacity = float(parameter["Opacity"])
             center: tuple = (float(parameter["Center 0"]),
                              float(parameter["Center 1"]),
                              float(parameter["Center 2"]))
@@ -68,6 +93,7 @@ def apply_parameters(im_array: np.ndarray,
             screenshot_array: np.ndarray = sv.get_screenshot(viewer)
             sv.close_viewer(viewer)  
             rw.write_im(screenshot_array, save_dir, f"{file_name}_screenshot_{screenshot_index}")
+            screenshot_index += 1
             
         
         #########################
@@ -1466,16 +1492,16 @@ def apply_parameters(im_array: np.ndarray,
                 
                 if parameter["Define Limits"].lower() == "true":
                     
-                    lab_limits: tuple = (float(parameter["Min_Value"]), float(parameter["Max_Value"]))
+                    lab_limits: tuple = (float(parameter["Min Value"]), float(parameter["Max Value"]))
                     
                 else:
                     
-                    lab_limits: tuple = ((np.unique(im_array)[0] * float(parameter["Pixel_Scale"])), (np.unique(im_array)[-1] * float(parameter["Pixel_Scale"])))
+                    lab_limits: tuple = ((np.unique(im_array)[0] * float(parameter["Pixel Scale"])), (np.unique(im_array)[-1] * float(parameter["Pixel Scale"])))
                     
                 cmap, cbar = util.get_colormap(im_array,
                                                lab_limits = lab_limits, 
                                                cmap = parameter["Color Map"],
-                                               cbar_scale = float(parameter["Pixel_Scale"]),
+                                               cbar_scale = float(parameter["Pixel Scale"]),
                                                cbar_units = parameter["Units"],
                                                cbar_label = parameter["Colorbar Label"])
                 
