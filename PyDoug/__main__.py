@@ -1842,24 +1842,14 @@ class ImageProcessor:
              "Along Axis": Along_Axis,
              "Axis": Axis})
         
-        if Along_Axis:
-            
-            self.viewer.add_image(detect.edge(Image.data,
-                                              method = Method.lower(),
-                                              sigma = Canny_or_IGG_Sigma,
-                                              ksize = Laplace_K_Size,
-                                              alpha = IGG_Alpha,
-                                              igg_sigma = Canny_or_IGG_Sigma,
-                                              axis = Axis), name = param_layer_name)
-            
-        else:
-            
-            self.viewer.add_image(detect.edge(Image.data,
-                                              method = Method.lower(),
-                                              sigma = Canny_or_IGG_Sigma,
-                                              ksize = Laplace_K_Size,
-                                              alpha = IGG_Alpha,
-                                              igg_sigma = Canny_or_IGG_Sigma), name = param_layer_name)
+        self.viewer.add_image(detect.edge(Image.data,
+                                          method = Method.lower(),
+                                          sigma = Canny_or_IGG_Sigma,
+                                          ksize = Laplace_K_Size,
+                                          alpha = IGG_Alpha,
+                                          igg_sigma = Canny_or_IGG_Sigma,
+                                          along_axis = Along_Axis,
+                                          axis = Axis), name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]},

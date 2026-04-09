@@ -23,21 +23,40 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
          alpha: float = 100,
          igg_sigma: float = 5,
          convert_type: bool = True,
+         along_axis: bool = False,
          axis: int = None) -> np.ndarray:
+    
+    proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
     
     if np.any(mask_array):
         
         if mask_array.ndim < im_array.ndim:
             
-            mask_array = cc.project_mask(mask_array, im_array.shape[0])
+            mask_array = util.get_along_axis_array(cc.project_mask(mask_array, im_array.shape[0]), axis)
     
     if method == "sobel":
         
-        edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array, axis = axis)
+        if along_axis:
+            
+            edge_array: np.ndarray = np.zeros(proc_array.shape)
+            
+            for slice_index in range(0, proc_array.shape[0]):
+                
+                if np.any(mask_array):
+                
+                    edge_array[slice_index] = filters.sobel(proc_array[slice_index], mask = np.bool(mask_array[slice_index]))
+                    
+                else:
+                    
+                    edge_array[slice_index] = filters.sobel(proc_array[slice_index])
+        
+        else:
+        
+            edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array)
     
     elif method == "canny":
         
-        if len(im_array.shape) > 2:
+        if im_array.ndim > 2:
         
             edge_array: np.ndarray = np.empty(im_array.shape)
             
@@ -77,11 +96,11 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
     
     elif method == "prewitt":
         
-        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array, axis = axis)
+        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array)
     
     elif method == "roberts":
         
-        if len(im_array.shape) > 2:
+        if im_array.ndim > 2:
         
             edge_array: np.ndarray = np.empty(im_array.shape)
             
