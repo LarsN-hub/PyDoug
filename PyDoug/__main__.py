@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.6.2-alpha"
+version_str: str = "v0.6.3-alpha"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 
@@ -1859,7 +1859,9 @@ class ImageProcessor:
             
             Filter_Along_Axis = False
             
-        param_layer_name = get_param_layer_name("Edge Detection", self.operation_count)
+        param_layer_name = get_param_layer_name(
+            "Edge Detection",
+            self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
@@ -1921,7 +1923,9 @@ class ImageProcessor:
             
             Return_Mode: str = "orients array"
         
-        param_layer_name = get_param_layer_name("Corner Detection", self.operation_count)
+        param_layer_name = get_param_layer_name(
+            "Corner Detection",
+            self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
@@ -1934,17 +1938,20 @@ class ImageProcessor:
              "Window Size": Moravec_Window_Size,
              "Correct Anomalies": Correct_Anomalies,
              "Return Mode": Return_Mode})
-        self.viewer.add_image(detect.corners(Image.data,
-                                             method = Method.lower(),
-                                             n = Fast_N,
-                                             threshold = Fast_Threshold,
-                                             harris_method = Harris_Method.lower(),
-                                             k = Harris_K,
-                                             eps = Harris_Epsilon,
-                                             sigma = Harris_or_Shi_Tomasi_Sigma,
-                                             window_size = Moravec_Window_Size,
-                                             correct_anomalies = Correct_Anomalies,
-                                             return_mode = Return_Mode), name = param_layer_name)
+        self.viewer.add_image(
+            detect.corners(
+                Image.data,
+                method = Method.lower(),
+                n = Fast_N,
+                threshold = Fast_Threshold,
+                harris_method = Harris_Method.lower(),
+                k = Harris_K,
+                eps = Harris_Epsilon,
+                sigma = Harris_or_Shi_Tomasi_Sigma,
+                window_size = Moravec_Window_Size,
+                correct_anomalies = Correct_Anomalies,
+                return_mode = Return_Mode),
+            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": ["Frangi", "Hessian", "Meijering", "Sato"]},
@@ -1952,10 +1959,10 @@ class ImageProcessor:
         call_button = "Detect Ridges")
     def ridge_detect_widget(self,
         Image: napari.layers.Image,
-        Method: str = "Frangi",
+        Method: str = "Sato",
         Scale_Min: int = 1,
-        Scale_Max: int = 10,
-        Scale_Step: int = 2,
+        Scale_Max: int = 4,
+        Scale_Step: int = 1,
         Alpha: float = 0.5,
         Beta: float = 0.5,
         Gamma: float = 0,
@@ -1963,13 +1970,15 @@ class ImageProcessor:
         Edges_Method: str = "Nearest",
         Constant_Value: float = 0) -> None:
         
-        param_layer_name: str = get_param_layer_name("Ridge Detection", self.operation_count)
+        param_layer_name: str = get_param_layer_name(
+            "Ridge Detection",
+            self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
              "Scale Min": Scale_Min,
              "Scale Max": Scale_Max,
-             "Scale_Step": Scale_Step,
+             "Scale Step": Scale_Step,
              "Alpha": Alpha,
              "Beta": Beta,
              "Gamma": Gamma,
@@ -1981,17 +1990,19 @@ class ImageProcessor:
             
             Gamma: None = None
         
-        self.viewer.add_image(detect.ridges(Image.data,
-                                            method = Method.lower(),
-                                            scale_range = (Scale_Min, Scale_Max),
-                                            scale_step = Scale_Step,
-                                            alpha = Alpha,
-                                            beta = Beta,
-                                            gamma = Gamma,
-                                            black_ridges = Black_Ridges,
-                                            mode = Edges_Method.lower(),
-                                            cval = Constant_Value),
-                              name = param_layer_name)
+        self.viewer.add_image(
+            detect.ridges(
+                Image.data,
+                method = Method.lower(),
+                scale_range = (Scale_Min, Scale_Max),
+                scale_step = Scale_Step,
+                alpha = Alpha,
+                beta = Beta,
+                gamma = Gamma,
+                black_ridges = Black_Ridges,
+                mode = Edges_Method.lower(),
+                cval = Constant_Value),
+            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": ["DoG", "DoH", "LoG"]},
@@ -2009,7 +2020,9 @@ class ImageProcessor:
         Exclude_Border: bool = False,
         Log_Scale: bool = False) -> None:
         
-        param_layer_name: str = get_param_layer_name("Blob Detection", self.operation_count)
+        param_layer_name: str = get_param_layer_name(
+            "Blob Detection",
+            self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
@@ -2027,19 +2040,21 @@ class ImageProcessor:
             
             Threshold_Rel: None = None
             
-        self.viewer.add_image(detect.blobs(Image.data,
-                                           method = Method.lower(),
-                                           min_sigma = Min_Sigma,
-                                           max_sigma = Max_Sigma,
-                                           sigma_ratio = Sigma_Ratio,
-                                           threshold = Threshold,
-                                           overlap = Overlap,
-                                           num_sigma = Num_Sigma,
-                                           threshold_rel = Threshold_Rel,
-                                           exclude_border = Exclude_Border,
-                                           log_scale = Log_Scale,
-                                           return_mode = "array"),
-                              name = param_layer_name)
+        self.viewer.add_image(
+            detect.blobs(
+                Image.data,
+                method = Method.lower(),
+                min_sigma = Min_Sigma,
+                max_sigma = Max_Sigma,
+                sigma_ratio = Sigma_Ratio,
+                threshold = Threshold,
+                overlap = Overlap,
+                num_sigma = Num_Sigma,
+                threshold_rel = Threshold_Rel,
+                exclude_border = Exclude_Border,
+                log_scale = Log_Scale,
+                return_mode = "array"),
+            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": ["Lee (2D/3D)", "Zhang (2D)"]},
@@ -2056,11 +2071,17 @@ class ImageProcessor:
             
             Method: str = "zhang"
         
-        param_layer_name: str = get_param_layer_name("Skeleton Detection", self.operation_count)
+        param_layer_name: str = get_param_layer_name(
+            "Skeleton Detection",
+            self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method})
-        self.viewer.add_image(detect.skeleton(Image.data, Method), name = param_layer_name)
+        self.viewer.add_image(
+            detect.skeleton(
+                Image.data,
+                Method),
+            name = param_layer_name)
     
         
     ####################
