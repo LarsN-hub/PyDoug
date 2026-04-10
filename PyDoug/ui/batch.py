@@ -888,21 +888,33 @@ def apply_parameters(im_array: np.ndarray,
             
             print("\nDetecting edges...")
             
-            if parameter["Along Axis"].lower() == "true":
+            if parameter["Slice Wise"].lower() == "true":
                 
-                axis: int = int(parameter["Axis"])
+                slice_axis: int = int(parameter["Slice Axis"])
                 
             else:
                 
-                axis: None = None
+                slice_axis: None = None
                 
-            im_array = detect.edge(im_array,
-                                   method = parameter["Method"],
-                                   sigma = float(parameter["Sigma"]),
-                                   ksize = int(parameter["K Size"]),
-                                   alpha = float(parameter["Alpha"]),
-                                   igg_sigma = float(parameter["Sigma"]),
-                                   axis = axis)
+            if parameter["Filter Along Axis"].lower() == "true":
+                
+                apply_axis: int = int(parameter["Apply Axis"])
+            
+            else:
+                
+                apply_axis: None = None
+                
+            im_array = detect.edge(
+                im_array,
+                method = parameter["Method"],
+                sigma = float(parameter["Sigma"]),
+                ksize = int(parameter["K Size"]),
+                alpha = float(parameter["Alpha"]),
+                igg_sigma = float(parameter["Sigma"]),
+                slice_axis = slice_axis,
+                apply_axis = apply_axis,
+                edge_method = parameter["Edges Method"],
+                cval = float(parameter["Constant Value"]))
         
         elif parameter["Name"].find("Corner Detection") == 0:
             

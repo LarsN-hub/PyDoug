@@ -200,9 +200,14 @@ def shape_2_mask(im_array: np.ndarray, shape_dict: dict[str: np.ndarray]) -> np.
             
     return mask_array
 
-def project_mask(mask_array: np.ndarray, num_slices: int, axis: int = 0) -> np.ndarray:
+def project_mask(mask_array: np.ndarray,
+                 num_slices: int,
+                 axis: int = 0) -> np.ndarray:
     
-    return np.repeat(np.expand_dims(mask_array, 0), num_slices, axis = axis)
+    return np.repeat(
+        np.expand_dims(mask_array, 0),
+        num_slices,
+        axis = axis)
 
 def expand_2d_mask(mask_array: np.ndarray, im_array: np.ndarray) -> np.ndarray:
     

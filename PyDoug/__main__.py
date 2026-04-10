@@ -25,7 +25,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.6.1-alpha"
+version_str: str = "v0.6.2-alpha"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 
@@ -1818,38 +1818,82 @@ class ImageProcessor:
     @magicgui(
         Method = {"choices": ["Canny", "Farid", "IGG", "Laplace", "Prewitt", "Roberts", "Scharr", "Sobel"]},
         Edges_Method = {"choices": ["Constant", "Mirror", "Nearest", "Reflect", "Wrap"]},
-        Axis = {"choices": ["X", "Y", "Z"]},
+        Constant_Value = {"max": 65535},
+        Slice_Axis = {"choices": ["X", "Y", "Z"]},
+        Filter_Axis = {"choices": ["X", "Y", "Z"]},
         call_button = "Detect Edges")
     def edge_detect_widget(self,
         Image: napari.layers.Image,
         Method: str = "Sobel",
-        Edges_Method: str = "Reflect",
         Canny_or_IGG_Sigma: float = 1.0,
         IGG_Alpha: float = 100,
         Laplace_K_Size: int = 3,
-        Along_Axis: bool = False,
-        Axis: str = "Z") -> None:
+        Slice_Wise: bool = False,
+        Slice_Axis: str = "Z",
+        Filter_Along_Axis: bool = False,
+        Filter_Axis: str = "X",
+        Edges_Method: str = "Reflect",
+        Constant_Value: float = 0) -> None:
         
-        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
+        if Slice_Wise:
+            
+            Filter_Axis = util.convert_ax_str_to_int(
+                Image.data,
+                Image.rgb,
+                Filter_Axis,
+                Slice_Axis)
+        
+        else:
+            
+            Filter_Axis = util.convert_ax_str_to_int(
+                Image.data,
+                Image.rgb,
+                Filter_Axis)
+        
+        Slice_Axis = util.convert_ax_str_to_int(
+            Image.data,
+            Image.rgb,
+            Slice_Axis)
+        
+        if not Filter_Axis or Filter_Axis == -1:
+            
+            Filter_Along_Axis = False
+            
         param_layer_name = get_param_layer_name("Edge Detection", self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Method": Method.lower(),
-             "Edges Method": Edges_Method,
              "Sigma": Canny_or_IGG_Sigma,
              "Alpha": IGG_Alpha,
              "K Size": Laplace_K_Size,
-             "Along Axis": Along_Axis,
-             "Axis": Axis})
+             "Slice Wise": Slice_Wise,
+             "Slice Axis": Slice_Axis,
+             "Filter Along Axis": Filter_Along_Axis,
+             "Filter Axis": Filter_Axis,
+             "Edges Method": Edges_Method.lower(),
+             "Constant Value": Constant_Value,})
         
-        self.viewer.add_image(detect.edge(Image.data,
-                                          method = Method.lower(),
-                                          sigma = Canny_or_IGG_Sigma,
-                                          ksize = Laplace_K_Size,
-                                          alpha = IGG_Alpha,
-                                          igg_sigma = Canny_or_IGG_Sigma,
-                                          along_axis = Along_Axis,
-                                          axis = Axis), name = param_layer_name)
+        if not Slice_Wise:
+            
+            Slice_Axis: None = None
+        
+        if not Filter_Along_Axis:
+            
+            Filter_Axis: None = None
+        
+        self.viewer.add_image(
+            detect.edge(
+                Image.data,
+                method = Method.lower(),
+                sigma = Canny_or_IGG_Sigma,
+                ksize = Laplace_K_Size,
+                alpha = IGG_Alpha,
+                igg_sigma = Canny_or_IGG_Sigma,
+                slice_axis = Slice_Axis,
+                apply_axis = Filter_Axis,
+                edge_method = Edges_Method.lower(),
+                cval = Constant_Value,),
+            name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["Fast", "Harris", "Kitchen Rosenfeld", "Moravec", "Shi Tomasi"]},

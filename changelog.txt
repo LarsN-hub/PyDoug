@@ -1,3 +1,9 @@
+v0.6.2-alpha
+- Fixed/added proper along axis functionality to edge detection widget
+
+v0.6.1-alpha
+- Fixed error where batch processing file selection dialog could not locate external hard drives if importing image sequences
+
 v0.6.0-alpha
 - Added functionality to trim widget: with bounds as slices checked, leave max as 0 to go from min to end of axis
 - Fixed bug in trim widget where a trimming one slice out of a 3D array would leave a 3D array with one slice instead of a 2D array

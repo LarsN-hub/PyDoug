@@ -23,36 +23,49 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
          alpha: float = 100,
          igg_sigma: float = 5,
          convert_type: bool = True,
-         along_axis: bool = False,
-         axis: int = None) -> np.ndarray:
+         slice_axis: int = None,
+         apply_axis: int = None,
+         edge_method: str = "reflect",
+         cval: float = 0) -> np.ndarray:
     
-    proc_array: np.ndarray = util.get_along_axis_array(im_array, axis)
-    
-    if np.any(mask_array):
-        
-        if mask_array.ndim < im_array.ndim:
-            
-            mask_array = util.get_along_axis_array(cc.project_mask(mask_array, im_array.shape[0]), axis)
+    proc_array: np.ndarray = util.get_along_axis_array(im_array, slice_axis)
+    bool_array: np.ndarray = util.correct_mask(mask_array)
     
     if method == "sobel":
         
-        if along_axis:
+        if slice_axis and im_array.ndim > 2:
             
-            edge_array: np.ndarray = np.zeros(proc_array.shape)
+            edge_array: np.ndarray = np.empty(proc_array.shape)
             
-            for slice_index in range(0, proc_array.shape[0]):
+            if np.any(bool_array):
+            
+                for slice_index in range(0, proc_array.shape[0]):
                 
-                if np.any(mask_array):
+                    edge_array[slice_index] = filters.sobel(
+                        proc_array[slice_index],
+                        mask = bool_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+            else:
                 
-                    edge_array[slice_index] = filters.sobel(proc_array[slice_index], mask = np.bool(mask_array[slice_index]))
+                for slice_index in range(0, proc_array.shape[0]):
                     
-                else:
-                    
-                    edge_array[slice_index] = filters.sobel(proc_array[slice_index])
+                    edge_array[slice_index] = filters.sobel(
+                        proc_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
         
         else:
         
-            edge_array: np.ndarray = filters.sobel(im_array, mask = mask_array)
+            edge_array: np.ndarray = filters.sobel(
+                im_array,
+                mask = bool_array,
+                axis = apply_axis,
+                mode = edge_method,
+                cval = cval)
     
     elif method == "canny":
         
@@ -60,73 +73,228 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
         
             edge_array: np.ndarray = np.empty(im_array.shape)
             
-            if np.any(mask_array):
+            if np.any(bool_array):
             
-                for slice_index in range(0, im_array.shape[0]):
+                for slice_index in range(0, proc_array.shape[0]):
             
-                    edge_array[slice_index] = feature.canny(im_array[slice_index], sigma = sigma, mask = np.bool(mask_array[slice_index]), mode = "reflect")
+                    edge_array[slice_index] = feature.canny(
+                        proc_array[slice_index],
+                        sigma = sigma,
+                        mask = bool_array[slice_index],
+                        mode = edge_method,
+                        cval = cval)
                     
             else:
                 
                 for slice_index in range(0, im_array.shape[0]):
             
-                    edge_array[slice_index] = feature.canny(im_array[slice_index], sigma = sigma, mode = "reflect")
+                    edge_array[slice_index] = feature.canny(
+                        proc_array[slice_index],
+                        sigma = sigma,
+                        mode = edge_method,
+                        cval = cval)
                     
         else:
             
-            edge_array = feature.canny(im_array, sigma = sigma, mask = mask_array, mode = "reflect")
+            edge_array = feature.canny(
+                proc_array,
+                sigma = sigma,
+                mask = bool_array,
+                mode = edge_method,
+                cval = cval)
     
     elif method == "farid":
         
-        edge_array: np.ndarray = filters.farid(im_array, mask = mask_array, axis = axis)
+        if slice_axis and im_array.ndim > 2:
+            
+            edge_array: np.ndarray = np.empty(proc_array.shape)
+            
+            if np.any(bool_array):
+            
+                for slice_index in range(0, proc_array.shape[0]):
+                    
+                    edge_array[slice_index] = filters.farid(
+                        proc_array[slice_index],
+                        mask = bool_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+            else:
+                
+                for slice_index in range(0, proc_array.shape[0]):
+                    
+                    edge_array[slice_index] = filters.farid(
+                        proc_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+        else:
+        
+            edge_array: np.ndarray = filters.farid(
+                proc_array,
+                mask = mask_array,
+                axis = apply_axis,
+                mode = edge_method,
+                cval = cval)
         
     elif method == "igg":
         
-        if np.any(mask_array):
+        if slice_axis:
             
-            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(cc.mask(im_array, np.bool(mask_array)), alpha, igg_sigma)
+            edge_array: np.ndarray = np.empty(proc_array.shape)
+        
+            for slice_index in range(0, proc_array.shape[0]):
+            
+                edge_array[slice_index] = segmentation.inverse_gaussian_gradient(
+                    proc_array,
+                    alpha,
+                    igg_sigma)
         
         else:
         
-            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(im_array, alpha, igg_sigma)
+            edge_array: np.ndarray = segmentation.inverse_gaussian_gradient(
+                proc_array,
+                alpha,
+                igg_sigma)
     
     elif method == "laplace":
         
-        edge_array: np.ndarray = filters.laplace(im_array, ksize = ksize, mask = mask_array)
+        if slice_axis:
+            
+            edge_array: np.ndarray = np.empty(proc_array.shape)
+            
+            if np.any(bool_array):
+        
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.laplace(
+                        proc_array[slice_index],
+                        ksize = ksize,
+                        mask = bool_array[slice_index])
+                    
+            else:
+                
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.laplace(
+                        proc_array[slice_index],
+                        ksize = ksize)
+                
+        else:
+        
+            edge_array: np.ndarray = filters.laplace(
+                proc_array,
+                ksize = ksize,
+                mask = bool_array)
     
     elif method == "prewitt":
         
-        edge_array: np.ndarray = filters.prewitt(im_array, mask = mask_array)
+        if slice_axis:
+            
+            edge_array: np.ndarray = np.empty(proc_array.shape)
+            
+            if np.any(bool_array):
+        
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.prewitt(
+                        proc_array[slice_index],
+                        mask = bool_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+            else:
+                
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.prewitt(
+                        proc_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+        else:
+            
+            edge_array: np.ndarray = filters.prewitt(
+                proc_array,
+                mask = bool_array,
+                axis = apply_axis,
+                mode = edge_method,
+                cval = cval)
     
     elif method == "roberts":
         
         if im_array.ndim > 2:
         
-            edge_array: np.ndarray = np.empty(im_array.shape)
+            edge_array: np.ndarray = np.empty(proc_array.shape)
             
-            if np.any(mask_array):
+            if np.any(bool_array):
             
                 for slice_index in range(0, im_array.shape[0]):
             
-                    edge_array[slice_index] = filters.roberts(im_array[slice_index], mask = np.bool(mask_array[slice_index]))
+                    edge_array[slice_index] = filters.roberts(
+                        proc_array[slice_index],
+                        mask = bool_array[slice_index])
                     
             else:
                 
                 for slice_index in range(0, im_array.shape[0]):
             
-                    edge_array[slice_index] = filters.roberts(im_array[slice_index])
+                    edge_array[slice_index] = filters.roberts(
+                        proc_array[slice_index])
                     
         else:
             
-            edge_array = filters.roberts(im_array, mask = mask_array)
+            edge_array = filters.roberts(
+                im_array,
+                mask = bool_array)
     
     elif method == "scharr":
         
-        edge_array: np.ndarray = filters.scharr(im_array, mask = mask_array, axis = axis)
+        if slice_axis:
+            
+            edge_array: np.ndarray = np.empty(proc_array.shape)
+            
+            if np.any(bool_array):
+        
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.scharr(
+                        proc_array[slice_index],
+                        mask = bool_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+            else:
+                
+                for slice_index in range(0, proc_array.shape[0]):
+            
+                    edge_array[slice_index] = filters.scharr(
+                        proc_array[slice_index],
+                        axis = apply_axis,
+                        mode = edge_method,
+                        cval = cval)
+                    
+        else:
+            
+            edge_array: np.ndarray = filters.scharr(
+                proc_array,
+                mask = bool_array,
+                axis = apply_axis,
+                mode = edge_method,
+                cval = cval)
+        
+    edge_array = util.undo_axial_array(edge_array, slice_axis)
     
     if convert_type:
         
-        return pixels.convert_im_type(edge_array, im_array.dtype)
+        return pixels.convert_im_type(
+            edge_array,
+            im_array.dtype)
     
     else:
         

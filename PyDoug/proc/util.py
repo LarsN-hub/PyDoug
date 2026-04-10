@@ -12,7 +12,7 @@ import math
 from matplotlib import colormaps, colorbar as cbar, colors, pyplot as plt
 from numba import jit
 
-from PyDoug.proc import trans
+from PyDoug.proc import trans, cropclip as cc
 
 
 # Globals
@@ -23,13 +23,37 @@ plt.rcParams["font.sans-serif"] = "Arial"
 
 # Functions
 
-def get_colormap(im_array: np.ndarray = None, *,
-                 lab_limits: tuple = None,
-                 cmap: str = "inferno",
-                 return_cbar: bool = True,
-                 cbar_scale: float = 1,
-                 cbar_units: str = "pix",
-                 cbar_label: str = "Units") -> napari.utils.DirectLabelColormap:
+def correct_mask(
+        im_array: np.ndarray,
+        mask_array: np.ndarray = None,
+        axis: int = 0) -> np.ndarray:
+    
+    if np.any(mask_array):
+        
+        bool_array = np.bool(mask_array)
+        
+        if bool_array.ndim < im_array.ndim:
+            
+            bool_array = get_along_axis_array(
+                cc.project_mask(
+                    bool_array,
+                    im_array.shape[0]),
+                axis)
+            
+    else:
+        
+        bool_array: None = None
+        
+    return bool_array
+
+def get_colormap(
+        im_array: np.ndarray = None, *,
+        lab_limits: tuple = None,
+        cmap: str = "inferno",
+        return_cbar: bool = True,
+        cbar_scale: float = 1,
+        cbar_units: str = "pix",
+        cbar_label: str = "Units") -> napari.utils.DirectLabelColormap:
     
     if not lab_limits:
         
@@ -46,7 +70,9 @@ def get_colormap(im_array: np.ndarray = None, *,
             lab_limits: tuple = (int(lab_limits[0] / cbar_scale), int(lab_limits[1] / cbar_scale))
         
     color_dict: dict = {0: np.array([0, 0, 0, 0])}
-    nonzero_label_count: int = np.count_nonzero(np.arange(min(lab_limits), max(lab_limits) + 1))
+    nonzero_label_count: int = np.count_nonzero(
+        np.arange(min(lab_limits),
+                  max(lab_limits) + 1))
         
     if min(lab_limits) == 0:
             
@@ -78,10 +104,16 @@ def get_colormap(im_array: np.ndarray = None, *,
             c_label: str = cbar_label
             
         fig, cbar_ax = plt.subplots()
-        fig_cbar: cbar.Colorbar = cbar.Colorbar(cbar_ax,
-                                                cmap = cmap,
-                                                norm = colors.Normalize((min(lab_limits) * cbar_scale), (max(lab_limits) * cbar_scale)))
-        fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
+        fig_cbar: cbar.Colorbar = cbar.Colorbar(
+            cbar_ax,
+            cmap = cmap,
+            norm = colors.Normalize(
+                (min(lab_limits) * cbar_scale),
+                (max(lab_limits) * cbar_scale)))
+        fig_cbar.set_label(
+            c_label,
+            rotation = 270,
+            va = "bottom")
         
         return napari.utils.DirectLabelColormap(color_dict = color_dict), fig
     
@@ -169,7 +201,9 @@ def check_if_square(im_array: np.ndarray) -> bool:
         
         return False
 
-def get_along_axis_array(im_array: np.ndarray, axis: int) -> np.ndarray:
+def get_along_axis_array(
+        im_array: np.ndarray,
+        axis: int | None = None) -> np.ndarray:
     
     if axis == 1:
         
@@ -183,7 +217,9 @@ def get_along_axis_array(im_array: np.ndarray, axis: int) -> np.ndarray:
         
         return im_array
     
-def undo_axial_array(im_array: np.ndarray, axis: int) -> np.ndarray:
+def undo_axial_array(
+        im_array: np.ndarray,
+        axis: int | None = None) -> np.ndarray:
     
     if axis == 1:
         
@@ -234,17 +270,22 @@ def get_dtype_info(im_array: np.ndarray) -> dict[str, float, int]:
     
     if np.issubdtype(im_array.dtype, np.integer):
         
-        return {"Min": np.iinfo(im_array.dtype).min, "Max": np.iinfo(im_array.dtype).max}
+        return {"Min": np.iinfo(im_array.dtype).min,
+                "Max": np.iinfo(im_array.dtype).max}
     
     elif np.issubdtype(im_array.dtype, np.floating):
         
-        return {"Min": np.finfo(im_array.dtype).min, "Max": np.finfo(im_array.dtype).max}
+        return {"Min": np.finfo(im_array.dtype).min,
+                "Max": np.finfo(im_array.dtype).max}
     
     elif im_array.dtype == np.bool:
         
         return {"Min": 0, "Max": 1}
     
-def convert_color_to_intensity(im_array: np.ndarray, color: str, dtype_dict: dict[str, float, int] = None) -> float | int:
+def convert_color_to_intensity(
+        im_array: np.ndarray,
+        color: str,
+        dtype_dict: dict[str, float, int] = None) -> float | int:
     
     if not dtype_dict:
         
@@ -298,7 +339,7 @@ def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
         
     return {"3D": is_3d, "RGB": is_rgb}
 
-def get_ax_str_dim(im_array: np.ndarray, ax_str: str) -> int:
+def get_ax_str_dim(im_array: np.ndarray, ax_str: str,) -> int:
     
     if ax_str.lower() == "x":
         
@@ -330,27 +371,95 @@ def get_ax_str_dim(im_array: np.ndarray, ax_str: str) -> int:
             
             return None
 
-def convert_ax_str_to_int(im_array: np.ndarray, rgb: bool, axis: str) -> int:
+def convert_ax_str_to_int(
+        im_array: np.ndarray,
+        rgb: bool,
+        axis: str,
+        axial_operation_axis: str = None) -> int:
     
-    axes_dict_3d: dict[str, int] = {"X": 2, "Y": 1, "Z": 0}
-    axes_dict_2d: dict[str, int] = {"X": 1, "Y": 0, "Z": -1}
+    axes_dict_3d: dict[str, int] = {"x": 2, "y": 1, "z": 0}
+    axes_dict_2d: dict[str, int] = {"x": 1, "y": 0, "z": -1}
     
-    if im_array.ndim == 3 and not rgb:
+    if axial_operation_axis:
         
-        return axes_dict_3d[axis]
-        
-    elif im_array.ndim == 4:
-        
-        return axes_dict_3d[axis]
+        eval_axis: str = axial_operation_axis
         
     else:
         
-        return axes_dict_2d[axis]
+        eval_axis: str = axis
     
-def reformat_bounds(bounds: int | list[int] = None,
-                    ax_len: int = 0,
-                    bounds_as_slices: bool = False,
-                    method: str = "trim") -> list[int]:
+    if im_array.ndim == 3 and not rgb:
+        
+        ax_int: int = axes_dict_3d[eval_axis.lower()]
+        
+    elif im_array.ndim == 4:
+        
+        ax_int: int = axes_dict_3d[eval_axis.lower()]
+        
+    else:
+        
+        ax_int: int = axes_dict_2d[eval_axis.lower()]
+        
+    if not axial_operation_axis:
+        
+        return ax_int
+    
+    else:
+        
+        if is_3d_rgb(im_array)["3D"]:
+            
+            if ax_int == 0:
+                
+                if axis.lower() == "x":
+                    
+                    return 1
+                
+                elif axis.lower() == "y":
+                    
+                    return 0
+                
+                elif axis.lower() == "z":
+                    
+                    return None
+            
+            elif ax_int == 1:
+                
+                if axis.lower() == "x":
+                    
+                    return 1
+                
+                elif axis.lower() == "y":
+                    
+                    return None
+                
+                elif axis.lower() == "z":
+                    
+                    return 0
+            
+            elif ax_int == 2:
+                
+                if axis.lower() == "x":
+                    
+                    return None
+                
+                elif axis.lower() == "y":
+                    
+                    return 0
+                
+                elif axis.lower() == "z":
+                    
+                    return 1
+            
+        
+        else:
+            
+            return axes_dict_2d[axis.lower()]
+    
+def reformat_bounds(
+        bounds: int | list[int] = None,
+        ax_len: int = 0,
+        bounds_as_slices: bool = False,
+        method: str = "trim") -> list[int]:
     
     if bounds == None:
         
@@ -370,15 +479,18 @@ def reformat_bounds(bounds: int | list[int] = None,
                 
             elif isinstance(new_bounds, int):
                 
-                new_bounds = [new_bounds, (ax_len - new_bounds)]
+                new_bounds = [new_bounds,
+                              (ax_len - new_bounds)]
                 
             elif len(new_bounds) == 1:
                 
-                new_bounds = [new_bounds[0], (ax_len - new_bounds[0])]
+                new_bounds = [new_bounds[0],
+                              (ax_len - new_bounds[0])]
                 
             else:
                 
-                new_bounds = [new_bounds[0], (ax_len - new_bounds[1])]
+                new_bounds = [new_bounds[0],
+                              (ax_len - new_bounds[1])]
                 
         else:
             
@@ -428,11 +540,13 @@ def reformat_bounds(bounds: int | list[int] = None,
                 
                 if pad_amount % 1 == 0:
                     
-                    new_bounds = [int(pad_amount), int(pad_amount)]
+                    new_bounds = [int(pad_amount),
+                                  int(pad_amount)]
                     
                 else:
                     
-                    new_bounds = [int(math.ceil(pad_amount)), int(math.floor(pad_amount))]
+                    new_bounds = [int(math.ceil(pad_amount)),
+                                  int(math.floor(pad_amount))]
                 
             elif len(new_bounds) == 1:
                 
@@ -440,11 +554,13 @@ def reformat_bounds(bounds: int | list[int] = None,
                 
                 if pad_amount % 1 == 0:
                     
-                    new_bounds = [int(pad_amount), int(pad_amount)]
+                    new_bounds = [int(pad_amount),
+                                  int(pad_amount)]
                     
                 else:
                     
-                    new_bounds = [int(math.ceil(pad_amount)), int(math.floor(pad_amount))]
+                    new_bounds = [int(math.ceil(pad_amount)),
+                                  int(math.floor(pad_amount))]
                 
             else:
                 
@@ -452,16 +568,21 @@ def reformat_bounds(bounds: int | list[int] = None,
                 
                 if pad_amount % 1 == 0:
                     
-                    new_bounds = [int(pad_amount), int(pad_amount)]
+                    new_bounds = [int(pad_amount),
+                                  int(pad_amount)]
                     
                 else:
                     
-                    new_bounds = [int(math.ceil(pad_amount)), int(math.floor(pad_amount))]
+                    new_bounds = [int(math.ceil(pad_amount)),
+                                  int(math.floor(pad_amount))]
         
     return new_bounds
 
 @jit(nopython = True)
-def quick_get_first_index(array: np.ndarray, search_val: int | float | bool = True, method: str = "equal") -> int:
+def quick_get_first_index(
+        array: np.ndarray,
+        search_val: int | float | bool = True,
+        method: str = "equal") -> int:
     
     array = np.ravel(array)
     
@@ -514,7 +635,10 @@ def quick_get_first_index(array: np.ndarray, search_val: int | float | bool = Tr
                 return index
 
 @jit(nopython = True)
-def quick_get_indices(array: np.ndarray, sorted_vals: np.ndarray, method: str = "greater or equal") -> np.ndarray:
+def quick_get_indices(
+        array: np.ndarray,
+        sorted_vals: np.ndarray,
+        method: str = "greater or equal") -> np.ndarray:
     
     array = np.ravel(array)
     sorted_vals = np.ravel(sorted_vals)
