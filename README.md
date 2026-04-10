@@ -719,12 +719,15 @@ https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.sc
 https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.sobel
 - "Image" drop-down: images in the layer list. Select the image to detect edges.
 - "Method" drop-down: select the edge-detection method to use.
-- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
 - "Canny or IGG Sigma" float: if "Method" is "Canny" or "IGG", input the standard deviation of intensity values.
 - "IGG Alpha" float: if "Method" is "IGG", input inversion steepness.
 - "Laplace K Size" integer: if "Method" is "Laplace", input the Laplacian operator size.
-- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
-- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Slice Wise" checkbox: check to perform the operation slice-wise along an axis of an image stack.
+- "Slice Axis" drop-dpown: select the axis to apply the operation slice-wise along if "Slice Wise" is checked.
+- "Filter Along Axis" checkbox: check to apply the filter along an specified axis instead of universally.
+- "Filter Axis" drop-down: select the axis to apply the filter along if "Filter Along Axis" is checked. This is ignored if the same axis as "Slice Axis" is selected if "Slice Wise" is checked.
+- "Edges Method" drop-down: select the method for handling pixels on the edge of the image.
+- "Constant Value" float: input the constant value if "Edges Method" is "Constant".
 - "Detect Edges" button: click to perform the edge detection operation.
 
 **Corner Detection**
