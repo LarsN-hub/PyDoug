@@ -11,6 +11,7 @@ import napari
 import shutil
 import os
 
+from timeit import default_timer as timer
 from matplotlib import pyplot as plt
 
 from PyDoug.ui import readwrite as rw, sliceview as sv
@@ -54,7 +55,7 @@ def apply_parameters(im_array: np.ndarray,
                 
                 layer: napari.layers.Labels = viewer.add_labels(im_array)
                 layer.iso_gradient_mode = parameter["ISO Gradient Mode"]
-                layer.rendering = parameter["Rendering"],
+                layer.rendering = parameter["Rendering"]
                 layer.colormap = cmaps[parameter["Colormap Used"]]
             
             elif parameter["Layer Type"] == "image":
@@ -1097,6 +1098,7 @@ def apply_parameters(im_array: np.ndarray,
                 cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
                 
             rw.write_plot(fig, f"{file_name}_histogram_{hist_index}", save_dir)
+            plt.close(fig)
             hist_index += 1
         
         elif parameter["Name"].find("Gray Level Plot") == 0:
@@ -1113,6 +1115,7 @@ def apply_parameters(im_array: np.ndarray,
                 
             fig = plots.gray_level(im_array, mask_array = mask_array)
             rw.write_plot(fig, f"{file_name}_gray_levels_{gray_index}", save_dir)
+            plt.close(fig)
             gray_index += 1
             
         elif parameter["Name"].find("FFT") == 0:
@@ -1356,6 +1359,7 @@ def apply_parameters(im_array: np.ndarray,
                                       ylims = y_lims,
                                       return_df = True)
             rw.write_plot(fig, f"{file_name}_axial_distribution_{axis_dist_index}", save_dir)
+            plt.close(fig)
             
             if parameter["Export Data"].lower() == "true":
                 
@@ -1446,6 +1450,7 @@ def apply_parameters(im_array: np.ndarray,
                                           nbins = nbins,
                                           max_bound = max_bound)
             rw.write_plot(fig, f"{file_name}_size_distribution_{psd_index}", save_dir)
+            plt.close(fig)
             psd_index += 1
         
         elif parameter["Name"].find("Heat Map") == 0:
@@ -1487,6 +1492,7 @@ def apply_parameters(im_array: np.ndarray,
                                  height_orientation = parameter["Height Direction"],
                                  cbar_label = colorbar_label)
             rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
+            plt.close(fig)
             heat_index += 1
             
             
@@ -1554,6 +1560,7 @@ def main(im_format: str = "Stacks",
     parameters_path: str = rw.get_path(True, "Select parameters directory")
     parameters_dict: dict[str, list, np.ndarray] = rw.read_parameters_dir(parameters_path)
     save_dir: str = rw.get_path(True, "Select output directory")
+    batch_start: float = timer()
     
     if copy_parameters:
         
@@ -1562,6 +1569,7 @@ def main(im_format: str = "Stacks",
         
     for index, im_path in enumerate(im_list, 1):
         
+        cur_start: float = timer()
         print(f"\nImporting dataset {index} of {len(im_list)}...")
         
         if rw.get_ext(im_path) == "directory":
@@ -1592,8 +1600,12 @@ def main(im_format: str = "Stacks",
             elif im_format == "Singles":
                 
                 rw.write_im(im_array, save_dir, save_name)
+                
+        cur_end: float = timer()
+        print(f"\nFinished processing dataset {index} of {len(im_list)} in {(cur_end - cur_start):.2f} s!")
             
-    print("\nFinished batch processing!")
+    batch_end = timer()
+    print(f"\nFinished batch processing in {(batch_end - batch_start):.2f} s!")
     
 
 if __name__ == "__main__":

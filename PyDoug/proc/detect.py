@@ -324,13 +324,29 @@ def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *,
     
     if method == "ACWE":
         
-        morph_array: np.ndarray = segmentation.morphological_chan_vese(im_array, num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
+        morph_array: np.ndarray = segmentation.morphological_chan_vese(
+            im_array,
+            num_iter = num_iter,
+            init_level_set = init_levels,
+            smoothing = smoothing)
     
     elif method == "GAC":
         
-        morph_array: np.ndarray = segmentation.morphological_chan_vese(edge(im_array, method = "igg", alpha = alpha, sigma_2 = sigma, convert_type = False), num_iter = num_iter, init_level_set = init_levels, smoothing = smoothing)
+        morph_array: np.ndarray = segmentation.morphological_chan_vese(
+            edge(
+                im_array,
+                method = "igg",
+                alpha = alpha,
+                sigma_2 = sigma,
+                convert_type = False),
+            num_iter = num_iter,
+            init_level_set = init_levels,
+            smoothing = smoothing)
         
-    return pixels.convert_im_type(morph_array, "uint8", norm = True)
+    return pixels.convert_im_type(
+        morph_array,
+        "uint8",
+        norm = True)
 
 def random_walk(im_array: np.ndarray, marker_percentiles: tuple, beta: float = 130) -> np.ndarray:
     

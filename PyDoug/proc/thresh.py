@@ -28,14 +28,19 @@ def sort_double_bound_thresholds(thresholds: np.ndarray) -> np.ndarray:
         
     return new_thresholds
 
-def gui_threshold(im_array: np.ndarray, thresholds: tuple[float, int]) -> np.ndarray:
+def gui_threshold(
+        im_array: np.ndarray,
+        thresholds: tuple[float, int]) -> np.ndarray:
     
     thresh_array = np.zeros(im_array.shape, np.uint8)
     thresh_array[(im_array >= min(thresholds)) & (im_array <= max(thresholds))] = 255
     
     return thresh_array
 
-def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusivity: str = "upper") -> np.ndarray:
+def threshold(
+        im_array: np.ndarray,
+        thresholds: float | int| np.ndarray,
+        inclusivity: str = "upper") -> np.ndarray:
     
     if not isinstance(thresholds, np.ndarray):
             
@@ -61,11 +66,13 @@ def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusi
                 
             if inclusivity == "lower":
                     
-                thresh_array[im_array >= thresh] = round((255 / len(thresholds)) * index)
+                thresh_array[im_array >= thresh] = round(
+                    (255 / len(thresholds)) * index)
                     
             else:
                     
-                thresh_array[im_array > thresh] = round((255 / len(thresholds)) * index)
+                thresh_array[im_array > thresh] = round(
+                    (255 / len(thresholds)) * index)
         
     elif thresholds.ndim == 2:
             
@@ -75,26 +82,31 @@ def threshold(im_array: np.ndarray, thresholds: float | int| np.ndarray, inclusi
                 
             if inclusivity == "upper":
                 
-                thresh_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array > np.min(thresh)) & (im_array <= np.max(thresh))] = round(
+                    (255 / len(thresholds)) * index)
                     
             elif inclusivity == "lower":
                     
-                thresh_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array >= np.min(thresh)) & (im_array < np.max(thresh))] = round(
+                    (255 / len(thresholds)) * index)
                     
             elif inclusivity == "both":
                     
-                thresh_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array >= np.min(thresh)) & (im_array <= np.max(thresh))] = round(
+                    (255 / len(thresholds)) * index)
                     
             elif inclusivity == "neither":
                     
-                thresh_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round((255 / len(thresholds)) * index)
+                thresh_array[(im_array > np.min(thresh)) & (im_array < np.max(thresh))] = round(
+                    (255 / len(thresholds)) * index)
                 
     return thresh_array
     
-def hist_thresholds(data: np.ndarray | pd.DataFrame, *,
-                    method: str = "otsu",
-                    otsu_classes: int = 2,
-                    mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
+def hist_thresholds(
+        data: np.ndarray | pd.DataFrame, *,
+        method: str = "otsu",
+        otsu_classes: int = 2,
+        mask_array: np.ndarray = None) -> np.float64 | np.int64 | np.ndarray:
     
     if isinstance(data, np.ndarray):
         
@@ -146,16 +158,30 @@ def hist_thresholds(data: np.ndarray | pd.DataFrame, *,
         
         return filters.threshold_yen(hist = hist)
     
-def hist(im_array: np.ndarray, *,
-         method: str = "otsu",
-         otsu_classes: int = 2,
-         mask_array: np.ndarray = None,
-         return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
+def hist(
+        im_array: np.ndarray, *,
+        method: str = "otsu",
+        otsu_classes: int = 2,
+        mask_array: np.ndarray = None,
+        return_thresholds: bool = False) -> np.ndarray | np.float64 | np.int64:
     
-    thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(im_array,
-                                                                     otsu_classes = otsu_classes,
-                                                                     mask_array = mask_array,
-                                                                     method = method)
+    thresholds: np.float64 | np.int64 | np.ndarray = hist_thresholds(
+        im_array,
+        otsu_classes = otsu_classes,
+        mask_array = mask_array,
+        method = method)
+    
+    if isinstance(thresholds, np.ndarray):
+        
+        print("\n")
+        
+        for index, thresh_value in enumerate(thresholds, start = 1):
+            
+            print(f"Upper threshold {index}:  {thresh_value}")
+    
+    else:
+        
+        print(f"\nUpper threshold:    {thresholds}")
     
     if return_thresholds:
         
@@ -165,13 +191,14 @@ def hist(im_array: np.ndarray, *,
     
         return threshold(im_array, thresholds)
     
-def local(im_array: np.ndarray, *,
-          mask_array: np.ndarray = None,
-          method = "adaptive",
-          radius: int = 3,
-          window_size: int = 15,
-          k: float = 0.2,
-          r: float = None) -> np.ndarray:
+def local(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        method = "adaptive",
+        radius: int = 3,
+        window_size: int = 15,
+        k: float = 0.2,
+        r: float = None) -> np.ndarray:
     
     if radius % 2 == 0:
         
@@ -183,15 +210,24 @@ def local(im_array: np.ndarray, *,
     
     if method == "adaptive":
         
-        return pixels.convert_im_type((im_array > filters.threshold_local(im_array, block_size = radius)), "uint8")
+        return pixels.convert_im_type(
+            (im_array > filters.threshold_local(
+                im_array, block_size = radius)),
+            "uint8")
     
     elif method == "niblack":
         
-        return pixels.convert_im_type((im_array > filters.threshold_niblack(im_array, window_size, k)), "uint8")
+        return pixels.convert_im_type(
+            (im_array > filters.threshold_niblack(
+                im_array, window_size, k)),
+            "uint8")
     
     elif method == "sauvola":
         
-        return pixels.convert_im_type((im_array > filters.threshold_sauvola(im_array. window_size, k, r)), "uint8")
+        return pixels.convert_im_type(
+            (im_array > filters.threshold_sauvola(
+                im_array, window_size, k, r)),
+            "uint8")
     
     elif method == "rank":
         
@@ -207,18 +243,23 @@ def local(im_array: np.ndarray, *,
             ball.radius = radius
             footprint = ball.get_footprint()
         
-        return pixels.convert_im_type(pixels.normalize(filters.rank.threshold(im_array, footprint,
-                                                                              mask = mask_array)),
-                                      "uint8")
+        return pixels.convert_im_type(
+            pixels.normalize(
+                filters.rank.threshold(
+                    im_array,
+                    footprint,
+                    mask = mask_array)),
+            "uint8")
     
-def label(im_array: np.ndarray, *,
-          mask_array: np.ndarray = None,
-          connectivity: int = None,
-          return_num: bool = False,
-          background: float | int = 0,
-          positional: bool = False,
-          axis: int = 0,
-          randomize: bool = True) -> np.ndarray | int:
+def label(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        connectivity: int = None,
+        return_num: bool = False,
+        background: float | int = 0,
+        positional: bool = False,
+        axis: int = 0,
+        randomize: bool = True) -> np.ndarray | int:
     
     proc_array: np.ndarray = np.copy(im_array)
     
@@ -242,10 +283,11 @@ def label(im_array: np.ndarray, *,
                 
                 connectivity = 2
                 
-        lab_array: np.ndarray = measure.label(proc_array,
-                                              background = background,
-                                              return_num = return_num,
-                                              connectivity = connectivity)
+        lab_array: np.ndarray = measure.label(
+            proc_array,
+            background = background,
+            return_num = return_num,
+            connectivity = connectivity)
 
     else:
         
@@ -259,10 +301,11 @@ def label(im_array: np.ndarray, *,
         
         for slice_index in range(0, proc_array.shape[0]):
             
-            lab_array[slice_index], num_unique[slice_index] = measure.label(proc_array[slice_index],
-                                                                            background = background,
-                                                                            connectivity = connectivity,
-                                                                            return_num = True)
+            lab_array[slice_index], num_unique[slice_index] = measure.label(
+                proc_array[slice_index],
+                background = background,
+                connectivity = connectivity,
+                return_num = True)
         
         if return_num:
             
@@ -294,7 +337,9 @@ def randomize_labels(im_array: np.ndarray) -> np.ndarray:
         
     return rand_array
 
-def create_axial_labels(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
+def create_axial_labels(
+        im_array: np.ndarray,
+        axis: int = 0) -> np.ndarray:
     
     lab_array: np.ndarray = np.zeros(im_array.shape, np.int32)
     
@@ -313,6 +358,7 @@ def create_axial_labels(im_array: np.ndarray, axis: int = 0) -> np.ndarray:
             lab_array[:, :, slice_index][np.bool(im_array[:, :, slice_index])] = label_index
         
     return lab_array
+
 
 # Main
 

@@ -20,7 +20,6 @@ from tkinter_unblur import Tk
 from qtpy.QtWidgets import (
     QApplication,
     QDialog,
-    QFileDialog,
     QVBoxLayout,
     QFileSystemModel,
     QTreeView,
@@ -487,7 +486,7 @@ def read_stack(stack_path: str) -> np.ndarray:
             im_array: np.ndarray = read_stack_slow(stack_path)
             
         end = timer()
-        print(f"\nFinished import in {(end - start):.2} s!")
+        print(f"\nFinished import in {(end - start):.2f} s!")
             
         return im_array
     
@@ -512,14 +511,14 @@ def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "ti
         start = timer()
         io.imsave(save_path, im_array, check_contrast = False)
         end = timer()
-        print(f"\nFinished export in {(end - start):.2} s!")
+        print(f"\nFinished export in {(end - start):.2f} s!")
     
     elif any(ext == x for x in h5_exts):
         
         start = timer()
         write_h5(im_array, save_path)
         end = timer()
-        print(f"\nFinished export in {(end - start):.2} s!")
+        print(f"\nFinished export in {(end - start):.2f} s!")
         
     else:
         
@@ -547,7 +546,7 @@ def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str
                 io.imsave(save_path, im_array[n], check_contrast = False)
                 
         end = timer()
-        print(f"\nFinished export in {(end - start):.2} s!")
+        print(f"\nFinished export in {(end - start):.2f} s!")
     
     elif any(ext == x for x in h5_exts):
         
@@ -555,7 +554,7 @@ def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str
         save_path: str = save_dir + "/" + file_name + "." + ext
         write_h5(im_array, save_path)
         end = timer()
-        print(f"\nFinished export in {(end - start): .2} s!")
+        print(f"\nFinished export in {(end - start):.2f} s!")
         
     else:
         

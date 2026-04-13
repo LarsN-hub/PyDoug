@@ -1126,26 +1126,28 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         
     return hist_ax
 
-def histogram(data: np.ndarray | pd.DataFrame, *,
-              x_label: str = "Value",
-              mask_array: np.ndarray = None,
-              xlims: tuple = None,
-              ylims: tuple = None,
-              ignore_edges: bool = False,
-              normalize: bool = False,
-              nbins: int | None = None,
-              logx: bool = False) -> plt.Figure:
+def histogram(
+        data: np.ndarray | pd.DataFrame, *,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        nbins: int | None = None,
+        logx: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots(layout = "constrained")
-    hist_ax = histogram_axis(data, hist_ax,
-                             x_label = x_label,
-                             mask_array = mask_array,
-                             xlims = xlims,
-                             ylims = ylims,
-                             ignore_edges = ignore_edges,
-                             normalize = normalize,
-                             nbins = nbins,
-                             logx = logx)
+    hist_ax = histogram_axis(
+        data, hist_ax,
+        x_label = x_label,
+        mask_array = mask_array,
+        xlims = xlims,
+        ylims = ylims,
+        ignore_edges = ignore_edges,
+        normalize = normalize,
+        nbins = nbins,
+        logx = logx)
     
     return fig
 

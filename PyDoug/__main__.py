@@ -25,13 +25,9 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.6.3-alpha"
+version_str: str = "v0.6.4-alpha"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
-plt.rcParams["axes.labelsize"] = 14
-plt.rcParams["xtick.labelsize"] = 12
-plt.rcParams["ytick.labelsize"] = 12
-plt.rcParams["legend.fontsize"] = 12
 
 
 # Classes
@@ -1555,14 +1551,17 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": Mask.name})
             
-            self.viewer.add_labels(detect.watershed(Image.data,
-                                                    background = Background,
-                                                    mask_array = mask_array,
-                                                    connectivity = Connectivity,
-                                                    radius = Watershed_Radius,
-                                                    compactness = Watershed_Compactness,
-                                                    along_axis = Along_Axis,
-                                                    axis = Axis), name = param_layer_name)
+            self.viewer.add_labels(
+                detect.watershed(
+                    Image.data,
+                    background = Background,
+                    mask_array = mask_array,
+                    connectivity = Connectivity,
+                    radius = Watershed_Radius,
+                    compactness = Watershed_Compactness,
+                    along_axis = Along_Axis,
+                    axis = Axis),
+                name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["Isodata", "Li", "Mean", "Minimum", "Otsu", "Triangle", "Yen"]},
@@ -1592,11 +1591,13 @@ class ImageProcessor:
              "Apply Mask": Apply_Mask,
              "Mask Used": mask_name})
         
-        self.viewer.add_image(thresh.hist(Image.data,
-                                          method = Method.lower(),
-                                          otsu_classes = Otsu_Classes,
-                                          mask_array = mask_array),
-                              name = param_layer_name)
+        self.viewer.add_image(
+            thresh.hist(
+                Image.data,
+                method = Method.lower(),
+                otsu_classes = Otsu_Classes,
+                mask_array = mask_array),
+            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": ["Adaptive", "Niblack", "Savoula", "Rank"]},
@@ -1634,13 +1635,16 @@ class ImageProcessor:
             
             Savoula_Sigma_Range = None
         
-        self.viewer.add_image(thresh.local(Image.data,
-                                           mask_array = mask_array,
-                                           method = Method.lower(),
-                                           radius = Radius,
-                                           window_size = Radius,
-                                           k = Niblack_or_Savoula_Sigma_Weight,
-                                           r = Savoula_Sigma_Range), name = param_layer_name)
+        self.viewer.add_image(
+            thresh.local(
+                Image.data,
+                mask_array = mask_array,
+                method = Method.lower(),
+                radius = Radius,
+                window_size = Radius,
+                k = Niblack_or_Savoula_Sigma_Weight,
+                r = Savoula_Sigma_Range),
+            name = param_layer_name)
             
     @magicgui(
         call_button = "Segment")
@@ -1656,9 +1660,12 @@ class ImageProcessor:
              "Beta": Beta,
              "Lower Percentile": Lower_Percentile,
              "Upper Percentile": Upper_Percentile})
-        self.viewer.add_image(detect.random_walk(Image.data,
-                                                 (Lower_Percentile, Upper_Percentile),
-                                                 Beta), name = param_layer_name)
+        self.viewer.add_image(
+            detect.random_walk(
+                Image.data,
+                (Lower_Percentile, Upper_Percentile),
+                Beta),
+            name = param_layer_name)
     
     @magicgui(
         Method = {"choices": ["ACWE", "GAC"]},
@@ -1681,12 +1688,15 @@ class ImageProcessor:
              "Alpha": GAC_Alpha,
              "Sigma": GAC_Sigma,
              "Smoothing": GAC_Smoothing})
-        self.viewer.add_image(detect.morph_snakes(Image.data, Method,
-                                                  square_size = Square_Size,
-                                                  num_iter = Iterations,
-                                                  smoothing = GAC_Smoothing,
-                                                  alpha = GAC_Alpha,
-                                                  sigma = GAC_Sigma), name = param_layer_name)
+        self.viewer.add_image(
+            detect.morph_snakes(
+                Image.data, Method,
+                square_size = Square_Size,
+                num_iter = Iterations,
+                smoothing = GAC_Smoothing,
+                alpha = GAC_Alpha,
+                sigma = GAC_Sigma),
+            name = param_layer_name)
     
     
     ######################
@@ -2156,23 +2166,25 @@ class ImageProcessor:
             
         fig, hist_ax = plt.subplots(layout = "constrained")
         
-        hist_ax: plt.Axes = plots.histogram_axis(Image.data,
-                                                 hist_ax,
-                                                 x_label = "Gray Value",
-                                                 mask_array = mask_array,
-                                                 xlims = x_lims,
-                                                 ylims = y_lims,
-                                                 ignore_edges = Remove_Edges,
-                                                 normalize = Normalize,
-                                                 nbins = Num_Bins)
+        hist_ax: plt.Axes = plots.histogram_axis(
+            Image.data,
+            hist_ax,
+            x_label = "Gray Value",
+            mask_array = mask_array,
+            xlims = x_lims,
+            ylims = y_lims,
+            ignore_edges = Remove_Edges,
+            normalize = Normalize,
+            nbins = Num_Bins)
             
         if Add_CDF:
                 
             cdf_ax: plt.Axes = hist_ax.twinx()
-            cdf_ax = plots.cdf_axis(Image.data, cdf_ax,
-                                    x_label = "Gray Value",
-                                    mask_array = Mask.data,
-                                    xlims = x_lims)
+            cdf_ax = plots.cdf_axis(
+                Image.data, cdf_ax,
+                x_label = "Gray Value",
+                mask_array = Mask.data,
+                xlims = x_lims)
             cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
                 
         plt.show(block = False)
@@ -2447,24 +2459,25 @@ class ImageProcessor:
             Time_Units = None
             Time_Scale = None
             
-        _, line_df = plots.line(Image.data,
-                                mode = mode,
-                                distrib_mode = distrib_mode,
-                                size_mode = Type.lower(),
-                                pixel_size = Pixel_Scale,
-                                units = Pixel_Units,
-                                mask_array = mask_array,
-                                temporal_scale = Time_Scale,
-                                temporal_units = Time_Units,
-                                axis = Axis,
-                                include_background = Include_Background,
-                                background = Background,
-                                ignore_edges = Remove_Edges,
-                                normalize = Normalize,
-                                norm_method = Normalize_Method.lower(),
-                                xlims = x_lims,
-                                ylims = y_lims,
-                                return_df = True)
+        _, line_df = plots.line(
+            Image.data,
+            mode = mode,
+            distrib_mode = distrib_mode,
+            size_mode = Type.lower(),
+            pixel_size = Pixel_Scale,
+            units = Pixel_Units,
+            mask_array = mask_array,
+            temporal_scale = Time_Scale,
+            temporal_units = Time_Units,
+            axis = Axis,
+            include_background = Include_Background,
+            background = Background,
+            ignore_edges = Remove_Edges,
+            normalize = Normalize,
+            norm_method = Normalize_Method.lower(),
+            xlims = x_lims,
+            ylims = y_lims,
+            return_df = True)
             
         plt.show(block = False)
         
@@ -2587,20 +2600,21 @@ class ImageProcessor:
             
             Max_Bound: None = None
             
-        _ = plots.size_distribution(Labels.data,
-                                    mode = Type,
-                                    diam_rad_mode = diam_rad_mode,
-                                    units = Units,
-                                    x_label = x_label,
-                                    mask_array = mask_array,
-                                    xlims = x_lims,
-                                    ylims = y_lims,
-                                    pixel_size = Pixel_Scale,
-                                    normalize = Normalize,
-                                    ignore_edges = Remove_Edges,
-                                    background = Background,
-                                    nbins = Num_Bins,
-                                    max_bound = Max_Bound)
+        _ = plots.size_distribution(
+            Labels.data,
+            mode = Type,
+            diam_rad_mode = diam_rad_mode,
+            units = Units,
+            x_label = x_label,
+            mask_array = mask_array,
+            xlims = x_lims,
+            ylims = y_lims,
+            pixel_size = Pixel_Scale,
+            normalize = Normalize,
+            ignore_edges = Remove_Edges,
+            background = Background,
+            nbins = Num_Bins,
+            max_bound = Max_Bound)
             
         plt.show(block = False)
     
@@ -2676,31 +2690,33 @@ class ImageProcessor:
             
         if Return_Array:
             
-            _, heat_array = plots.heat_map(Image.data,
-                                           mode = Method.lower(),
-                                           cmap = Color_Map,
-                                           clim = clim,
-                                           mask_array = mask_array,
-                                           pixel_size = Pixel_Scale,
-                                           units = Units,
-                                           axis = Axis,
-                                           height_orientation = Height_Direction.lower(),
-                                           cbar_label = Colorbar_Label,
-                                           return_array = True)
+            _, heat_array = plots.heat_map(
+                Image.data,
+                mode = Method.lower(),
+                cmap = Color_Map,
+                clim = clim,
+                mask_array = mask_array,
+                pixel_size = Pixel_Scale,
+                units = Units,
+                axis = Axis,
+                height_orientation = Height_Direction.lower(),
+                cbar_label = Colorbar_Label,
+                return_array = True)
             self.viewer.add_image(heat_array, name = param_layer_name)
             
         else:
             
-            _ = plots.heat_map(Image.data,
-                               mode = Method.lower(),
-                               cmap = Color_Map,
-                               clim = clim,
-                               mask_array = mask_array,
-                               pixel_size = Pixel_Scale,
-                               units = Units,
-                               axis = Axis,
-                               height_orientation = Height_Direction.lower(),
-                               cbar_label = Colorbar_Label)
+            _ = plots.heat_map(
+                Image.data,
+                mode = Method.lower(),
+                cmap = Color_Map,
+                clim = clim,
+                mask_array = mask_array,
+                pixel_size = Pixel_Scale,
+                units = Units,
+                axis = Axis,
+                height_orientation = Height_Direction.lower(),
+                cbar_label = Colorbar_Label)
             
         plt.show(block = False)
         
@@ -2761,23 +2777,26 @@ class ImageProcessor:
                 
                 lab_limits: tuple = ((np.unique(lab_array)[0] * Pixel_Scale), (np.unique(lab_array)[-1] * Pixel_Scale))
             
-            cmap, cbar = util.get_colormap(lab_array,
-                                           lab_limits = lab_limits, 
-                                           cmap = Color_Map,
-                                           cbar_scale = Pixel_Scale,
-                                           cbar_units = Units,
-                                           cbar_label = Colorbar_Label)
-            self.viewer.add_labels(lab_array,
-                                   colormap = cmap,
-                                   opacity = 1,
-                                   name = param_layer_name)
+            cmap, cbar = util.get_colormap(
+                lab_array,
+                lab_limits = lab_limits, 
+                cmap = Color_Map,
+                cbar_scale = Pixel_Scale,
+                cbar_units = Units,
+                cbar_label = Colorbar_Label)
+            self.viewer.add_labels(
+                lab_array,
+                colormap = cmap,
+                opacity = 1,
+                name = param_layer_name)
             plt.show(block = False)
             
         else:
             
-            self.viewer.add_labels(Image.data,
-                                   opacity = 1,
-                                   name = param_layer_name)
+            self.viewer.add_labels(
+                Image.data,
+                opacity = 1,
+                name = param_layer_name)
         
         
 # Functions
