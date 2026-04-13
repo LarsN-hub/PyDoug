@@ -22,6 +22,9 @@ from PyDoug.proc import util
 
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
+label_fontsize = 15
+tick_fontsize = 13
+legend_fontsize = 12
 
 
 # Functions
@@ -485,15 +488,15 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                 
                 bar_ax.plot(x, y, color = colors / 2)
     
-    bar_ax.set_ylabel(y_title)
+    bar_ax.set_ylabel(y_title, fontsize = label_fontsize)
     
     if not second_axis:
         
-        bar_ax.set_xlabel(x_title)
+        bar_ax.set_xlabel(x_title, fontsize = label_fontsize)
         
     else:
         
-        bar_ax.set_ylabel(y_title, rotation = 270, va = "bottom")
+        bar_ax.set_ylabel(y_title, rotation = 270, va = "bottom", fontsize = label_fontsize)
         
     if logx:
         
@@ -526,6 +529,8 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
     if sci:
         
         bar_ax.ticklabel_format(axis = "y", style = "sci", scilimits = (0, 0))
+        
+    bar_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return bar_ax, label_index
 
@@ -631,7 +636,7 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
     if x_labels:
         
         dy: float = 0
-        bar_ax.tick_params(axis = "x", length = 0)
+        bar_ax.tick_params(axis = "x", length = 0, labelsize = tick_fontsize)
         offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
         
         for label, line in zip(bar_ax.xaxis.get_majorticklabels(), bar_ax.xaxis.get_majorticklines()):
@@ -649,15 +654,15 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             if legend_axis == 2:
                 
-                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2, frameon = False)
+                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2, frameon = False, fontsize = legend_fontsize)
                 
             else:
                 
-                bar_ax.legend(bars + bars2, bars_labels + bars_labels2, frameon = False)
+                bar_ax.legend(bars + bars2, bars_labels + bars_labels2, frameon = False, fontsize = legend_fontsize)
             
         else:
             
-            bar_ax.legend(bars, bars_labels, frameon = False)
+            bar_ax.legend(bars, bars_labels, frameon = False, fontsize = legend_fontsize)
     
     return fig
 
@@ -696,8 +701,8 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
     
     if orientation == "vertical":
         
-        box_ax.set_xlabel(cat_label)
-        box_ax.set_ylabel(data_label)
+        box_ax.set_xlabel(cat_label, fontsize = label_fontsize)
+        box_ax.set_ylabel(data_label, fontsize = label_fontsize)
         
         if data_lims:
             
@@ -705,8 +710,8 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
         
     else:
         
-        box_ax.set_ylabel(cat_label)
-        box_ax.set_xlabel(data_label)
+        box_ax.set_ylabel(cat_label, fontsize = label_fontsize)
+        box_ax.set_xlabel(data_label, fontsize = label_fontsize)
         
         if data_lims:
             
@@ -733,6 +738,8 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
             elif isinstance(colors, tuple):
                 
                 patch.set_facecolor(colors[index])
+                
+    box_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
     return fig
 
@@ -935,8 +942,8 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
             
             line_ax.plot(x_values, line_df[column], color = color_list[index - 1])
     
-    line_ax.set_xlabel(x_label)
-    line_ax.set_ylabel(y_label)
+    line_ax.set_xlabel(x_label, fontsize = label_fontsize)
+    line_ax.set_ylabel(y_label, fontsize = label_fontsize)
     
     if xlims:
         
@@ -953,6 +960,8 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
     else:
         
         line_ax.set_ylim(0)
+        
+    line_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
     if return_df:
         
@@ -1034,10 +1043,11 @@ def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> p
     
     line_scan_df: pd.DataFrame = sv.quick_get_line_scan(im_array = im_array, shapes_layer = shapes_layer)
     fig, ls_ax = plt.subplots(layout = "constrained")
-    ls_ax.set_xlabel("Position [pix]")
-    ls_ax.set_ylabel("Gray Value")
+    ls_ax.set_xlabel("Position [pix]", fontsize = label_fontsize)
+    ls_ax.set_ylabel("Gray Value", fontsize = label_fontsize)
     ls_ax.plot(line_scan_df["Position"], line_scan_df["Gray Value"], "red")
     ls_ax.set_xlim(0, line_scan_df["Position"][len(line_scan_df["Position"]) - 1])
+    ls_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return fig
 
@@ -1084,15 +1094,15 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         hist_df = remove_edges(hist_df)
         
     hist_ax: plt.Axes = input_ax
-    hist_ax.set_xlabel(x_label)
+    hist_ax.set_xlabel(x_label, fontsize = label_fontsize)
     
     if normalize:
         
-        hist_ax.set_ylabel("Probability Density")
+        hist_ax.set_ylabel("Probability Density", fontsize = label_fontsize)
     
     else:
         
-        hist_ax.set_ylabel("Counts")
+        hist_ax.set_ylabel("Counts", fontsize = label_fontsize)
         
     hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"], edgecolor = "k")
     
@@ -1111,6 +1121,8 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     if logx:
         
         hist_ax.set_xscale("log")
+        
+    hist_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
     return hist_ax
 
@@ -1189,6 +1201,7 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
                             normalize = normalize,
                             nbins = nbins,
                             max_bound = max_bound)
+    psd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return psd_ax
 
@@ -1242,8 +1255,8 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         cdf_df: pd.DataFrame = data.copy()
         
     cdf_ax: plt.Axes = input_ax
-    cdf_ax.set_xlabel(x_label)
-    cdf_ax.set_ylabel("Probability")
+    cdf_ax.set_xlabel(x_label, fontsize = label_fontsize)
+    cdf_ax.set_ylabel("Probability", fontsize = label_fontsize)
     cdf_ax.set_ylim(0, 1)
     cdf_ax.plot(cdf_df["Bin Centers"], cdf_df["Probability"], "red")
     
@@ -1258,6 +1271,8 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     if ylims:
         
         cdf_ax.set_ylim(min(ylims), max(ylims))
+        
+    cdf_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
     return cdf_ax
 
@@ -1289,7 +1304,7 @@ def hist_cdf(data: np.ndarray | dict, *,
                              ignore_edges = ignore_edges,
                              normalize = normalize)
     cdf_ax: plt.Axes = hist_ax.twinx()
-    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom", fontsize = label_fontsize)
     cdf_ax = cdf_axis(data, cdf_ax,
                       x_label = x_label,
                       mask_array = mask_array,
@@ -1312,14 +1327,15 @@ def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_a
     pos_std: np.ndarray = gray_df["Mean"] + gray_df["Std Dev"]
     neg_std: np.ndarray = gray_df["Mean"] - gray_df["Std Dev"]
     gray_ax: plt.Axes = input_ax
-    gray_ax.set_xlabel("Position [pixels]")
-    gray_ax.set_ylabel("Gray Value")
+    gray_ax.set_xlabel("Position [pixels]", fontsize = label_fontsize)
+    gray_ax.set_ylabel("Gray Value", fontsize = label_fontsize)
     gray_ax.set_xlim(0, max(gray_df["Position"]))
     gray_ax.plot(gray_df["Position"], gray_df["Mean"], "black")
     gray_ax.plot(gray_df["Position"], gray_df["Max"], "red")
     gray_ax.plot(gray_df["Position"], gray_df["Min"], "blue")
     gray_ax.fill_between(gray_df["Position"], y1 = pos_std, y2 = neg_std, color = "gray", alpha = 0.5)
     gray_ax.set_title(f"Axis {quant_axis}")
+    gray_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return gray_ax
 
@@ -1383,8 +1399,8 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
         x_label: str = list(parameters_tested[0].keys())[1].capitalize()
         x_label = x_label.replace("_", " ")
         ssl_ax: plt.Axes = input_axis
-        ssl_ax.set_xlabel(x_label)
-        ssl_ax.set_ylabel("Mean Squared Error")
+        ssl_ax.set_xlabel(x_label, fontsize = label_fontsize)
+        ssl_ax.set_ylabel("Mean Squared Error", fontsize = label_fontsize)
         ssl_ax.set_xlim(min(x_vals[0]), max(x_vals[0]))
         color_list: list[np.ndarray] = get_color_list(num_colors = len(labels))
         
@@ -1394,7 +1410,7 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
             
         leg_title: str = list(parameters_tested[0].keys())[0].capitalize()
         leg_title = leg_title.replace("_", " ")
-        ssl_ax.legend(title = leg_title)
+        ssl_ax.legend(title = leg_title, fontsize = legend_fontsize)
         
     elif len(ssl_dict["parameters"][0]) == 1:
         
@@ -1407,10 +1423,12 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
         x_label: str = list(ssl_dict["parameters"][0].keys())[0].capitalize()
         x_label = x_label.replace("_", " ")
         ssl_ax: plt.Axes = input_axis
-        ssl_ax.set_xlabel(x_label)
-        ssl_ax.set_ylabel("Mean Squared Error")
+        ssl_ax.set_xlabel(x_label, fontsize = label_fontsize)
+        ssl_ax.set_ylabel("Mean Squared Error", fontsize = label_fontsize)
         ssl_ax.set_xlim(np.min(x_vals), np.max(x_vals))
         ssl_ax.plot(x_vals, ssl_dict["losses"])
+        
+    ssl_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
     return ssl_ax
 
@@ -1459,8 +1477,9 @@ def heat_axis(data: np.ndarray, input_ax: plt.Axes, *,
         
     heat_ax: plt.Axes = input_ax
     ax_im = heat_ax.imshow(heat_array, cmap = cmap, vmin = vmin, vmax = vmax, origin = "lower", interpolation = "none", extent = [0, (heat_array.shape[1] * pixel_size), 0, (heat_array.shape[0] * pixel_size)])
-    heat_ax.set_xlabel(f"Position ({units})")
-    heat_ax.set_ylabel(f"Position ({units})")
+    heat_ax.set_xlabel(f"Position ({units})", fontsize = label_fontsize)
+    heat_ax.set_ylabel(f"Position ({units})", fontsize = label_fontsize)
+    heat_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     if return_array:
         
@@ -1482,6 +1501,10 @@ def heat_map(data: np.ndarray, *,
              cbar_label: str = None,
              return_array: bool = False) -> plt.Figure | np.ndarray:
     
+    if units == "um":
+        
+        units = "\u00b5m"
+    
     if mode == "thickness" and not cbar_label:
         
         c_label: str = f"Thickness ({units})"
@@ -1497,7 +1520,8 @@ def heat_map(data: np.ndarray, *,
     fig, heat_ax = plt.subplots(layout = "constrained")
     heat_ax, ax_im, heat_array = heat_axis(data, heat_ax, mode = mode, cmap = cmap, clim = clim, mask_array = mask_array, pixel_size = pixel_size, units = units, axis = axis, height_orientation = height_orientation, return_array = True)
     fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
-    fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
+    fig_cbar.set_label(c_label, rotation = 270, va = "bottom", fontsize = label_fontsize)
+    fig_cbar.ax.tick_params(labelsize = tick_fontsize)
     
     if np.any(mask_array):
         
@@ -1587,7 +1611,7 @@ def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[st
             
             axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
             cdf_axs[index]: plt.Axes = axs[index].twinx()
-            cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom")
+            cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom", fontsize = label_fontsize)
             cdf_axs[index] = cdf_axis(data, cdf_axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims)
             
         elif function_list[index] == "gray lvl":
