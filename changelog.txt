@@ -1,3 +1,11 @@
+v0.6.4-alpha
+- Added threshold readouts when using histogram-based thresholding (like Otsu)
+- Increased font sizes in all plots
+- Fixed screenshot capture batch processing bug
+
+v0.6.3-alpha
+- Fixed bugs in ridge detection batch processing
+
 v0.6.2-alpha
 - Fixed/added proper along axis functionality to edge detection widget
 
