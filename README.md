@@ -351,7 +351,6 @@ Note, creating a mask will not go in the parameter log and cannot be performed i
 **Mask Logic Operations**
 
 A widget for PowerPoint-style shape merging operations.
-Note, mask logic will not go in the parameter log and cannot be performed in batch processing.
 - "Mask 1" drop-down: images in the layer list. Select the first mask for the merging operation.
 - "Mask 2" drop-down: images in the layer list. Select the second mask for the merging operation.
 - "Method" drop-down: select "Union" to make all white areas in each mask white. Select subtract to subtract the white areas in the second mask from those in the first mask. Select "intersect" to make only the areas that are white in each mask white.
