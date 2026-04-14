@@ -35,76 +35,11 @@ from PyDoug.proc import pixels, util
 
 # Globals
 
-write_exts: tuple[str] = ("png", "tif", "tiff")
-h5_exts: tuple[str] = ("h5", "hdf", "hdf5", "he5")
-valid_exts: tuple[str] = h5_exts + ("apng",
-                                    "avif",
-                                    "blp",
-                                    "bmp",
-                                    "cur",
-                                    "dcx",
-                                    "dds",
-                                    "dib",
-                                    "emf",
-                                    "eps",
-                                    "fits",
-                                    "flc",
-                                    "fli",
-                                    "fpx",
-                                    "ftex",
-                                    "gbr",
-                                    "gd2",
-                                    "gif",
-                                    "icb",
-                                    "icns",
-                                    "ico",
-                                    "im",
-                                    "imt",
-                                    "iptc",
-                                    "jpg",
-                                    "jpeg",
-                                    "jpe",
-                                    "jif",
-                                    "jfif",
-                                    "jfi",
-                                    "jp2",
-                                    "j2k",
-                                    "jpf",
-                                    "jpm",
-                                    "jpg2",
-                                    "j2c",
-                                    "jpc",
-                                    "jpx",
-                                    "mic",
-                                    "mj2",
-                                    "mpo",
-                                    "msp",
-                                    "pcd",
-                                    "pcx",
-                                    "pfm",
-                                    "png",
-                                    "pbm",
-                                    "pgm",
-                                    "ppm",
-                                    "pnm",
-                                    "psd",
-                                    "qoi",
-                                    "rgb",
-                                    "sgi",
-                                    "spi",
-                                    "sun",
-                                    "tga",
-                                    "tif",
-                                    "tiff",
-                                    "vda",
-                                    "vst",
-                                    "wal",
-                                    "webp",
-                                    "wmf",
-                                    "xbm",
-                                    "xpm"
-                                    "xv")
-
+write_exts: list[str] = ["png", "tif", "tiff"]
+h5_exts: list[str] = ["h5", "hdf", "hdf5", "he5"]
+exts: dict[str] = Image.registered_extensions()
+supported_exts: list[str] = [ex[1:].lower() for ex, f in exts.items() if f in Image.OPEN]
+valid_exts: list[str] = h5_exts + supported_exts
 
 
 # Classes
@@ -146,7 +81,8 @@ class DirectoryDialog(QDialog):
 
 # Functions
 
-def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
+def universalize_paths(
+        file_paths: str | list[str]) -> str | list[str]:
     
     if platform.system() == "Windows":
         
@@ -166,7 +102,9 @@ def universalize_paths(file_paths: str | list[str]) -> str | list[str]:
                 
     return file_paths
 
-def get_path(directory = False, title: str = "Select image file") -> str:
+def get_path(
+        directory = False,
+        title: str = "Select image file") -> str:
                 
     root = Tk()
     root.withdraw()
@@ -183,7 +121,9 @@ def get_path(directory = False, title: str = "Select image file") -> str:
     
     return universalize_paths(file_path)
 
-def get_paths(directories = False, title: str = "Select image sequence directories") -> list[str]:
+def get_paths(
+        directories = False,
+        title: str = "Select image sequence directories") -> list[str]:
     
     if directories:
     
@@ -203,7 +143,8 @@ def get_paths(directories = False, title: str = "Select image sequence directori
         
         return universalize_paths(file_paths)
 
-def get_ext(file_path: str) -> str:
+def get_ext(
+        file_path: str) -> str:
     
     dot_location: int = file_path.rfind(".")
     
@@ -217,13 +158,15 @@ def get_ext(file_path: str) -> str:
     
     return file_ext
 
-def detect_valid_ext(file_path: str) -> bool:
+def detect_valid_ext(
+        file_path: str) -> bool:
     
     ext: str = get_ext(file_path)
     
     return any(x == ext for x in valid_exts)
 
-def detect_valid_dir(dir_path: str) -> bool:
+def detect_valid_dir(
+        dir_path: str) -> bool:
     
     dir_contents: list[str] = os.listdir(dir_path)
     
@@ -235,13 +178,17 @@ def detect_valid_dir(dir_path: str) -> bool:
         
             break
 
-def detect_h5(file_path: str) -> bool:
+def detect_h5(
+        file_path: str) -> bool:
     
     ext: str = get_ext(file_path)
     
     return any(x == ext for x in h5_exts)
 
-def expand_groups(h5_object: h5py.File | h5py.Group, possible_dirs: list[str], readout: bool = False) -> list[str]:
+def expand_groups(
+        h5_object: h5py.File | h5py.Group,
+        possible_dirs: list[str],
+        readout: bool = False) -> list[str]:
     
     contents: list = list(h5_object.keys())
     
@@ -263,7 +210,10 @@ def expand_groups(h5_object: h5py.File | h5py.Group, possible_dirs: list[str], r
                 
                 print((tab_count * "  ") + "- " + label)
                 
-            possible_dirs = expand_groups(h5_object[item], possible_dirs, readout)
+            possible_dirs = expand_groups(
+                h5_object[item],
+                possible_dirs,
+                readout)
         
         elif isinstance(h5_object[item], h5py.Dataset):
             
@@ -278,7 +228,8 @@ def expand_groups(h5_object: h5py.File | h5py.Group, possible_dirs: list[str], r
     
     return possible_dirs
 
-def get_largest_data(h5_file: h5py.File) -> str:
+def get_largest_data(
+        h5_file: h5py.File) -> str:
     
     possible_dirs: list[str] = expand_groups(h5_file, [], False)
     prev_bytes = 0
@@ -292,7 +243,8 @@ def get_largest_data(h5_file: h5py.File) -> str:
             
     return current_largest
 
-def read_h5(file_path: str) -> np.ndarray:
+def read_h5(
+        file_path: str) -> np.ndarray:
     
     h5_file: h5py.File = h5py.File(file_path)
     dataset_dir: str = get_largest_data(h5_file)
@@ -301,7 +253,8 @@ def read_h5(file_path: str) -> np.ndarray:
     
     return im_array
 
-def read_im(file_path: str) -> np.ndarray:
+def read_im(
+        file_path: str) -> np.ndarray:
     
     if detect_valid_ext(file_path):
         
@@ -329,7 +282,8 @@ def read_im(file_path: str) -> np.ndarray:
         
         return None
 
-def get_dir_stack_info(dir_path: str) -> dict:
+def get_dir_stack_info(
+        dir_path: str) -> dict:
     
     dir_contents: list[str] = os.listdir(dir_path)
     index_list: list = [np.nan, np.nan]
@@ -361,9 +315,13 @@ def get_dir_stack_info(dir_path: str) -> dict:
         
     else:
         
-        first_im_array: np.ndarray = read_im(dir_path + "/" + dir_contents[index_list[0]])
+        first_im_array: np.ndarray = read_im(
+            dir_path + "/" + dir_contents[index_list[0]])
         no_slices: int = len(dir_contents) + index_list[1] + 1 - index_list[0]
-        im_array_shape: tuple[int] = (first_im_array.shape[0], first_im_array.shape[1], no_slices)
+        im_array_shape: tuple[int] = (
+            first_im_array.shape[0],
+            first_im_array.shape[1],
+            no_slices)
     
     return {"Start": index_list[0],
             "End": index_list[1],
@@ -371,7 +329,9 @@ def get_dir_stack_info(dir_path: str) -> dict:
             "Extension": ext,
             "List": dir_contents}
 
-def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.ndarray:
+def read_stack_slow(
+        stack_path: str,
+        h5_concat_axis = 0) -> np.ndarray:
     
     if get_ext(stack_path) == "directory":
         
@@ -405,7 +365,9 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.ndarray:
                 else:
                     
                     int_array: np.ndarray = read_h5(stack_path + "/" + file)
-                    im_array = np.concat([im_array, int_array], axis = h5_concat_axis)
+                    im_array = np.concat(
+                        [im_array, int_array],
+                        axis = h5_concat_axis)
     
     else:
         
@@ -428,7 +390,8 @@ def read_stack_slow(stack_path: str, h5_concat_axis = 0) -> np.ndarray:
     
     return im_array
 
-def read_stack_fast(stack_path: str) -> np.ndarray:
+def read_stack_fast(
+        stack_path: str) -> np.ndarray:
     
     valid_fast_removals: list[str] = ["txt"]
     
@@ -461,7 +424,8 @@ def read_stack_fast(stack_path: str) -> np.ndarray:
     
     return np.squeeze(im_array)
     
-def read_stack(stack_path: str) -> np.ndarray:
+def read_stack(
+        stack_path: str) -> np.ndarray:
     
     ext = get_ext(stack_path)
     
@@ -496,15 +460,27 @@ def read_stack(stack_path: str) -> np.ndarray:
         
         return None
     
-def write_h5(im_array: np.ndarray, save_path: str) -> None:
+def write_h5(
+        im_array: np.ndarray,
+        save_path: str) -> None:
     
     h5_file: h5py.File = h5py.File(save_path, "w")
     h5_file.create_dataset("im_array", data = im_array)
     h5_file.close()
     
-def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "tiff") -> None:
+def write_im(
+        im_array: np.ndarray,
+        save_dir: str,
+        file_name: str,
+        ext: str = "tiff") -> None:
     
     save_path: str = save_dir + "/" + file_name + "." + ext
+    
+    if im_array.dtype == np.bool:
+        
+        im_array = pixels.convert_im_type(
+            im_array,
+            "uint8")
     
     if any(ext == x for x in write_exts):
         
@@ -524,7 +500,18 @@ def write_im(im_array: np.ndarray, save_dir: str, file_name: str, ext: str = "ti
         
         print("\nInvalid image file extension!")
         
-def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str = "tiff", multi_page: bool = False) -> None:
+def write_stack(
+        im_array: np.ndarray,
+        save_dir: str,
+        file_name: str, *,
+        ext: str = "tiff",
+        multi_page: bool = False) -> None:
+    
+    if im_array.dtype == np.bool:
+        
+        im_array = pixels.convert_im_type(
+            im_array,
+            "uint8")
     
     if any(ext == x for x in write_exts):
         
@@ -560,16 +547,33 @@ def write_stack(im_array: np.ndarray, save_dir: str, file_name: str, *, ext: str
         
         print("\nInvalid image file extension!")
         
-def write_plot(fig: plt.Figure, file_name: str, save_dir: str) -> None:
+def write_plot(
+        fig: plt.Figure,
+        file_name: str,
+        save_dir: str) -> None:
     
     save_path: str = save_dir + "/" + file_name + ".png"
     fig.savefig(save_path)
     
-def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: str, *,
-                     viewer: napari.viewer.Viewer = None,
-                     compress_masks: bool = True) -> None:
+def write_parameters(
+        parameters_log: list[dict[str]],
+        file_name: str,
+        save_dir: str, *,
+        viewer: napari.viewer.Viewer = None,
+        compress_masks: bool = True) -> None:
     
-    mod_parameters_list: list[list] = util.dict_list_to_list_list(parameters_log)
+    name_2_replace: str = parameters_log[0]["Acting On"]
+    
+    for parameter in parameters_log:
+        
+        for key in parameter:
+            
+            if parameter[key] == name_2_replace:
+                
+                parameter[key] = "Start"
+                
+    mod_parameters_list: list[list] = util.dict_list_to_list_list(
+        parameters_log)
     save_path: str = save_dir + "/" + file_name + ".csv"
         
     with open(save_path, "w", newline = "") as csv_file:
@@ -577,26 +581,39 @@ def write_parameters(parameters_log: list[dict[str]], file_name: str, save_dir: 
         writer = csv.writer(csv_file)
         writer.writerows(mod_parameters_list)
             
-    for row in parameters_log:
+    for parameter in parameters_log:
             
-        if "Mask Used" in list(row.keys()):
+        if "Mask Used" in list(parameter.keys()):
             
-            if row["Apply Mask"]:
+            if parameter["Apply Mask"] and not parameter["Unique Masks"]:
                 
-                mask_layer: napari.layers.Image = sv.get_layer(viewer, row["Mask Used"])
+                mask_layer: napari.layers.Image = sv.get_layer(
+                    viewer,
+                    parameter["Mask Used"])
                     
                 if mask_layer != None:
                     
                     if compress_masks and mask_layer.data.ndim > 2:
                         
-                        write_im(pixels.convert_im_type(mask_layer.data[0], "uint8"), save_dir, row["Mask Used"])
+                        write_im(
+                            pixels.convert_im_type(
+                                mask_layer.data[0],
+                                "uint8"),
+                            save_dir,
+                            parameter["Mask Used"])
                     
                     else:
                         
-                        write_stack(pixels.convert_im_type(mask_layer.data, "uint8"), save_dir, row["Mask Used"], multi_page = True)
-            
-    
-def read_parameters_file(parameters_file_path: str) -> list[dict]:
+                        write_stack(
+                            pixels.convert_im_type(
+                                mask_layer.data,
+                                "uint8"),
+                            save_dir,
+                            parameter["Mask Used"],
+                            multi_page = True)
+              
+def read_parameters_file(
+        parameters_file_path: str) -> list[dict]:
     
     mod_parameters_list: list[list] = []
     
@@ -610,9 +627,12 @@ def read_parameters_file(parameters_file_path: str) -> list[dict]:
             
     return util.list_list_to_dict_list(mod_parameters_list)
 
-def read_parameters_dir(parameters_dir_path: str) -> dict[str, list, np.ndarray]:
+def read_parameters_dir(
+        parameters_dir_path: str) -> dict[str, list, np.ndarray]:
     
-    parameters_dict: dict = {"Parameters": read_parameters_file(parameters_dir_path + "/Parameters.csv")}
+    parameters_dict: dict = {
+        "Parameters": read_parameters_file(
+            parameters_dir_path + "/Parameters.csv")}
     dir_contents: list[str] = os.listdir(parameters_dir_path)
     
     for file in dir_contents:
@@ -623,11 +643,17 @@ def read_parameters_dir(parameters_dir_path: str) -> dict[str, list, np.ndarray]
             
                 if im.n_frames > 1:
                     
-                    parameters_dict[file[:-5]] = pixels.convert_im_type(read_stack(parameters_dir_path + "/" + file), "bool")
+                    parameters_dict[file[:-5]] = pixels.convert_im_type(
+                        read_stack(
+                            parameters_dir_path + "/" + file),
+                        "bool")
                     
                 else:
                     
-                    parameters_dict[file[:-5]] = pixels.convert_im_type(read_im(parameters_dir_path + "/" + file), "bool")
+                    parameters_dict[file[:-5]] = pixels.convert_im_type(
+                        read_im(
+                            parameters_dir_path + "/" + file),
+                        "bool")
     
     return parameters_dict
             

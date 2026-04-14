@@ -224,6 +224,7 @@ A widget for cropping an image using a pre-made mask (covered in Masking Tab).
 - "Specify Color" checkbox: leave unchecked to use default "Masked Color". Check to specify a color in "Color Value".
 - "Color Value" float: enter specific intensity value to assign to masked pixels remaining after cropping.
 - "Conserve RAM" checkbox: leave unchecked to create a new image layer from this operation. Check to overwrite the current image layer. If left checked, it is impossible to get the previous image back but a new array is not created, saving memory.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Crop" button: click to perform the crop operation.
 
 **Split**
@@ -311,6 +312,7 @@ A widget for masking an image using a pre-made mask.
 - "Masked Color" drop-down: select the default color to assign to masked pixels.
 - "Specify Color" checkbox: leave unchecked to use default "Masked Color". Check to specify a color in "Color Value".
 - "Color Value" float: enter specific intensity value to assign to masked pixels.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Mask" button: click to perform the mask operation.
 
 **Add Shape**
@@ -353,6 +355,7 @@ Note, mask logic will not go in the parameter log and cannot be performed in bat
 - "Mask 1" drop-down: images in the layer list. Select the first mask for the merging operation.
 - "Mask 2" drop-down: images in the layer list. Select the second mask for the merging operation.
 - "Method" drop-down: select "Union" to make all white areas in each mask white. Select subtract to subtract the white areas in the second mask from those in the first mask. Select "intersect" to make only the areas that are white in each mask white.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Perform Operation" button: click to perform the mask logic operation.
 
 Pixel Values Tab
@@ -401,6 +404,7 @@ A widget for clipping the image's histogram at extreme intensity values. Contras
 - "Parameterize Percentages" checkbox: if "Bounds as Percentages" is checked, check this to add the percentages used (rather than the actual intensity values used) to the parameters log for batch processing of other images/stacks.
 - "Apply Mask" checkbox: check to apply a mask to the image during saturation. Pixels that are masked will not be considered in the calculation of bounds percentages. This has no effect if "Bounds as Percentages" is unchecked.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Saturate" button: click to perform the saturation operation.
 
 **Equalize Histogram**
@@ -416,6 +420,7 @@ https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filte
 - "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Apply Mask" checkbox: check to apply a mask to the image during equalization. Pixels that are masked will not be considered in the equalization calculation.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Equalize Histogram" button: click to perform the equalization operation.
 
 **Re-Assign Intensities**
@@ -577,6 +582,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage
 - "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
 - "Apply Mask" checkbox: check to apply a mask to the image during labeling. Pixels that are masked will not be labeled.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Label Segmentation" button: click to perform the labeling operation.
 
 **Histogram Threshold**
@@ -594,6 +600,7 @@ https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.th
 - "Otsu Classes" integer: if "Method" is "Otsu", input the number of ROIs to segment.
 - "Apply Mask" checkbox: check to apply a mask to the image during segmentation. Pixels that are masked will not be included in the histogram.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Segment" button: click to perform the segmentation operation.
 
 **Local Threshold**
@@ -610,6 +617,7 @@ https://scikit-image.org/docs/stable/api/skimage.filters.rank.html#skimage.filte
 - "Savoula Sigma Range" float: if "Method" is "Savoula", input the dynamic standard deviation range. Leave as 0 for automatic calculation.
 - "Apply Mask" checkbox: check to apply a mask to the image during segmentation. Pixels that are masked will be segmented as background.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Segment" button" click to perform the segmentation operation.
 
 **Random Walk**
@@ -813,6 +821,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimag
 - "Y Max" float: input the maximum Y value.
 - "Num Bins" integer: input the number of bins for the histogram.
 - "Apply Mask" checkbox: check to apply a mask during histogram generation. Pixels that are masked will not be included.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Add as Parameter" checkbox: check to add the histogram generation step to the parameters log.
 - "Plot Histogram" button: click to plot the histogram.
@@ -830,6 +839,7 @@ A widget for generating gray level statistical plots along each axis of a 3D ima
 - "Image" drop-down: images in the layer list. Select the image to plot gray levels.
 - "Apply Mask" checkbox: check to apply a mask during gray level plotting. Masked pixels will not be included.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the gray level plot step to the parameters log.
 - "Plot Gray Level" button: click to plot the gray level statistics.
 
@@ -857,6 +867,7 @@ A widget for calculating miscellaneous information about an image/stack such as 
 - "Units" string: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the length units.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to include the miscellaneous calculation step in the parameters log to be output during batch processing.
 - "Calculate" button: click to perform the calculation operation.
 
@@ -881,6 +892,7 @@ A widget for generating a plot of measured volume or area of of a segmented phas
 - "Time Scale" float: if "Time Series" is checked, input the temporal length per slice.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the axial distribution plot generation to the parameters log.
 - "Export Data" checkbox: check to export the axial distribution data as a csv file upon generating the plot.
 - "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
@@ -907,6 +919,7 @@ A widget for generating a domain size distribution plot for a segmented image/st
 - "Max Bound" float: input the maximum bound to include in the bin generation. Leave as "0" to use the maximum measured value.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the domain size distribution plot generation to the parameters log.
 - "Plot Distribution" button: click to generate the domain size distribution plot.
 
@@ -927,6 +940,7 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Colorbar Label" string: if "Alternate Colorbar Label" is checked, input the alternate colorbar label.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Return Array" checkbox: check to return the generated heat map array as an image in the layers list for processing.
 - "Add as Parameter" checkbox: check to add the heat map generation step to the parameters log.
 - "Plot Heat Map" button: click to generate the heat map.

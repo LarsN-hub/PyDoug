@@ -21,10 +21,61 @@ from PyDoug.analyze import quant, plots
 
 # Functions
 
-def apply_parameters(im_array: np.ndarray,
-                     parameters_dict: dict[str, list, np.ndarray],
-                     file_name: str = None,
-                     save_dir: str = None) -> np.ndarray:
+def check_used_later(
+        parameter_name: str,
+        parameters_log: list[dict]) -> bool:
+    
+    if parameter_name == "Start":
+        
+        encountered_current_parameter = True
+        
+    else:
+        
+        encountered_current_parameter: bool = False
+    
+    encountered_later: bool = False
+    
+    for parameter in parameters_log:
+        
+        if not encountered_current_parameter:
+            
+            if parameter["Name"] == parameter_name:
+                
+                encountered_current_parameter = True
+        
+        else:
+            
+            if "Acting On" in list(parameter.keys()):
+                
+                if parameter["Acting On"] == parameter_name:
+                
+                    encountered_later = True
+                
+            if "Mask Used" in list(parameter.keys()):
+                
+                if parameter["Mask Used"] == parameter_name:
+                    
+                    encountered_later = True
+        
+    return encountered_later
+
+def check_in_parameters_dict(
+        parameter_name: str,
+        parameters_dict: dict) -> bool:
+    
+    if parameter_name in list(parameters_dict.keys()):
+        
+        return True
+    
+    else:
+        
+        return False
+
+def apply_parameters(
+        im_array: np.ndarray,
+        parameters_dict: dict[str, list, np.ndarray],
+        file_name: str = None,
+        save_dir: str = None) -> np.ndarray:
     
     parameters_log: list[dict] = parameters_dict["Parameters"]
     screenshot_index: int = 0
@@ -39,7 +90,38 @@ def apply_parameters(im_array: np.ndarray,
     heat_index: int = 0
     cmaps: dict = {}
     
-    for parameter in parameters_log:
+    for parameter_index, parameter in enumerate(parameters_log):
+        
+        if check_in_parameters_dict(
+                parameter["Name"],
+                parameters_dict):
+            
+            continue
+        
+        if parameter_index == 0:
+            
+            parameters_dict["Start"] = im_array
+            parameter["Acting On"] = "Start"
+            prev_name: str = parameter["Name"]
+            
+        else:
+            
+            if "Acting On" not in list(parameter.keys()):
+                
+                parameter["Acting On"] = prev_name
+                
+            prev_name: str = parameter["Name"]
+            
+        if check_used_later(
+                parameter["Acting On"],
+                parameters_log):
+            
+            im_array = parameters_dict[parameter["Acting On"]]
+            
+        else:
+            
+            im_array = parameters_dict.pop(parameter["Acting On"])
+        
         
         ##################
         # I/O Operations #
@@ -53,16 +135,22 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Layer Type"] == "labels":
                 
-                layer: napari.layers.Labels = viewer.add_labels(im_array)
+                layer: napari.layers.Labels = viewer.add_labels(
+                    parameters_dict[
+                        parameter["Acting On"]])
                 layer.iso_gradient_mode = parameter["ISO Gradient Mode"]
                 layer.rendering = parameter["Rendering"]
                 layer.colormap = cmaps[parameter["Colormap Used"]]
             
             elif parameter["Layer Type"] == "image":
                 
-                layer: napari.layers.Image = viewer.add_image(im_array)
+                layer: napari.layers.Image = viewer.add_image(
+                    parameters_dict[
+                        parameter["Acting On"]])
                 layer.colormap = parameter["Colormap"]
-                layer.contrast_limits = (float(parameter["Contrast Min"]), float(parameter["Contrast Max"]))
+                layer.contrast_limits = (
+                    float(parameter["Contrast Min"]),
+                    float(parameter["Contrast Max"]))
                 layer.gamma = float(parameter["Gamma"])
                 layer.projection_mode = parameter["Projection Mode"]
                 layer.rendering = parameter["Rendering"]
@@ -73,7 +161,11 @@ def apply_parameters(im_array: np.ndarray,
             
             else:
                 
-                layer: napari.layers.Layer = sv.create_layer_type(viewer, parameter["Layer Type"], im_array)
+                layer: napari.layers.Layer = sv.create_layer_type(
+                    viewer,
+                    parameter["Layer Type"],
+                    parameters_dict[
+                        parameter["Acting On"]])
             
             layer.blending = parameter["Blending"]
             layer.opacity = float(parameter["Opacity"])
@@ -93,7 +185,10 @@ def apply_parameters(im_array: np.ndarray,
             viewer.camera.orientation = orientation
             screenshot_array: np.ndarray = sv.get_screenshot(viewer)
             sv.close_viewer(viewer)  
-            rw.write_im(screenshot_array, save_dir, f"{file_name}_screenshot_{screenshot_index}")
+            rw.write_im(
+                screenshot_array,
+                save_dir,
+                f"{file_name}_screenshot_{screenshot_index}")
             screenshot_index += 1
             
         
@@ -101,13 +196,15 @@ def apply_parameters(im_array: np.ndarray,
         # Manipulate Operations #
         #########################
         
-        if parameter["Name"].find("Trimmed") == 0:
+        elif parameter["Name"].find("Trimmed") == 0:
             
             print("\nTrimming...")
             
             if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds: list = [int(parameter["X Min"]), int(parameter["X Max"])]
+                x_bounds: list = [
+                    int(parameter["X Min"]),
+                    int(parameter["X Max"])]
                 
             else:
                 
@@ -115,7 +212,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds: list = [int(parameter["Y Min"]), int(parameter["Y Max"])]
+                y_bounds: list = [
+                    int(parameter["Y Min"]),
+                    int(parameter["Y Max"])]
                 
             else:
                 
@@ -123,7 +222,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds: list = [int(parameter["Z Min"]), int(parameter["Z Max"])]
+                z_bounds: list = [
+                    int(parameter["Z Min"]),
+                    int(parameter["Z Max"])]
                 
             else:
                 
@@ -138,10 +239,11 @@ def apply_parameters(im_array: np.ndarray,
                 bounds_as_slices: bool = False
                 
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
-            im_array = cc.trim(im_array,
-                               bounds_dict = bounds_dict,
-                               bounds_as_slices = bounds_as_slices,
-                               conserve_mem = True)
+            im_array = cc.trim(
+                im_array,
+                bounds_dict = bounds_dict,
+                bounds_as_slices = bounds_as_slices,
+                conserve_mem = True)
         
         elif parameter["Name"].find("Padded") == 0:
             
@@ -149,7 +251,9 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["X Bounds"].lower() == "true":
                 
-                x_bounds: list = [int(parameter["X Min"]), int(parameter["X Max"])]
+                x_bounds: list = [
+                    int(parameter["X Min"]),
+                    int(parameter["X Max"])]
                 
             else:
                 
@@ -157,7 +261,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Y Bounds"].lower() == "true":
                 
-                y_bounds: list = [int(parameter["Y Min"]), int(parameter["Y Max"])]
+                y_bounds: list = [
+                    int(parameter["Y Min"]),
+                    int(parameter["Y Max"])]
                 
             else:
                 
@@ -165,7 +271,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Z Bounds"].lower() == "true":
                 
-                z_bounds: list = [int(parameter["Z Min"]), int(parameter["Z Max"])]
+                z_bounds: list = [
+                    int(parameter["Z Min"]),
+                    int(parameter["Z Max"])]
                 
             else:
                 
@@ -188,11 +296,12 @@ def apply_parameters(im_array: np.ndarray,
                 padded_color: int = int(parameter["Padded Color"])
                 
             bounds_dict: dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
-            im_array = cc.pad(im_array,
-                              bounds_dict = bounds_dict,
-                              bounds_as_slices = bounds_as_slices,
-                              padded_color = padded_color,
-                              conserve_mem = True)
+            im_array = cc.pad(
+                im_array,
+                bounds_dict = bounds_dict,
+                bounds_as_slices = bounds_as_slices,
+                padded_color = padded_color,
+                conserve_mem = True)
         
         elif parameter["Name"].find("Cropped") == 0:
             
@@ -207,15 +316,18 @@ def apply_parameters(im_array: np.ndarray,
                 mask_color: int = int(parameter["Masked Color"])
             
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
-            im_array = cc.crop(im_array, mask_array,
-                               mask_color = mask_color,
-                               conserve_mem = True)
+            im_array = cc.crop(
+                im_array,
+                mask_array,
+                mask_color = mask_color,
+                conserve_mem = True)
             
         elif parameter["Name"].find("Extend") == 0:
             
             print("\nExtending...")
-            
-            im_array = cc.project_mask(im_array, num_slices = int(parameter["Slice Count"]) - 1)
+            im_array = cc.project_mask(
+                im_array,
+                num_slices = int(parameter["Slice Count"]) - 1)
         
         
         ########################
@@ -225,7 +337,10 @@ def apply_parameters(im_array: np.ndarray,
         elif parameter["Name"].find("Resliced") == 0:
             
             print("\nReslicing...")
-            im_array = trans.reslice(im_array, parameter["Orientation"])
+            
+            im_array = trans.reslice(
+                im_array,
+                parameter["Orientation"])
         
         elif parameter["Name"].find("Rotated") == 0:
             
@@ -241,13 +356,19 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Clockwise"].lower() == "true":
                 
-                im_array = trans.rotate(im_array, float(parameter["Angle"]),
-                                        "CW", resize = resize)
+                im_array = trans.rotate(
+                    im_array, float(
+                        parameter["Angle"]),
+                    "CW",
+                    resize = resize)
                 
             else:
                 
-                im_array = trans.rotate(im_array, float(parameter["Angle"]),
-                                        resize = resize)
+                im_array = trans.rotate(
+                    im_array,
+                    float(
+                        parameter["Angle"]),
+                    resize = resize)
         
         elif parameter["Name"].find("Mirrored") == 0:
             
@@ -315,10 +436,21 @@ def apply_parameters(im_array: np.ndarray,
                 mask_color: int = int(parameter["Masked Color"])
                 
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
-            im_array = cc.mask(im_array, mask_array,
-                               method = parameter["Method"],
-                               mask_color = mask_color,
-                               conserve_mem = True)
+            im_array = cc.mask(
+                im_array,
+                mask_array,
+                method = parameter["Method"],
+                mask_color = mask_color,
+                conserve_mem = True)
+            
+        elif parameter["Name"].find("Mask Logic") == 0:
+            
+            print("\nLogic operation...")
+            mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+            im_array = cc.mask_logic(
+                im_array,
+                mask_array,
+                parameter["Method"])
         
         
         ###########################
@@ -339,16 +471,20 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Bounds"].lower() == "true":
                 
-                im_array = pixels.convert_im_type(im_array,
-                                                  parameter["Type"],
-                                                  norm = auto_normalize,
-                                                  float_bounds = (float(parameter["Min"]), float(parameter["Max"])))
+                im_array = pixels.convert_im_type(
+                    im_array,
+                    parameter["Type"],
+                    norm = auto_normalize,
+                    float_bounds = (
+                        float(parameter["Min"]),
+                        float(parameter["Max"])))
                 
             else:
                 
-                im_array = pixels.convert_im_type(im_array,
-                                                  parameter["Type"],
-                                                  norm = auto_normalize)
+                im_array = pixels.convert_im_type(
+                    im_array,
+                    parameter["Type"],
+                    norm = auto_normalize)
         
         elif parameter["Name"].find("Normalized") == 0:
             
@@ -356,7 +492,9 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Input Range"].lower() == "true":
                 
-                in_range: tuple = (float(parameter["Input Min"]), float(parameter["Input Max"]))
+                in_range: tuple = (
+                    float(parameter["Input Min"]),
+                    float(parameter["Input Max"]))
                 
             else:
                 
@@ -364,15 +502,18 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Output Range"].lower() == "true":
                 
-                out_range: tuple = (float(parameter["Output Min"]), float(parameter["Output Max"]))
+                out_range: tuple = (
+                    float(parameter["Output Min"]),
+                    float(parameter["Output Max"]))
                 
             else:
                 
                 out_range: str = "dtype"
                 
-            im_array = pixels.normalize(im_array,
-                                        in_range = in_range,
-                                        out_range = out_range)
+            im_array = pixels.normalize(
+                im_array,
+                in_range = in_range,
+                out_range = out_range)
         
         elif parameter["Name"].find("Saturated") == 0:
             
@@ -396,17 +537,21 @@ def apply_parameters(im_array: np.ndarray,
                 
             if bounds_as_percentages and parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
                 mask_array: None = None
                 
-            im_array = pixels.saturate(im_array,
-                                       (float(parameter["Min Bound"]), float(parameter["Max Bound"])),
-                                       auto_normalize = auto_normalize,
-                                       bounds_as_percents = bounds_as_percentages,
-                                       mask_array = mask_array)
+            im_array = pixels.saturate(
+                im_array,
+                (
+                    float(parameter["Min Bound"]),
+                    float(parameter["Max Bound"])),
+                auto_normalize = auto_normalize,
+                bounds_as_percents = bounds_as_percentages,
+                mask_array = mask_array)
         
         elif parameter["Name"].find("Equalized") == 0:
             
@@ -414,7 +559,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -428,16 +574,18 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = pixels.equalize_histogram(im_array, parameter["Method"],
-                                                 mask_array = mask_array,
-                                                 radius = int(parameter["Local Radius"]),
-                                                 along_axis = along_axis,
-                                                 axis = int(parameter["Axis"]))
+            im_array = pixels.equalize_histogram(
+                im_array, parameter["Method"],
+                mask_array = mask_array,
+                radius = int(parameter["Local Radius"]),
+                along_axis = along_axis,
+                axis = int(parameter["Axis"]))
             
         elif parameter["Name"].find("Re-assigned") == 0:
             
             print("\nRe-assigning...")
-            im_array[im_array == float(parameter["Input Intensity"])] = float(parameter["Output Intensity"])  
+            im_array[im_array == float(parameter["Input Intensity"])] = float(
+                parameter["Output Intensity"])  
             
         elif parameter["Name"].find("Grayscale") == 0:
             
@@ -466,14 +614,15 @@ def apply_parameters(im_array: np.ndarray,
                 
                 win_size: int = int(parameter["Window Size"])
             
-            im_array = denoising.bilateral(im_array,
-                                           axis = int(parameter["Axis"]),
-                                           win_size = win_size,
-                                           sigma_color = float(parameter["Sigma Color"]),
-                                           sigma_spatial = float(parameter["Sigma Spatial"]),
-                                           bins = int(parameter["Bins"]),
-                                           mode = parameter["Mode"],
-                                           cval = float(parameter["CVal"]))
+            im_array = denoising.bilateral(
+                im_array,
+                axis = int(parameter["Axis"]),
+                win_size = win_size,
+                sigma_color = float(parameter["Sigma Color"]),
+                sigma_spatial = float(parameter["Sigma Spatial"]),
+                bins = int(parameter["Bins"]),
+                mode = parameter["Mode"],
+                cval = float(parameter["CVal"]))
         
         elif parameter["Name"].find("Gaussian") == 0:
             
@@ -487,13 +636,14 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = denoising.gaussian(im_array,
-                                          sigma = float(parameter["Sigma"]),
-                                          truncate = float(parameter["Truncate"]),
-                                          mode = parameter["Mode"],
-                                          cval = float(parameter["CVal"]),
-                                          axial = along_axis,
-                                          axis = int(parameter["Axis"]))
+            im_array = denoising.gaussian(
+                im_array,
+                sigma = float(parameter["Sigma"]),
+                truncate = float(parameter["Truncate"]),
+                mode = parameter["Mode"],
+                cval = float(parameter["CVal"]),
+                axial = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Non-Local Means") == 0:
             
@@ -507,19 +657,21 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = denoising.non_local_means(im_array,
-                                                 patch_size = int(parameter["Patch Size"]),
-                                                 patch_distance = int(parameter["Patch Distance"]),
-                                                 h = float(parameter["Cut Off Distance"]),
-                                                 sigma = float(parameter["Sigma"]),
-                                                 axial = along_axis,
-                                                 axis = int(parameter["Axis"]))
+            im_array = denoising.non_local_means(
+                im_array,
+                patch_size = int(parameter["Patch Size"]),
+                patch_distance = int(parameter["Patch Distance"]),
+                h = float(parameter["Cut Off Distance"]),
+                sigma = float(parameter["Sigma"]),
+                axial = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Removed Background") == 0:
             
             print("\nRemoving background...")
-            im_array = denoising.remove_background(im_array,
-                                                   radius = int(parameter["Radius"]))
+            im_array = denoising.remove_background(
+                im_array,
+                radius = int(parameter["Radius"]))
             
         elif parameter["Name"].find("Ring Removal") == 0:
             
@@ -535,21 +687,23 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Method"] == "FFT":
                 
-                im_array = fourier.fft_ring_removal(im_array,
-                                                    cutoff_freq = int(parameter["FFT Freq Cutoff"]),
-                                                    filter_order = int(parameter["FFT Filter Order"]),
-                                                    rows = int(parameter["FFT Rows"]),
-                                                    sorting = sorting,
-                                                    square_axis = int(parameter["Square Axis"]))
+                im_array = fourier.fft_ring_removal(
+                    im_array,
+                    cutoff_freq = int(parameter["FFT Freq Cutoff"]),
+                    filter_order = int(parameter["FFT Filter Order"]),
+                    rows = int(parameter["FFT Rows"]),
+                    sorting = sorting,
+                    square_axis = int(parameter["Square Axis"]))
             
             elif parameter["Method"] == "Wavelet":
                 
-                im_array = fourier.wavelet_ring_removal(im_array,
-                                                        level = int(parameter["Wavelet Level"]),
-                                                        size = int(parameter["Wavelet Damping Size"]),
-                                                        wavelet = parameter["Wavelet"],
-                                                        sorting = sorting,
-                                                        square_axis = int(parameter["Square Axis"]))
+                im_array = fourier.wavelet_ring_removal(
+                    im_array,
+                    level = int(parameter["Wavelet Level"]),
+                    size = int(parameter["Wavelet Damping Size"]),
+                    wavelet = parameter["Wavelet"],
+                    sorting = sorting,
+                    square_axis = int(parameter["Square Axis"]))
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
@@ -571,13 +725,14 @@ def apply_parameters(im_array: np.ndarray,
                 
                 isotropic: bool = False
                 
-            im_array = denoising.tv_bregman(im_array,
-                                            weight = float(parameter["Weight"]),
-                                            eps = float(parameter["Epsilon"]),
-                                            max_num_iter = int(parameter["Max Iterations"]),
-                                            isotropic = isotropic,
-                                            axial = along_axis,
-                                            axis = int(parameter["Axis"]))
+            im_array = denoising.tv_bregman(
+                im_array,
+                weight = float(parameter["Weight"]),
+                eps = float(parameter["Epsilon"]),
+                max_num_iter = int(parameter["Max Iterations"]),
+                isotropic = isotropic,
+                axial = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("TV Chambolle") == 0:
             
@@ -591,12 +746,13 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = denoising.tv_chambolle(im_array,
-                                              weight = float(parameter["Weight"]),
-                                              eps = float(parameter["Epsilon"]),
-                                              max_num_iter = int(parameter["Max Iterations"]),
-                                              axial = along_axis,
-                                              axis = int(parameter["Axis"]))
+            im_array = denoising.tv_chambolle(
+                im_array,
+                weight = float(parameter["Weight"]),
+                eps = float(parameter["Epsilon"]),
+                max_num_iter = int(parameter["Max Iterations"]),
+                axial = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Wavelet") == 0:
             
@@ -634,15 +790,16 @@ def apply_parameters(im_array: np.ndarray,
                 
                 wavelet_levels: int = int(parameter["Wavelet Levels"])
                 
-            im_array = denoising.wavelet(im_array,
-                                         wavelet = parameter["Wavelet"],
-                                         mode = parameter["Mode"],
-                                         sigma = sigma,
-                                         wavelet_levels = wavelet_levels,
-                                         rescale_sigma = rescale_sigma,
-                                         method = parameter["Threshold Method"],
-                                         axial = along_axis,
-                                         axis = int(parameter["Axis"]))
+            im_array = denoising.wavelet(
+                im_array,
+                wavelet = parameter["Wavelet"],
+                mode = parameter["Mode"],
+                sigma = sigma,
+                wavelet_levels = wavelet_levels,
+                rescale_sigma = rescale_sigma,
+                method = parameter["Threshold Method"],
+                axial = along_axis,
+                axis = int(parameter["Axis"]))
         
         
         ###########################
@@ -652,8 +809,11 @@ def apply_parameters(im_array: np.ndarray,
         elif parameter["Name"].find("Manual Threshold") == 0:
             
             print("\nManual thresholding...")
-            im_array = thresh.gui_threshold(im_array,
-                                            (float(parameter["Min"]), float(parameter["Max"])))
+            im_array = thresh.gui_threshold(
+                im_array,
+                (
+                    float(parameter["Min"]),
+                    float(parameter["Max"])))
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
             
@@ -661,16 +821,18 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
                 mask_array: None = None
                 
-            im_array = thresh.hist(im_array,
-                                   method = parameter["Method"],
-                                   otsu_classes = int(parameter["Otsu Classes"]),
-                                   mask_array = mask_array)
+            im_array = thresh.hist(
+                im_array,
+                method = parameter["Method"],
+                otsu_classes = int(parameter["Otsu Classes"]),
+                mask_array = mask_array)
         
         elif parameter["Name"].find("Local Threshold") == 0:
             
@@ -678,7 +840,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -692,13 +855,14 @@ def apply_parameters(im_array: np.ndarray,
                 
                 r: float = float(parameter["Sigma Range"])
                 
-            im_array = thresh.local(im_array,
-                                    mask_array = mask_array,
-                                    method = parameter["Method"],
-                                    radius = int(parameter["Radius"]),
-                                    window_size = int(parameter["Radius"]),
-                                    k = float(parameter["Sigma Weight"]),
-                                    r = r)
+            im_array = thresh.local(
+                im_array,
+                mask_array = mask_array,
+                method = parameter["Method"],
+                radius = int(parameter["Radius"]),
+                window_size = int(parameter["Radius"]),
+                k = float(parameter["Sigma Weight"]),
+                r = r)
         
         elif parameter["Name"].find("Label") == 0:
             
@@ -720,12 +884,13 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = thresh.label(im_array,
-                                    mask_array = mask_array,
-                                    connectivity = int(parameter["Connectivity"]),
-                                    background = float(parameter["Background"]),
-                                    positional = along_axis,
-                                    axis = int(parameter["Axis"]))
+            im_array = thresh.label(
+                im_array,
+                mask_array = mask_array,
+                connectivity = int(parameter["Connectivity"]),
+                background = float(parameter["Background"]),
+                positional = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Watershed") == 0:
             
@@ -747,31 +912,37 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = detect.watershed(im_array,
-                                        mask_array = mask_array,
-                                        background = float(parameter["Background"]),
-                                        connectivity = int(parameter["Connectivity"]),
-                                        radius = int(parameter["Watershed Radius"]),
-                                        compactness = float(parameter["Watershed Compactness"]),
-                                        along_axis = along_axis,
-                                        axis = int(parameter["Axis"]))
+            im_array = detect.watershed(
+                im_array,
+                mask_array = mask_array,
+                background = float(parameter["Background"]),
+                connectivity = int(parameter["Connectivity"]),
+                radius = int(parameter["Watershed Radius"]),
+                compactness = float(parameter["Watershed Compactness"]),
+                along_axis = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Random Walk") == 0:
             
             print("\nRandom walk thresholding...")
-            im_array = detect.random_walk(im_array,
-                                          (float(parameter["Lower Percentile"]), float(parameter["Upper Percentile"])),
-                                          float(parameter["Beta"]))
+            im_array = detect.random_walk(
+                im_array,
+                (
+                    float(parameter["Lower Percentile"]),
+                    float(parameter["Upper Percentile"])),
+                float(parameter["Beta"]))
         
         elif parameter["Name"].find("Morph Snakes") == 0:
             
             print("\nMorphological snakes thresholding...")
-            im_array = detect.morph_snakes(im_array, parameter["Method"],
-                                           square_size = int(parameter["Square Size"]),
-                                           num_iter = int(parameter["Iterations"]),
-                                           smoothing = int(parameter["Smoothing"]),
-                                           alpha = float(parameter["Alpha"]),
-                                           sigma = float(parameter["Sigma"]))
+            im_array = detect.morph_snakes(
+                im_array,
+                parameter["Method"],
+                square_size = int(parameter["Square Size"]),
+                num_iter = int(parameter["Iterations"]),
+                smoothing = int(parameter["Smoothing"]),
+                alpha = float(parameter["Alpha"]),
+                sigma = float(parameter["Sigma"]))
         
         
         #########################
@@ -790,13 +961,15 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = morph.remove_objects(im_array, float(parameter["Size Threshold"]),
-                                            parameter["Method"],
-                                            background = int(parameter["Background"]),
-                                            pixel_size = float(parameter["Pixel Size"]),
-                                            connectivity = int(parameter["Connectivity"]),
-                                            along_axis = along_axis,
-                                            axis = int(parameter["Axis"]))
+            im_array = morph.remove_objects(
+                im_array,
+                float(parameter["Size Threshold"]),
+                parameter["Method"],
+                background = int(parameter["Background"]),
+                pixel_size = float(parameter["Pixel Size"]),
+                connectivity = int(parameter["Connectivity"]),
+                along_axis = along_axis,
+                axis = int(parameter["Axis"]))
         
         elif parameter["Name"].find("Dilation") == 0:
             
@@ -810,8 +983,10 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = morph.dilation(im_array, int(parameter["Iterations"]),
-                                      along_axis = along_axis)
+            im_array = morph.dilation(
+                im_array,
+                int(parameter["Iterations"]),
+                along_axis = along_axis)
         
         elif parameter["Name"].find("Erosion") == 0:
             
@@ -825,8 +1000,10 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
                 
-            im_array = morph.erosion(im_array, int(parameter["Iterations"]),
-                                     along_axis = along_axis)
+            im_array = morph.erosion(
+                im_array,
+                int(parameter["Iterations"]),
+                along_axis = along_axis)
         
         elif parameter["Name"].find("Closing") == 0:
             
@@ -840,10 +1017,11 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
             
-            im_array = morph.closing(im_array,
-                                     int(parameter["Dilations"]),
-                                     int(parameter["Erosions"]),
-                                     along_axis = along_axis)
+            im_array = morph.closing(
+                im_array,
+                int(parameter["Dilations"]),
+                int(parameter["Erosions"]),
+                along_axis = along_axis)
         
         elif parameter["Name"].find("Opening") == 0:
             
@@ -857,10 +1035,11 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
             
-            im_array = morph.opening(im_array,
-                                     int(parameter["Erosions"]),
-                                     int(parameter["Dilations"]),
-                                     along_axis = along_axis)
+            im_array = morph.opening(
+                im_array,
+                int(parameter["Erosions"]),
+                int(parameter["Dilations"]),
+                along_axis = along_axis)
         
         elif parameter["Name"].find("Top Hat") == 0:
             
@@ -874,11 +1053,12 @@ def apply_parameters(im_array: np.ndarray,
                 
                 along_axis: bool = False
             
-            im_array = morph.tophat(im_array,
-                                    parameter["Method"],
-                                    int(parameter["Dilations"]),
-                                    int(parameter["Erosions"]),
-                                    along_axis = along_axis)
+            im_array = morph.tophat(
+                im_array,
+                parameter["Method"],
+                int(parameter["Dilations"]),
+                int(parameter["Erosions"]),
+                along_axis = along_axis)
             
             
         #######################
@@ -964,7 +1144,9 @@ def apply_parameters(im_array: np.ndarray,
             im_array = detect.ridges(
                 im_array,
                 method = parameter["Method"],
-                scale_range = (float(parameter["Scale Min"]), float(parameter["Scale Max"])),
+                scale_range = (
+                    float(parameter["Scale Min"]),
+                    float(parameter["Scale Max"])),
                 scale_step = float(parameter["Scale Step"]),
                 alpha = float(parameter["Alpha"]),
                 beta = float(parameter["Beta"]),
@@ -1032,7 +1214,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -1044,7 +1227,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             else:
                 
-                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                x_lims: tuple = (
+                    float(parameter["X Min"]),
+                    float(parameter["X Max"]))
                 
             if float(parameter["Y Max"]) == 0:
                 
@@ -1079,25 +1264,35 @@ def apply_parameters(im_array: np.ndarray,
                 nbins: int = int(parameter["Num Bins"])
                 
             fig, hist_ax = plt.subplots(layout = "constrained")
-            hist_ax: plt.Axes = plots.histogram_axis(im_array, hist_ax,
-                                                     x_label = "Gray Value",
-                                                     mask_array = mask_array,
-                                                     xlims = x_lims,
-                                                     ylims = y_lims,
-                                                     ignore_edges = ignore_edges,
-                                                     normalize = normalize,
-                                                     nbins = nbins)
+            hist_ax: plt.Axes = plots.histogram_axis(
+                im_array,
+                hist_ax,
+                x_label = "Gray Value",
+                mask_array = mask_array,
+                xlims = x_lims,
+                ylims = y_lims,
+                ignore_edges = ignore_edges,
+                normalize = normalize,
+                nbins = nbins)
             
             if parameter["Add CDF"].lower() == "true":
                 
                 cdf_ax: plt.Axes = hist_ax.twinx()
-                cdf_ax = plots.cdf_axis(im_array, cdf_ax,
-                                        x_label = "Gray Value",
-                                        mask_array = mask_array,
-                                        xlims = x_lims)
-                cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom")
+                cdf_ax = plots.cdf_axis(
+                    im_array,
+                    cdf_ax,
+                    x_label = "Gray Value",
+                    mask_array = mask_array,
+                    xlims = x_lims)
+                cdf_ax.set_ylabel(
+                    "Probability",
+                    rotation = 270,
+                    va = "bottom")
                 
-            rw.write_plot(fig, f"{file_name}_histogram_{hist_index}", save_dir)
+            rw.write_plot(
+                fig,
+                f"{file_name}_histogram_{hist_index}",
+                save_dir)
             plt.close(fig)
             hist_index += 1
         
@@ -1107,14 +1302,18 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
                 mask_array: None = None
                 
             fig = plots.gray_level(im_array, mask_array = mask_array)
-            rw.write_plot(fig, f"{file_name}_gray_levels_{gray_index}", save_dir)
+            rw.write_plot(
+                fig,
+                f"{file_name}_gray_levels_{gray_index}",
+                save_dir)
             plt.close(fig)
             gray_index += 1
             
@@ -1136,7 +1335,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -1145,26 +1345,38 @@ def apply_parameters(im_array: np.ndarray,
             if parameter["Method"] == "Stats":
             
                 print("\nCalculating statistics...")
-                stats_df: pd.DataFrame = quant.global_statistics(im_array, mask_array = mask_array)
+                stats_df: pd.DataFrame = quant.global_statistics(
+                    im_array,
+                    mask_array = mask_array)
                 stats_df.insert(0, "File Name", file_name)
                 save_path: str = save_dir + f"/Stats_{stats_index}.csv"
                 
                 if not os.path.isfile(save_path):
                     
-                    stats_df.to_csv(save_path, header = "column_names", index = False)
+                    stats_df.to_csv(
+                        save_path,
+                        header = "column_names",
+                        index = False)
                     
                 else:
                     
-                    stats_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    stats_df.to_csv(
+                        save_path,
+                        mode = "a",
+                        header = False,
+                        index = False)
                     
                 stats_index += 1
                 
             elif parameter["Method"] == "Percent Intensities":
                 
                 print("\nCalculating percentage intensities...")
-                _ = quant.get_percent_intensities(im_array,
-                                                  percentages = (float(parameter["Min Percent"]), float(parameter["Max Percent"])),
-                                                  mask_array = mask_array)
+                _ = quant.get_percent_intensities(
+                    im_array,
+                    percentages = (
+                        float(parameter["Min Percent"]),
+                        float(parameter["Max Percent"])),
+                    mask_array = mask_array)
                 
             elif parameter["Method"] == "Total Quantity":
                 
@@ -1187,35 +1399,38 @@ def apply_parameters(im_array: np.ndarray,
                 if parameter["Quantity Measured"] == "Volume":
                     
                     print("\nMeasuring volume...")
-                    quantity_df: pd.DataFrame = quant.get_volume(im_array,
-                                                                 mask_array = mask_array,
-                                                                 scale = float(parameter["Pixel Size"]),
-                                                                 units = parameter["Units"],
-                                                                 include_background = include_background,
-                                                                 background = float(parameter["Background"]),
-                                                                 normalize = auto_normalize)
+                    quantity_df: pd.DataFrame = quant.get_volume(
+                        im_array,
+                        mask_array = mask_array,
+                        scale = float(parameter["Pixel Size"]),
+                        units = parameter["Units"],
+                        include_background = include_background,
+                        background = float(parameter["Background"]),
+                        normalize = auto_normalize)
                 
                 elif parameter["Quantity Measured"] == "Area":
                     
                     print("\nMeasuring area...")
-                    quantity_df: pd.DataFrame = quant.get_area(im_array,
-                                                               mask_array = mask_array,
-                                                               scale = float(parameter["Pixel Size"]),
-                                                               units = parameter["Units"],
-                                                               include_background = include_background,
-                                                               background = float(parameter["Background"]),
-                                                               normalize = auto_normalize)
+                    quantity_df: pd.DataFrame = quant.get_area(
+                        im_array,
+                        mask_array = mask_array,
+                        scale = float(parameter["Pixel Size"]),
+                        units = parameter["Units"],
+                        include_background = include_background,
+                        background = float(parameter["Background"]),
+                        normalize = auto_normalize)
                     
                 elif parameter["Quantity Measured"] == "Length":
                     
                     print("\nMeasuring length...")
-                    quantity_df: pd.DataFrame = quant.get_length(im_array,
-                                                                 mask_array = mask_array,
-                                                                 scale = float(parameter["Pixel Size"]),
-                                                                 units = parameter["Units"],
-                                                                 include_background = include_background,
-                                                                 background = float(parameter["Background"]),
-                                                                 normalize = auto_normalize)
+                    quantity_df: pd.DataFrame = quant.get_length(
+                        im_array,
+                        mask_array = mask_array,
+                        scale = float(parameter["Pixel Size"]),
+                        units = parameter["Units"],
+                        include_background = include_background,
+                        background = float(parameter["Background"]),
+                        normalize = auto_normalize)
                     
                 quantity_df.insert(0, "File Name", file_name)
                 quantity_df["Units"] = quantity_df.attrs["units"]
@@ -1223,55 +1438,80 @@ def apply_parameters(im_array: np.ndarray,
                 
                 if not os.path.isfile(save_path):
                     
-                    quantity_df.to_csv(save_path, header = "column_names", index = False)
+                    quantity_df.to_csv(
+                        save_path,
+                        header = "column_names",
+                        index = False)
                     
                 else:
                     
-                    quantity_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    quantity_df.to_csv(
+                        save_path,
+                        mode = "a",
+                        header = False,
+                        index = False)
                     
                 quantity_index += 1
                 
             elif parameter["Method"] == "Surface Perimeter/Area":
                 
                 print("\nCalculating surface perimeter/area...")
-                surf_df: pd.DataFrame = quant.get_surface_contact(im_array,
-                                                                  float(parameter["Surface Phase"]),
-                                                                  mask_array = mask_array,
-                                                                  pixel_size = float(parameter["Pixel Size"]),
-                                                                  units = parameter["Units"])
+                surf_df: pd.DataFrame = quant.get_surface_contact(
+                    im_array,
+                    float(parameter["Surface Phase"]),
+                    mask_array = mask_array,
+                    pixel_size = float(parameter["Pixel Size"]),
+                    units = parameter["Units"])
                 save_path: str = save_dir + f"/Surface_Area_{surf_index}.csv"
                 surf_df.insert(0, "File Name", file_name)
                 surf_df["Units"] = surf_df.attrs["units"]
                 
                 if not os.path.isfile(save_path):
                     
-                    surf_df.to_csv(save_path, header = "column_names", index = False)
+                    surf_df.to_csv(
+                        save_path,
+                        header = "column_names",
+                        index = False)
                     
                 else:
                     
-                    surf_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    surf_df.to_csv(
+                        save_path,
+                        mode = "a",
+                        header = False,
+                        index = False)
                     
                 surf_index += 1
                 
             elif parameter["Method"] == "Contact Perimeter/Area":
                 
                 print("\nCalculating contact perimeter/area...")
-                cont_df: pd.DataFrame = quant.get_surface_contact(im_array,
-                                                                  (float(parameter["Contact Phase 1"]), float(parameter["Contact Phase 2"])),
-                                                                  mask_array = mask_array,
-                                                                  pixel_size = float(parameter["Pixel Size"]),
-                                                                  units = parameter["Units"])
+                cont_df: pd.DataFrame = quant.get_surface_contact(
+                    im_array,
+                    (
+                        float(parameter["Contact Phase 1"]),
+                        float(parameter["Contact Phase 2"])),
+                    mask_array = mask_array,
+                    pixel_size = float(parameter["Pixel Size"]),
+                    units = parameter["Units"])
                 save_path: str = save_dir + f"/Contact_Area_{cont_index}.csv"
                 cont_df.insert(0, "File Name", file_name)
                 cont_df["Units"] = cont_df.attrs["units"]
                 
                 if not os.path.isfile(save_path):
                     
-                    cont_df.to_csv(save_path, header = "column_names", index = False)
+                    cont_df.to_csv(
+                        save_path,
+                        header = "column_names",
+                        index = False)
                     
                 else:
                     
-                    cont_df.to_csv(save_path, mode = "a", header = False, index = False)
+                    cont_df.to_csv(
+                        save_path,
+                        mode = "a",
+                        header = False,
+                        index = False)
                     
                 cont_index += 1
         
@@ -1281,7 +1521,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -1293,7 +1534,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             else:
                 
-                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                x_lims: tuple = (
+                    float(parameter["X Min"]),
+                    float(parameter["X Max"]))
                 
             if float(parameter["Y Max"]) == 0:
                 
@@ -1341,29 +1584,36 @@ def apply_parameters(im_array: np.ndarray,
                 temporal_scale = None
                 temporal_units = None
             
-            fig, line_df = plots.line(im_array, mode,
-                                      distrib_mode = distrib_mode,
-                                      size_mode = parameter["Type"],
-                                      pixel_size = float(parameter["Pixel Size"]),
-                                      units = parameter["Units"],
-                                      mask_array = mask_array,
-                                      temporal_scale = temporal_scale,
-                                      temporal_units = temporal_units,
-                                      axis = int(parameter["Axis"]),
-                                      include_background = include_background,
-                                      background = float(parameter["Background"]),
-                                      ignore_edges = ignore_edges,
-                                      normalize = normalize,
-                                      norm_method = parameter["Normalize Method"],
-                                      xlims = x_lims,
-                                      ylims = y_lims,
-                                      return_df = True)
-            rw.write_plot(fig, f"{file_name}_axial_distribution_{axis_dist_index}", save_dir)
+            fig, line_df = plots.line(
+                im_array, mode,
+                distrib_mode = distrib_mode,
+                size_mode = parameter["Type"],
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"],
+                mask_array = mask_array,
+                temporal_scale = temporal_scale,
+                temporal_units = temporal_units,
+                axis = int(parameter["Axis"]),
+                include_background = include_background,
+                background = float(parameter["Background"]),
+                ignore_edges = ignore_edges,
+                normalize = normalize,
+                norm_method = parameter["Normalize Method"],
+                xlims = x_lims,
+                ylims = y_lims,
+                return_df = True)
+            rw.write_plot(
+                fig,
+                f"{file_name}_axial_distribution_{axis_dist_index}",
+                save_dir)
             plt.close(fig)
             
             if parameter["Export Data"].lower() == "true":
                 
-                line_df.to_csv(f"{save_dir}/{file_name}_axial_distribution_{axis_dist_index}.csv", header = "column names", index = False)
+                line_df.to_csv(
+                    f"{save_dir}/{file_name}_axial_distribution_{axis_dist_index}.csv",
+                    header = "column names",
+                    index = False)
                 
             axis_dist_index += 1
         
@@ -1373,7 +1623,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -1385,7 +1636,9 @@ def apply_parameters(im_array: np.ndarray,
                 
             else:
                 
-                x_lims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+                x_lims: tuple = (
+                    float(parameter["X Min"]),
+                    float(parameter["X Max"]))
                 
             if float(parameter["Y Max"]) == 0:
                 
@@ -1435,21 +1688,25 @@ def apply_parameters(im_array: np.ndarray,
                 
                 x_label: None = None
             
-            fig = plots.size_distribution(im_array,
-                                          mode = parameter["Type"],
-                                          diam_rad_mode = parameter["Diameter Radius Mode"],
-                                          units = parameter["Units"],
-                                          x_label = x_label,
-                                          mask_array = mask_array,
-                                          xlims = x_lims,
-                                          ylims = y_lims,
-                                          pixel_size = float(parameter["Pixel Size"]),
-                                          normalize = normalize,
-                                          ignore_edges = ignore_edges,
-                                          background = float(parameter["Background"]),
-                                          nbins = nbins,
-                                          max_bound = max_bound)
-            rw.write_plot(fig, f"{file_name}_size_distribution_{psd_index}", save_dir)
+            fig = plots.size_distribution(
+                im_array,
+                mode = parameter["Type"],
+                diam_rad_mode = parameter["Diameter Radius Mode"],
+                units = parameter["Units"],
+                x_label = x_label,
+                mask_array = mask_array,
+                xlims = x_lims,
+                ylims = y_lims,
+                pixel_size = float(parameter["Pixel Size"]),
+                normalize = normalize,
+                ignore_edges = ignore_edges,
+                background = float(parameter["Background"]),
+                nbins = nbins,
+                max_bound = max_bound)
+            rw.write_plot(
+                fig,
+                f"{file_name}_size_distribution_{psd_index}",
+                save_dir)
             plt.close(fig)
             psd_index += 1
         
@@ -1459,7 +1716,8 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Apply Mask"].lower() == "true":
                 
-                mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
                 
             else:
                 
@@ -1475,22 +1733,25 @@ def apply_parameters(im_array: np.ndarray,
                 
             if parameter["Define Limits"].lower() == "true":
                 
-                clim: tuple = (float(parameter["Min Value"]), float(parameter["Max Value"]))
+                clim: tuple = (
+                    float(parameter["Min Value"]),
+                    float(parameter["Max Value"]))
                 
             else:
                 
                 clim: None = None
                 
-            fig = plots.heat_map(im_array,
-                                 mode = parameter["Method"],
-                                 cmap = parameter["Color Map"],
-                                 clim = clim,
-                                 mask_array = mask_array,
-                                 pixel_size = float(parameter["Pixel Size"]),
-                                 units = parameter["Units"],
-                                 axis = int(parameter["Axis"]),
-                                 height_orientation = parameter["Height Direction"],
-                                 cbar_label = colorbar_label)
+            fig = plots.heat_map(
+                im_array,
+                mode = parameter["Method"],
+                cmap = parameter["Color Map"],
+                clim = clim,
+                mask_array = mask_array,
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"],
+                axis = int(parameter["Axis"]),
+                height_orientation = parameter["Height Direction"],
+                cbar_label = colorbar_label)
             rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
             plt.close(fig)
             heat_index += 1
@@ -1511,31 +1772,39 @@ def apply_parameters(im_array: np.ndarray,
             
             if parameter["Gradient"].lower() == "true":
                 
-                im_array = thresh.create_axial_labels(im_array, int(parameter["Gradient Axis"]))
+                im_array = thresh.create_axial_labels(
+                    im_array,
+                    int(parameter["Gradient Axis"]))
                 
                 if parameter["Define Limits"].lower() == "true":
                     
-                    lab_limits: tuple = (float(parameter["Min Value"]), float(parameter["Max Value"]))
+                    lab_limits: tuple = (
+                        float(parameter["Min Value"]),
+                        float(parameter["Max Value"]))
                     
                 else:
                     
-                    lab_limits: tuple = ((np.unique(im_array)[0] * float(parameter["Pixel Scale"])), (np.unique(im_array)[-1] * float(parameter["Pixel Scale"])))
+                    lab_limits: tuple = (
+                        (np.unique(im_array)[0] * float(parameter["Pixel Scale"])),
+                        (np.unique(im_array)[-1] * float(parameter["Pixel Scale"])))
                     
-                cmap, cbar = util.get_colormap(im_array,
-                                               lab_limits = lab_limits, 
-                                               cmap = parameter["Color Map"],
-                                               cbar_scale = float(parameter["Pixel Scale"]),
-                                               cbar_units = parameter["Units"],
-                                               cbar_label = parameter["Colorbar Label"])
+                cmap, cbar = util.get_colormap(
+                    im_array,
+                    lab_limits = lab_limits, 
+                    cmap = parameter["Color Map"],
+                    cbar_scale = float(parameter["Pixel Scale"]),
+                    cbar_units = parameter["Units"],
+                    cbar_label = parameter["Colorbar Label"])
                 
             else:
                 
                 cmap: None = None
                 
             cmaps[parameter["Name"]] = cmap
-        
+            
+        parameters_dict[parameter["Name"]] = im_array
     
-    return im_array
+    return parameters_dict[parameter["Name"]]
 
 
 # Main
@@ -1589,13 +1858,21 @@ def main(im_format: str = "Stacks",
             im_array: np.ndarray = rw.read_im(im_path)
         
         save_name: str = f"{file_name}_PyDoug"
-        im_array = apply_parameters(im_array, parameters_dict, save_name, save_dir)
+        im_array = apply_parameters(
+            im_array,
+            parameters_dict.copy(),
+            save_name,
+            save_dir)
         
         if export_images:
         
             if im_format == "Stacks":
                 
-                rw.write_stack(im_array, save_dir, save_name, multi_page = export_multi_page)
+                rw.write_stack(
+                    im_array,
+                    save_dir,
+                    save_name,
+                    multi_page = export_multi_page)
             
             elif im_format == "Singles":
                 

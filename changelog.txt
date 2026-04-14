@@ -1,3 +1,8 @@
+v0.7.0-alpha
+- Added ability to create unique masks for each batch processing dataset instead of only using the same mask for all datasets for all widgets using masks
+- Overhauled batch processing operation to selectively not overwrite the image file on each operation in order to enable the above without causing memory issues
+- Added mask logic widget to batch processing
+
 v0.6.4-alpha
 - Added threshold readouts when using histogram-based thresholding (like Otsu)
 - Increased font sizes in all plots
