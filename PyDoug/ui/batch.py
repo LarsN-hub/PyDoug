@@ -864,7 +864,7 @@ def apply_parameters(
                 k = float(parameter["Sigma Weight"]),
                 r = r)
         
-        elif parameter["Name"].find("Label") == 0:
+        elif parameter["Name"].find("Label Segmentation") == 0:
             
             print("\nConnectivity labeling...")
             

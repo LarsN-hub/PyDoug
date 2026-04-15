@@ -1848,7 +1848,7 @@ class ImageProcessor:
         if Method == "Connectivity":
                 
             param_layer_name = get_param_layer_name(
-                "Label",
+                "Label Segmentation",
                 self.operation_count)
             self.parameters_log.append(
                 {"Name": param_layer_name,
