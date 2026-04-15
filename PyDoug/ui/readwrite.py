@@ -568,7 +568,7 @@ def write_parameters(
         
         for key in parameter:
             
-            if parameter[key] == name_2_replace:
+            if parameter[key] == name_2_replace and key == "Acting On":
                 
                 parameter[key] = "Start"
                 
@@ -587,9 +587,17 @@ def write_parameters(
             
             if parameter["Apply Mask"] and not parameter["Unique Masks"]:
                 
+                if parameter["Mask Used"] == "Start":
+                    
+                    search_name: str = parameter["Original Name"]
+                    
+                else:
+                    
+                    search_name: str = parameter["Mask Used"]
+                
                 mask_layer: napari.layers.Image = sv.get_layer(
                     viewer,
-                    parameter["Mask Used"])
+                    search_name)
                     
                 if mask_layer != None:
                     
