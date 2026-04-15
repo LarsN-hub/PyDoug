@@ -1,3 +1,6 @@
+v0.7.3-alpha
+- Fixed watershed labelling crashing PyDoug on empty image arrays
+
 v0.7.2-alpha
 - Fixed obscene width of color bar generated in the "Image to Labels" widget
 

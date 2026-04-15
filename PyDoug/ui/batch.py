@@ -866,7 +866,7 @@ def apply_parameters(
         
         elif parameter["Name"].find("Label") == 0:
             
-            print("\nConnectivity labelling...")
+            print("\nConnectivity labeling...")
             
             if parameter["Apply Mask"].lower() == "true":
                 
@@ -894,7 +894,7 @@ def apply_parameters(
         
         elif parameter["Name"].find("Watershed") == 0:
             
-            print("\nWatershed labelling...")
+            print("\nWatershed labeling...")
             
             if parameter["Apply Mask"].lower() == "true":
                 
@@ -911,7 +911,7 @@ def apply_parameters(
             else:
                 
                 along_axis: bool = False
-                
+            
             im_array = detect.watershed(
                 im_array,
                 mask_array = mask_array,
@@ -1741,17 +1741,35 @@ def apply_parameters(
                 
                 clim: None = None
                 
-            fig = plots.heat_map(
-                im_array,
-                mode = parameter["Method"],
-                cmap = parameter["Color Map"],
-                clim = clim,
-                mask_array = mask_array,
-                pixel_size = float(parameter["Pixel Size"]),
-                units = parameter["Units"],
-                axis = int(parameter["Axis"]),
-                height_orientation = parameter["Height Direction"],
-                cbar_label = colorbar_label)
+            if parameter["Return Array"].lower() == "true":
+                
+                fig, im_array = plots.heat_map(
+                    im_array,
+                    mode = parameter["Method"],
+                    cmap = parameter["Color Map"],
+                    clim = clim,
+                    mask_array = mask_array,
+                    pixel_size = float(parameter["Pixel Size"]),
+                    units = parameter["Units"],
+                    axis = int(parameter["Axis"]),
+                    height_orientation = parameter["Height Direction"],
+                    cbar_label = colorbar_label,
+                    return_array = True)
+            
+            else:
+                
+                fig = plots.heat_map(
+                    im_array,
+                    mode = parameter["Method"],
+                    cmap = parameter["Color Map"],
+                    clim = clim,
+                    mask_array = mask_array,
+                    pixel_size = float(parameter["Pixel Size"]),
+                    units = parameter["Units"],
+                    axis = int(parameter["Axis"]),
+                    height_orientation = parameter["Height Direction"],
+                    cbar_label = colorbar_label)
+                
             rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
             plt.close(fig)
             heat_index += 1

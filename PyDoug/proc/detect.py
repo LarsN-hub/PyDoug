@@ -16,19 +16,23 @@ from PyDoug.analyze import quant
 
 # Functions
 
-def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
-         method: str = "sobel",
-         sigma: float = 1.0,
-         ksize: int = 3,
-         alpha: float = 100,
-         igg_sigma: float = 5,
-         convert_type: bool = True,
-         slice_axis: int = None,
-         apply_axis: int = None,
-         edge_method: str = "reflect",
-         cval: float = 0) -> np.ndarray:
+def edge(
+        im_array: np.ndarray,
+        mask_array: np.ndarray = None, *,
+        method: str = "sobel",
+        sigma: float = 1.0,
+        ksize: int = 3,
+        alpha: float = 100,
+        igg_sigma: float = 5,
+        convert_type: bool = True,
+        slice_axis: int = None,
+        apply_axis: int = None,
+        edge_method: str = "reflect",
+        cval: float = 0) -> np.ndarray:
     
-    proc_array: np.ndarray = util.get_along_axis_array(im_array, slice_axis)
+    proc_array: np.ndarray = util.get_along_axis_array(
+        im_array,
+        slice_axis)
     bool_array: np.ndarray = util.correct_mask(mask_array)
     
     if method == "sobel":
@@ -300,27 +304,38 @@ def edge(im_array: np.ndarray, mask_array: np.ndarray = None, *,
         
         return edge_array
     
-def level_set(array_shape: tuple, method: str = "checkerboard", *,
-              square_size: int = 5,
-              radius: float = 10) -> np.ndarray:
+def level_set(
+        array_shape: tuple,
+        method: str = "checkerboard", *,
+        square_size: int = 5,
+        radius: float = 10) -> np.ndarray:
     
     if method == "checkerboard":
         
-        return segmentation.checkerboard_level_set(array_shape, square_size)
+        return segmentation.checkerboard_level_set(
+            array_shape,
+            square_size)
         
     elif method == "disk":
         
-        return segmentation.disk_level_set(array_shape, radius = radius)
+        return segmentation.disk_level_set(
+            array_shape,
+            radius = radius)
     
-def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *,
-                 square_size: int = 5,
-                 radius: float = 10,
-                 num_iter: int = 10,
-                 smoothing: int = 1,
-                 alpha: float = 100,
-                 sigma: float = 5) -> np.ndarray:
+def morph_snakes(
+        im_array: np.ndarray,
+        method: str = "ACWE", *,
+        square_size: int = 5,
+        radius: float = 10,
+        num_iter: int = 10,
+        smoothing: int = 1,
+        alpha: float = 100,
+        sigma: float = 5) -> np.ndarray:
     
-    init_levels: np.ndarray = level_set(im_array.shape, square_size = square_size, radius = radius)
+    init_levels: np.ndarray = level_set(
+        im_array.shape,
+        square_size = square_size,
+        radius = radius)
     
     if method == "ACWE":
         
@@ -348,25 +363,34 @@ def morph_snakes(im_array: np.ndarray, method: str = "ACWE", *,
         "uint8",
         norm = True)
 
-def random_walk(im_array: np.ndarray, marker_percentiles: tuple, beta: float = 130) -> np.ndarray:
+def random_walk(
+        im_array: np.ndarray,
+        marker_percentiles: tuple,
+        beta: float = 130) -> np.ndarray:
     
-    marker_ints: tuple = quant.get_percent_intensities(im_array, marker_percentiles)
+    marker_ints: tuple = quant.get_percent_intensities(
+        im_array,
+        marker_percentiles)
     markers = np.zeros(im_array.shape, dtype = np.uint8)
     markers[im_array < min(marker_ints)] = 1
     markers[im_array > max(marker_ints)] = 2
     
-    return pixels.normalize(segmentation.random_walker(im_array, markers, beta))
+    return pixels.normalize(
+        segmentation.random_walker(
+            im_array,
+            markers, beta))
 
-def watershed(im_array: np.ndarray, *,
-              background: float | int = 0,
-              mask_array: np.ndarray = None,
-              water_line: bool = False,
-              connectivity: int = 2,
-              radius: int = 3,
-              compactness: float = 0,
-              along_axis: bool = False,
-              axis: int = 0,
-              randomize: bool = True) -> np.ndarray:
+def watershed(
+        im_array: np.ndarray, *,
+        background: float | int = 0,
+        mask_array: np.ndarray = None,
+        water_line: bool = False,
+        connectivity: int = 2,
+        radius: int = 3,
+        compactness: float = 0,
+        along_axis: bool = False,
+        axis: int = 0,
+        randomize: bool = True) -> np.ndarray:
     
     if np.any(mask_array):
         
@@ -380,70 +404,110 @@ def watershed(im_array: np.ndarray, *,
         
         proc_array = np.bool(im_array)
         
-    if im_array.ndim == 2:
+    else:
         
-        disk_footprint: morph.Footprint = morph.Footprint("disk")
-        disk_footprint.radius: int = radius
-        footprint: np.ndarray = disk_footprint.get_footprint()
-        distance: np.ndarray = ndi.distance_transform_edt(proc_array)
-        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = proc_array)
-        water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
-        water_mask_array[tuple(peak_coords.T)] = True
-        markers: np.ndarray = thresh.label(water_mask_array)
-        water_array: np.ndarray = segmentation.watershed(-distance, markers, connectivity = connectivity, compactness = compactness, mask = proc_array)
+        proc_array = np.copy(im_array)
+        
+    if not np.any(proc_array) or not np.any(pixels.invert(proc_array)):
+        
+        return np.astype(im_array, np.int32)
     
-    elif along_axis:
+    else:
         
-        disk_footprint: morph.Footprint = morph.Footprint("disk")
-        disk_footprint.radius: int = radius
-        footprint: np.ndarray = disk_footprint.get_footprint()
-        proc_array: np.ndarray = util.get_along_axis_array(proc_array, axis)
-        water_array: np.ndarray = np.empty(proc_array.shape)
-        
-        for slice_index in range(0, proc_array.shape[0]):
+        if im_array.ndim == 2:
             
-            int_im_array: np.ndarray = proc_array[slice_index]
-            distance: np.ndarray = ndi.distance_transform_edt(int_im_array)
-            peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = int_im_array)
+            disk_footprint: morph.Footprint = morph.Footprint("disk")
+            disk_footprint.radius: int = radius
+            footprint: np.ndarray = disk_footprint.get_footprint()
+            distance: np.ndarray = ndi.distance_transform_edt(proc_array)
+            peak_coords: np.ndarray = feature.peak_local_max(
+                distance,
+                footprint = footprint,
+                labels = proc_array)
+            water_mask_array: np.ndarray = np.zeros(
+                distance.shape,
+                dtype = bool)
+            water_mask_array[tuple(peak_coords.T)] = True
+            markers: np.ndarray = thresh.label(water_mask_array)
+            water_array: np.ndarray = segmentation.watershed(
+                -distance,
+                markers,
+                connectivity = connectivity,
+                compactness = compactness,
+                mask = proc_array)
+        
+        elif along_axis:
+            
+            disk_footprint: morph.Footprint = morph.Footprint("disk")
+            disk_footprint.radius: int = radius
+            footprint: np.ndarray = disk_footprint.get_footprint()
+            proc_array: np.ndarray = util.get_along_axis_array(proc_array, axis)
+            water_array: np.ndarray = np.empty(proc_array.shape)
+            
+            for slice_index in range(0, proc_array.shape[0]):
+                
+                int_im_array: np.ndarray = proc_array[slice_index]
+                distance: np.ndarray = ndi.distance_transform_edt(int_im_array)
+                peak_coords: np.ndarray = feature.peak_local_max(
+                    distance,
+                    footprint = footprint,
+                    labels = int_im_array)
+                water_mask_array: np.ndarray = np.zeros(
+                    distance.shape,
+                    dtype = bool)
+                water_mask_array[tuple(peak_coords.T)] = True
+                markers: np.ndarray = thresh.label(water_mask_array)
+                water_array[slice_index] = segmentation.watershed(
+                    -distance,
+                    markers,
+                    connectivity = connectivity,
+                    compactness = compactness,
+                    mask = int_im_array)
+                
+            water_array = util.undo_axial_array(water_array, axis)
+        
+        else:
+            
+            ball_footprint: morph.Footprint = morph.Footprint("ball")
+            ball_footprint.radius: int = radius
+            footprint: np.ndarray = ball_footprint.get_footprint()
+            distance: np.ndarray = ndi.distance_transform_edt(proc_array)
+            peak_coords: np.ndarray = feature.peak_local_max(
+                distance,
+                footprint = footprint,
+                labels = proc_array)
             water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
             water_mask_array[tuple(peak_coords.T)] = True
             markers: np.ndarray = thresh.label(water_mask_array)
-            water_array[slice_index] = segmentation.watershed(-distance, markers, connectivity = connectivity, compactness = compactness, mask = int_im_array)
+            water_array: np.ndarray = segmentation.watershed(
+                -distance,
+                markers,
+                connectivity = connectivity,
+                compactness = compactness,
+                mask = proc_array)
+        
+        if randomize:
             
-        water_array = util.undo_axial_array(water_array, axis)
-    
-    else:
+            return thresh.randomize_labels(water_array)
         
-        ball_footprint: morph.Footprint = morph.Footprint("ball")
-        ball_footprint.radius: int = radius
-        footprint: np.ndarray = ball_footprint.get_footprint()
-        distance: np.ndarray = ndi.distance_transform_edt(proc_array)
-        peak_coords: np.ndarray = feature.peak_local_max(distance, footprint = footprint, labels = proc_array)
-        water_mask_array: np.ndarray = np.zeros(distance.shape, dtype = bool)
-        water_mask_array[tuple(peak_coords.T)] = True
-        markers: np.ndarray = thresh.label(water_mask_array)
-        water_array: np.ndarray = segmentation.watershed(-distance, markers, connectivity = connectivity, compactness = compactness, mask = proc_array)
-    
-    if randomize:
-        
-        return thresh.randomize_labels(water_array)
-    
-    else:
-        
-        return water_array
+        else:
+            
+            return water_array
 
-def corners(im_array: np.ndarray, method = "fast", *,
-            n: int = 12,
-            threshold: float = 0.15,
-            harris_method: str = "k",
-            k: int = 0.05,
-            eps: int = 0.000001,
-            sigma: float = 1,
-            window_size: int = 1,
-            correct_anomalies: bool = True,
-            return_mode: str = "coords",
-            orient_radius: int = 3,
-            angles_radius: int = 5) -> np.ndarray:
+def corners(
+        im_array: np.ndarray,
+        method = "fast", *,
+        n: int = 12,
+        threshold: float = 0.15,
+        harris_method: str = "k",
+        k: int = 0.05,
+        eps: int = 0.000001,
+        sigma: float = 1,
+        window_size: int = 1,
+        correct_anomalies: bool = True,
+        return_mode: str = "coords",
+        orient_radius: int = 3,
+        angles_radius: int = 5) -> np.ndarray:
     
     corner_array: np.ndarray = np.empty(im_array.shape)
         
@@ -453,11 +517,13 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                corner_array[slice_index] = feature.corner_fast(im_array[slice_index], n, threshold)
+                corner_array[slice_index] = feature.corner_fast(
+                    im_array[slice_index], n, threshold)
                     
         else:
                 
-            corner_array = feature.corner_fast(im_array, n, threshold)
+            corner_array = feature.corner_fast(
+                im_array, n, threshold)
         
     elif method == "harris":
             
@@ -465,11 +531,13 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                corner_array[slice_index] = feature.corner_harris(im_array[slice_index], harris_method, k, eps, sigma)
+                corner_array[slice_index] = feature.corner_harris(
+                    im_array[slice_index], harris_method, k, eps, sigma)
                     
         else:
                 
-            corner_array = feature.corner_harris(im_array, harris_method, k, eps, sigma)
+            corner_array = feature.corner_harris(
+                im_array, harris_method, k, eps, sigma)
             
     elif method == "kitchen rosenfeld":
             
@@ -477,11 +545,13 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                corner_array[slice_index] = feature.corner_kitchen_rosenfeld(im_array[slice_index], "reflect")
+                corner_array[slice_index] = feature.corner_kitchen_rosenfeld(
+                    im_array[slice_index], "reflect")
                     
         else:
                 
-            corner_array = feature.corner_kitchen_rosenfeld(im_array, "reflect")
+            corner_array = feature.corner_kitchen_rosenfeld(
+                im_array, "reflect")
         
     elif method == "moravec":
             
@@ -489,11 +559,13 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                corner_array[slice_index] = feature.corner_moravec(im_array[slice_index], window_size)
+                corner_array[slice_index] = feature.corner_moravec(
+                    im_array[slice_index], window_size)
                     
         else:
                 
-            corner_array = feature.corner_moravec(im_array, window_size)
+            corner_array = feature.corner_moravec(
+                im_array, window_size)
         
     elif method == "shi tomasi":
             
@@ -501,14 +573,17 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             for slice_index in range(0, im_array.shape[0]):
                 
-                corner_array[slice_index] = feature.corner_shi_tomasi(im_array[slice_index], sigma)
+                corner_array[slice_index] = feature.corner_shi_tomasi(
+                    im_array[slice_index], sigma)
                     
         else:
                 
-            corner_array = feature.corner_shi_tomasi(im_array, sigma)
+            corner_array = feature.corner_shi_tomasi(
+                im_array, sigma)
             
     corner_coords: np.ndarray = feature.corner_peaks(corner_array)
-    corner_array: np.ndarray = feature.corner_peaks(corner_array, indices = False)
+    corner_array: np.ndarray = feature.corner_peaks(
+        corner_array, indices = False)
     
     if correct_anomalies:
         
@@ -530,7 +605,8 @@ def corners(im_array: np.ndarray, method = "fast", *,
                         
                     else:
                         
-                        corrected_coords = np.vstack((corrected_coords, coords))
+                        corrected_coords = np.vstack(
+                            (corrected_coords, coords))
                         
                 else:
                     
@@ -556,7 +632,8 @@ def corners(im_array: np.ndarray, method = "fast", *,
                         
                     else:
                         
-                        corrected_coords = np.vstack((corrected_coords, coords))
+                        corrected_coords = np.vstack(
+                            (corrected_coords, coords))
                         
                 else:
                     
@@ -586,13 +663,20 @@ def corners(im_array: np.ndarray, method = "fast", *,
                 
                 if np.any(corner_coords[corner_coords[:, 0] == slice_index]):
                     
-                    orients_list = np.vstack((orients_list, np.expand_dims(feature.corner_orientations(im_array[slice_index], corner_coords[corner_coords[:, 0] == slice_index][:, 1:], footprint_array), 1)))
+                    orients_list = np.vstack(
+                        (orients_list,
+                         np.expand_dims(
+                             feature.corner_orientations(
+                                 im_array[slice_index],
+                                 corner_coords[corner_coords[:, 0] == slice_index][:, 1:],
+                                 footprint_array), 1)))
                     
             orients_list = orients_list[1:, :]
             
         else:
             
-            orients_list: np.ndarray = feature.corner_orientations(im_array, corner_coords, footprint_array)
+            orients_list: np.ndarray = feature.corner_orientations(
+                im_array, corner_coords, footprint_array)
         
         if return_mode == "orients":
             
@@ -613,9 +697,14 @@ def corners(im_array: np.ndarray, method = "fast", *,
             
             return orients_array
         
-def skeleton(im_array: np.ndarray, method: str = None) -> np.ndarray:
+def skeleton(
+        im_array: np.ndarray,
+        method: str = None) -> np.ndarray:
     
-    return pixels.convert_im_type(morphology.skeletonize(im_array, method = method), "uint8")
+    return pixels.convert_im_type(
+        morphology.skeletonize(
+            im_array, method = method),
+        "uint8")
 
 def ridges(
         im_array: np.ndarray,
