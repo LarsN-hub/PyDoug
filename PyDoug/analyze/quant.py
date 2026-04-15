@@ -17,9 +17,10 @@ from PyDoug.proc import cropclip as cc, util, denoising
 
 # Functions
 
-def global_statistics(im_array: np.ndarray, *,
-                      mask_array: np.ndarray = None,
-                      print_results: bool = True) -> pd.DataFrame:
+def global_statistics(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        print_results: bool = True) -> pd.DataFrame:
     
     im_stats: dict = {}
     
@@ -64,8 +65,10 @@ def global_statistics(im_array: np.ndarray, *,
     
     return pd.DataFrame([im_stats])
 
-def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
-                         mask_array: np.ndarray = None) -> pd.DataFrame:
+def single_ax_statistics(
+        im_array: np.ndarray,
+        axis: int = 0, *,
+        mask_array: np.ndarray = None) -> pd.DataFrame:
     
     ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
@@ -85,11 +88,16 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
                 
                 if np.any(mask_array[slice_index]):
 
-                    ax_stats[slice_index, 1] = np.mean(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats[slice_index, 2] = np.median(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats[slice_index, 3] = np.min(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats[slice_index, 4] = np.max(im_array[slice_index][mask_array[slice_index]])
-                    ax_stats[slice_index, 5] = np.std(im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 1] = np.mean(
+                        im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 2] = np.median(
+                        im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 3] = np.min(
+                        im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 4] = np.max(
+                        im_array[slice_index][mask_array[slice_index]])
+                    ax_stats[slice_index, 5] = np.std(
+                        im_array[slice_index][mask_array[slice_index]])
                     
                 else:
                     
@@ -107,11 +115,16 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
                 
                 if np.any(mask_array[:, slice_index, :]):
                 
-                    ax_stats[slice_index, 1] = np.mean(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats[slice_index, 2] = np.median(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats[slice_index, 3] = np.min(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats[slice_index, 4] = np.max(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats[slice_index, 5] = np.std(im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 1] = np.mean(
+                        im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 2] = np.median(
+                        im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 3] = np.min(
+                        im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 4] = np.max(
+                        im_array[:, slice_index, :][mask_array[:, slice_index, :]])
+                    ax_stats[slice_index, 5] = np.std(
+                        im_array[:, slice_index, :][mask_array[:, slice_index, :]])
                     
                 else:
                     
@@ -129,11 +142,16 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
                 
                 if np.any(mask_array[:, :, slice_index]):
                 
-                    ax_stats[slice_index, 1] = np.mean(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats[slice_index, 2] = np.median(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats[slice_index, 3] = np.min(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats[slice_index, 4] = np.max(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats[slice_index, 5] = np.std(im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 1] = np.mean(
+                        im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 2] = np.median(
+                        im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 3] = np.min(
+                        im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 4] = np.max(
+                        im_array[:, :, slice_index][mask_array[:, :, slice_index]])
+                    ax_stats[slice_index, 5] = np.std(
+                        im_array[:, :, slice_index][mask_array[:, :, slice_index]])
                     
                 else:
                     
@@ -164,20 +182,29 @@ def single_ax_statistics(im_array: np.ndarray, axis: int = 0, *,
         ax_stats[:, 4] = np.max(im_array, exclude_axes)
         ax_stats[:, 5] = np.std(im_array, exclude_axes)
     
-    return pd.DataFrame(ax_stats, columns = ["Position", "Mean", "Median", "Min", "Max", "Std Dev"])
+    return pd.DataFrame(
+        ax_stats,
+        columns = ["Position", "Mean", "Median", "Min", "Max", "Std Dev"])
 
-def axial_statistics(im_array: np.ndarray, *, mask_array = None) -> dict[int, pd.DataFrame]:
+def axial_statistics(
+        im_array: np.ndarray, *,
+        mask_array = None) -> dict[int, pd.DataFrame]:
     
     axial_stats: dict[int, pd.DataFrame] = {}
-    axial_stats[0] = single_ax_statistics(im_array, 0, mask_array = mask_array)
-    axial_stats[1] = single_ax_statistics(im_array, 1, mask_array = mask_array)
-    axial_stats[2] = single_ax_statistics(im_array, 2, mask_array = mask_array)
+    axial_stats[0] = single_ax_statistics(
+        im_array, 0, mask_array = mask_array)
+    axial_stats[1] = single_ax_statistics(
+        im_array, 1, mask_array = mask_array)
+    axial_stats[2] = single_ax_statistics(
+        im_array, 2, mask_array = mask_array)
     
     return axial_stats
 
-def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *,
-                            mask_array: np.ndarray = None,
-                            cdf_df: pd.DataFrame = None) -> tuple:
+def get_percent_intensities(
+        im_array: np.ndarray,
+        percentages: tuple, *,
+        mask_array: np.ndarray = None,
+        cdf_df: pd.DataFrame = None) -> tuple:
     
     if max(percentages) > 1:
         
@@ -185,17 +212,26 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *,
     
     if not np.any(cdf_df):
         
-        cdf_df: pd.DataFrame = distrib.get_cdf(im_array, mask_array = mask_array)
+        cdf_df: pd.DataFrame = distrib.get_cdf(
+            im_array,
+            mask_array = mask_array)
     
-    im_cdf: pd.Series = np.squeeze(np.array([cdf_df["Probability"]]))
-    bin_centers: pd.Series = np.squeeze(np.array([cdf_df["Bin Centers"]]))
-    low_index = util.quick_get_first_index(im_cdf, min(percentages), "greater or equal")
+    im_cdf: pd.Series = np.squeeze(
+        np.array([cdf_df["Probability"]]))
+    bin_centers: pd.Series = np.squeeze(
+        np.array([cdf_df["Bin Centers"]]))
+    low_index = util.quick_get_first_index(
+        im_cdf,
+        min(percentages), "greater or equal")
     
     if not low_index:
         
         low_index = 0
         
-    high_sub: int = util.quick_get_first_index(np.flip(im_cdf, 0), max(percentages), "less or equal")
+    high_sub: int = util.quick_get_first_index(
+        np.flip(im_cdf, 0),
+        max(percentages),
+        "less or equal")
     
     if not high_sub:
         
@@ -211,21 +247,28 @@ def get_percent_intensities(im_array: np.ndarray, percentages: tuple, *,
     
     return (low_bin, high_bin)
 
-def get_denoising_losses(im_array: np.ndarray, denoiser: Callable[[np.ndarray],np.ndarray],
-                         parameters: dict[str, np.ndarray], *,
-                         stride: int = 4,
-                         approximate_loss: bool = True) -> dict[str, list]:
+def get_denoising_losses(
+        im_array: np.ndarray,
+        denoiser: Callable[[np.ndarray],np.ndarray],
+        parameters: dict[str, np.ndarray], *,
+        stride: int = 4,
+        approximate_loss: bool = True) -> dict[str, list]:
     
-    _, (parameters_tested, losses) = denoising.calibrate_function(im_array, denoiser, parameters, stride = stride,
-                                                                  approximate_loss = approximate_loss,
-                                                                  extra_output = True,
-                                                                  return_type = "function")
+    _, (parameters_tested, losses) = denoising.calibrate_function(
+        im_array,
+        denoiser,
+        parameters,
+        stride = stride,
+        approximate_loss = approximate_loss,
+        extra_output = True,
+        return_type = "function")
     
     return {"parameters": parameters_tested, "losses": losses}
 
-def get_corner_orientations(im_array: np.ndarray,
-                            corners: np.ndarray,
-                            mask_array: np.ndarray = None) -> np.ndarray:
+def get_corner_orientations(
+        im_array: np.ndarray,
+        corners: np.ndarray,
+        mask_array: np.ndarray = None) -> np.ndarray:
     
     if not mask_array:
         
@@ -241,19 +284,26 @@ def get_corner_orientations(im_array: np.ndarray,
             
             start_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][0]
             end_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][-1]
-            output_array[start_row:end_row, 1] = feature.corner_orientations(im_array[slice_index], corners[start_row:end_row, 1:2], mask_array)
+            output_array[start_row:end_row, 1] = feature.corner_orientations(
+                im_array[slice_index],
+                corners[start_row:end_row, 1:2],
+                mask_array)
             
         return output_array
             
     else:
         
-        return feature.corner_orientations(im_array, corners, mask_array)
+        return feature.corner_orientations(
+            im_array,
+            corners,
+            mask_array)
     
-def __vol_area_precondition(im_array: np.ndarray, *,
-                            mask_array: np.ndarray = None,
-                            include_background: bool = False,
-                            background: float | int = 0,
-                            normalize: bool = False) -> np.ndarray:
+def __vol_area_precondition(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        include_background: bool = False,
+        background: float | int = 0,
+        normalize: bool = False) -> np.ndarray:
     
     if im_array.dtype == np.int64:
         
@@ -263,21 +313,35 @@ def __vol_area_precondition(im_array: np.ndarray, *,
                 
                 mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
-            count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array[np.bool(mask_array)] > 0)]), 0)
-            background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
+            count_array: np.ndarray = np.expand_dims(
+                np.array(
+                    [255,
+                     np.count_nonzero(im_array[np.bool(mask_array)] > 0)]),
+                0)
+            background_counts: int = np.count_nonzero(
+                im_array[np.bool(mask_array)] == 0)
             
             if include_background:
                 
-                count_array = np.vstack((np.array([0, background_counts]), count_array))
+                count_array = np.vstack(
+                    (np.array(
+                        [0, background_counts]),
+                    count_array))
             
         else:
             
-            count_array: np.ndarray = np.expand_dims(np.array([255, np.count_nonzero(im_array > 0)]), 0)
+            count_array: np.ndarray = np.expand_dims(
+                np.array(
+                    [255, np.count_nonzero(im_array > 0)]),
+                0)
             background_counts: int = np.count_nonzero(im_array == 0)
             
             if include_background:
                 
-                count_array = np.vstack((np.array([0, background_counts]), count_array))
+                count_array = np.vstack(
+                    (np.array(
+                        [0, background_counts]),
+                    count_array))
         
     else:
         
@@ -285,7 +349,9 @@ def __vol_area_precondition(im_array: np.ndarray, *,
         
         if not include_background:
             
-            phase_array = np.delete(phase_array, np.argwhere(phase_array == background))
+            phase_array = np.delete(
+                phase_array,
+                np.argwhere(phase_array == background))
         
         count_array: np.ndarray = np.empty(phase_array.shape)
         
@@ -293,9 +359,12 @@ def __vol_area_precondition(im_array: np.ndarray, *,
             
             if mask_array.ndim < im_array.ndim:
                 
-                mask_array = cc.project_mask(mask_array, im_array.shape[0])
+                mask_array = cc.project_mask(
+                    mask_array,
+                    im_array.shape[0])
             
-            background_counts: int = np.count_nonzero(im_array[np.bool(mask_array)] == 0)
+            background_counts: int = np.count_nonzero(
+                im_array[np.bool(mask_array)] == 0)
             
         else:
             
@@ -305,11 +374,13 @@ def __vol_area_precondition(im_array: np.ndarray, *,
             
             if np.any(mask_array):
                 
-                count_array[index] = np.count_nonzero(im_array[np.bool(mask_array)] == phase)
+                count_array[index] = np.count_nonzero(
+                    im_array[np.bool(mask_array)] == phase)
             
             else:
             
-                count_array[index] = np.count_nonzero(im_array == phase)
+                count_array[index] = np.count_nonzero(
+                    im_array == phase)
             
         count_array = np.stack((phase_array, count_array), 1)
         
@@ -325,29 +396,33 @@ def __vol_area_precondition(im_array: np.ndarray, *,
     
     return count_array.T    
     
-def get_volume(im_array: np.ndarray, *,
-               mask_array: np.ndarray = None,
-               scale: float = 1.0,
-               units: str = "pix",
-               include_background: bool = False,
-               background: float | int = 0,
-               normalize: bool = False) -> pd.DataFrame:
+def get_volume(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        scale: float = 1.0,
+        units: str = "pix",
+        include_background: bool = False,
+        background: float | int = 0,
+        normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array,
-                                          mask_array = mask_array,
-                                          include_background = include_background,
-                                          background = background,
-                                          normalize = normalize)
+    count_array = __vol_area_precondition(
+        im_array,
+        mask_array = mask_array,
+        include_background = include_background,
+        background = background,
+        normalize = normalize)
     
     if not normalize:
         
         count_array[1:, :] = count_array[1:, :] * (scale ** 3)
         
-    vol_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
+    vol_df: pd.DataFrame = pd.DataFrame(
+        count_array[1:, :],
+        columns = count_array[0, :])
     
     if not normalize:
         
@@ -373,29 +448,33 @@ def get_volume(im_array: np.ndarray, *,
     
     return vol_df
 
-def get_area(im_array: np.ndarray, *,
-             mask_array: np.ndarray = None,
-             scale: float = 1.0,
-             units: str = "pix",
-             include_background: bool = False,
-             background: float | int = 0,
-             normalize: bool = False) -> pd.DataFrame:
+def get_area(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        scale: float = 1.0,
+        units: str = "pix",
+        include_background: bool = False,
+        background: float | int = 0,
+        normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array,
-                                          mask_array = mask_array,
-                                          include_background = include_background,
-                                          background = background,
-                                          normalize = normalize)
+    count_array = __vol_area_precondition(
+        im_array,
+        mask_array = mask_array,
+        include_background = include_background,
+        background = background,
+        normalize = normalize)
     
     if not normalize:
         
         count_array[1:, :] = count_array[1:, :] * (scale ** 2)
         
-    area_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
+    area_df: pd.DataFrame = pd.DataFrame(
+        count_array[1:, :],
+        columns = count_array[0, :])
     
     if not normalize:
         
@@ -421,29 +500,33 @@ def get_area(im_array: np.ndarray, *,
     
     return area_df
 
-def get_length(im_array: np.ndarray, *,
-               mask_array: np.ndarray = None,
-               scale = 1.0,
-               units: str = "pix",
-               include_background: bool = False,
-               background: float | int = 0,
-               normalize: bool = False) -> pd.DataFrame:
+def get_length(
+        im_array: np.ndarray, *,
+        mask_array: np.ndarray = None,
+        scale = 1.0,
+        units: str = "pix",
+        include_background: bool = False,
+        background: float | int = 0,
+        normalize: bool = False) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    count_array = __vol_area_precondition(im_array,
-                                          mask_array = mask_array,
-                                          include_background = include_background,
-                                          background = background,
-                                          normalize = normalize)
+    count_array = __vol_area_precondition(
+        im_array,
+        mask_array = mask_array,
+        include_background = include_background,
+        background = background,
+        normalize = normalize)
     
     if not normalize:
         
         count_array[1:, :] = count_array[1:, :] * scale
         
-    length_df: pd.DataFrame = pd.DataFrame(count_array[1:, :], columns = count_array[0, :])
+    length_df: pd.DataFrame = pd.DataFrame(
+        count_array[1:, :],
+        columns = count_array[0, :])
     
     if not normalize:
         
@@ -469,9 +552,11 @@ def get_length(im_array: np.ndarray, *,
     
     return length_df
 
-def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
-                mask_array: np.ndarray = None,
-                return_mode: str = "count") -> int:
+def get_contact(
+        im_array: np.ndarray,
+        phase_ints: tuple[int] | int | None = None, *,
+        mask_array: np.ndarray = None,
+        return_mode: str = "count") -> int:
     
     if phase_ints == None:
         
@@ -503,21 +588,47 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
     
     if im_array.ndim == 3:
         
-        zer_insert: np.ndarray = np.zeros((1, im_array.shape[1], im_array.shape[2]), np.bool)
-        one_insert: np.ndarray = np.zeros((im_array.shape[0], 1, im_array.shape[2]), np.bool)
-        two_insert: np.ndarray = np.zeros((im_array.shape[0], im_array.shape[1], 1), np.bool)
-        offset_min_zer_beg: np.ndarray = np.delete(np.append(zer_insert, min_array, axis = 0), [-1], axis = 0)
-        offset_min_zer_end: np.ndarray = np.delete(np.append(min_array, zer_insert, axis = 0), [0], axis = 0)
-        offset_min_one_beg: np.ndarray = np.delete(np.append(one_insert, min_array, axis = 1), [-1], axis = 1)
-        offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
-        offset_min_two_beg: np.ndarray = np.delete(np.append(two_insert, min_array, axis = 2), [-1], axis = 2)
-        offset_min_two_end: np.ndarray = np.delete(np.append(min_array, two_insert, axis = 2), [0], axis = 2)
-        contact_count: int = np.count_nonzero(max_array & offset_min_zer_beg)
-        contact_count += np.count_nonzero(max_array & offset_min_zer_end)
-        contact_count += np.count_nonzero(max_array & offset_min_one_beg)
-        contact_count += np.count_nonzero(max_array & offset_min_one_end)
-        contact_count += np.count_nonzero(max_array & offset_min_two_beg)
-        contact_count += np.count_nonzero(max_array & offset_min_two_end)
+        zer_insert: np.ndarray = np.zeros(
+            (1, im_array.shape[1], im_array.shape[2]), np.bool)
+        one_insert: np.ndarray = np.zeros(
+            (im_array.shape[0], 1, im_array.shape[2]), np.bool)
+        two_insert: np.ndarray = np.zeros(
+            (im_array.shape[0], im_array.shape[1], 1), np.bool)
+        offset_min_zer_beg: np.ndarray = np.delete(
+            np.append(
+                zer_insert, min_array, axis = 0),
+            [-1], axis = 0)
+        offset_min_zer_end: np.ndarray = np.delete(
+            np.append(
+                min_array, zer_insert, axis = 0), [0], axis = 0)
+        offset_min_one_beg: np.ndarray = np.delete(
+            np.append(
+                one_insert, min_array, axis = 1),
+            [-1], axis = 1)
+        offset_min_one_end: np.ndarray = np.delete(
+            np.append(
+                min_array, one_insert, axis = 1),
+            [0], axis = 1)
+        offset_min_two_beg: np.ndarray = np.delete(
+            np.append(
+                two_insert, min_array, axis = 2),
+            [-1], axis = 2)
+        offset_min_two_end: np.ndarray = np.delete(
+            np.append(
+                min_array, two_insert, axis = 2),
+            [0], axis = 2)
+        contact_count: int = np.count_nonzero(
+            max_array & offset_min_zer_beg)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_zer_end)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_one_beg)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_one_end)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_two_beg)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_two_end)
         
         if return_mode == "array":
             
@@ -530,16 +641,34 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
     
     elif im_array.ndim == 2:
         
-        zer_insert: np.ndarray = np.zeros((1, im_array.shape[1]), np.bool)
-        one_insert: np.ndarray = np.zeros((im_array.shape[0], 1), np.bool)
-        offset_min_zer_beg: np.ndarray = np.delete(np.append(zer_insert, min_array, axis = 0), [-1], axis = 0)
-        offset_min_zer_end: np.ndarray = np.delete(np.append(min_array, zer_insert, axis = 0), [0], axis = 0)
-        offset_min_one_beg: np.ndarray = np.delete(np.append(one_insert, min_array, axis = 1), [-1], axis = 1)
-        offset_min_one_end: np.ndarray = np.delete(np.append(min_array, one_insert, axis = 1), [0], axis = 1)
-        contact_count: int = np.count_nonzero(max_array & offset_min_zer_beg)
-        contact_count += np.count_nonzero(max_array & offset_min_zer_end)
-        contact_count += np.count_nonzero(max_array & offset_min_one_beg)
-        contact_count += np.count_nonzero(max_array & offset_min_one_end)
+        zer_insert: np.ndarray = np.zeros(
+            (1, im_array.shape[1]), np.bool)
+        one_insert: np.ndarray = np.zeros(
+            (im_array.shape[0], 1), np.bool)
+        offset_min_zer_beg: np.ndarray = np.delete(
+            np.append(
+                zer_insert, min_array, axis = 0),
+            [-1], axis = 0)
+        offset_min_zer_end: np.ndarray = np.delete(
+            np.append(
+                min_array, zer_insert, axis = 0),
+            [0], axis = 0)
+        offset_min_one_beg: np.ndarray = np.delete(
+            np.append(
+                one_insert, min_array, axis = 1),
+            [-1], axis = 1)
+        offset_min_one_end: np.ndarray = np.delete(
+            np.append(
+                min_array, one_insert, axis = 1),
+            [0], axis = 1)
+        contact_count: int = np.count_nonzero(
+            max_array & offset_min_zer_beg)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_zer_end)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_one_beg)
+        contact_count += np.count_nonzero(
+            max_array & offset_min_one_end)
         
         if return_mode == "array":
             
@@ -556,16 +685,20 @@ def get_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None
         
         return contact_array
 
-def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
-                        pixel_size: float = 1.0,
-                        units: str = "pix",
-                        mask_array: np.ndarray = None) -> pd.DataFrame:
+def get_surface_contact(
+        im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
+        pixel_size: float = 1.0,
+        units: str = "pix",
+        mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if units == "um":
         
         units = "\u00b5m"
     
-    contact_counts: int = get_contact(im_array, phase_ints, mask_array = mask_array)
+    contact_counts: int = get_contact(
+        im_array,
+        phase_ints,
+        mask_array = mask_array)
     
     if phase_ints == None:
         
@@ -585,7 +718,9 @@ def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | Non
             
             column_header: str = "Contact Area"
         
-        contact_df: pd.DataFrame = pd.DataFrame({"Gray Value": [str(phase_ints)], column_header: [contact_counts * (pixel_size ** 2)]})
+        contact_df: pd.DataFrame = pd.DataFrame(
+            {"Gray Value": [str(phase_ints)],
+             column_header: [contact_counts * (pixel_size ** 2)]})
         contact_df.attrs = {"units": f"{units}\u00b2"}
     
     else:
@@ -598,7 +733,9 @@ def get_surface_contact(im_array: np.ndarray, phase_ints: tuple[int] | int | Non
             
             column_header: str = "Contact Perimeter"
         
-        contact_df: pd.DataFrame = pd.DataFrame({"Gray Value": [str(phase_ints)], column_header: [contact_counts * pixel_size]})
+        contact_df: pd.DataFrame = pd.DataFrame(
+            {"Gray Value": [str(phase_ints)], 
+             column_header: [contact_counts * pixel_size]})
         contact_df.attrs = {"units": units}
         
     print_str: str = str(contact_df.loc[0]["Gray Value"]) + ":"

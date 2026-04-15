@@ -5,6 +5,7 @@ Module containing miscellaneous utilities
 
 # Imports
 
+import matplotlib as mpl
 import numpy as np
 import napari
 import math
@@ -103,13 +104,14 @@ def get_colormap(
             
             c_label: str = cbar_label
             
-        fig, cbar_ax = plt.subplots()
-        fig_cbar: cbar.Colorbar = cbar.Colorbar(
-            cbar_ax,
-            cmap = cmap,
-            norm = colors.Normalize(
-                (min(lab_limits) * cbar_scale),
-                (max(lab_limits) * cbar_scale)))
+        fig, ax = plt.subplots(layout = "constrained")
+        fig_cbar: cbar.Colorbar = fig.colorbar(
+            mpl.cm.ScalarMappable(
+                norm = colors.Normalize(
+                    (min(lab_limits) * cbar_scale),
+                    (max(lab_limits) * cbar_scale)),
+                cmap = cmap),
+            ax = ax)
         fig_cbar.set_label(
             c_label,
             rotation = 270,
