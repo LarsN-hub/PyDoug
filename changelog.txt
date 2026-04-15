@@ -1,3 +1,6 @@
+v0.7.2-alpha
+- Fixed obscene width of color bar generated in the "Image to Labels" widget
+
 v0.7.1-alpha
 - Fixed bug with saving and importing masks in parameters directory after batch processing with unique masks overhaul
 
