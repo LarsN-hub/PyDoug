@@ -104,18 +104,25 @@ def universalize_paths(
 
 def get_path(
         directory = False,
-        title: str = "Select image file") -> str:
+        title: str = "Select image file",
+        initial_dir: str | None = None) -> str:
                 
     root = Tk()
     root.withdraw()
     
     if directory:
         
-        file_path = filedialog.askdirectory(parent = root, title = title)
+        file_path = filedialog.askdirectory(
+            parent = root,
+            title = title,
+            initialdir = initial_dir)
         
     else:
         
-        file_path = filedialog.askopenfilename(parent = root, title = title)
+        file_path = filedialog.askopenfilename(
+            parent = root,
+            title = title,
+            initialdir = initial_dir)
     
     root.destroy()
     
@@ -419,8 +426,16 @@ def read_stack_fast(
         
     else:
         
-        im_collection: io.MultiImage = io.MultiImage(stack_path)
-        im_array: np.ndarray = io.concatenate_images(im_collection)
+        with Image.open(stack_path) as im:
+        
+            if im.n_frames > 1:
+                
+                im_collection: io.MultiImage = io.MultiImage(stack_path)
+                im_array: np.ndarray = io.concatenate_images(im_collection)
+                
+            else:
+                
+                im_array: np.ndarray = read_im(stack_path)
     
     return np.squeeze(im_array)
     

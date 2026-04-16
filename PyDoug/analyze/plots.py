@@ -1051,17 +1051,21 @@ def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> p
     
     return fig
 
-def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
-                   x_label: str = "Value",
-                   mask_array: np.ndarray = None,
-                   xlims: tuple = None,
-                   ylims: tuple = None,
-                   units: str = None,
-                   ignore_edges: bool = False,
-                   normalize: bool = False,
-                   nbins: int | None = None,
-                   max_bound: float | None = None,
-                   logx: bool = False) -> plt.Axes:
+def histogram_axis(
+        data: np.ndarray | pd.DataFrame,
+        input_ax: plt.Axes, *,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        units: str = None,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        nbins: int | None = None,
+        max_bound: float | None = None,
+        logx: bool = False,
+        return_df: bool = False,
+        return_stats_df: bool = False) -> plt.Axes:
     
     if not nbins:
         
@@ -1069,25 +1073,38 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     
     if isinstance(data, np.ndarray):
         
-        hist_df: pd.DataFrame = distrib.get_histogram(data,
-                                                      mask_array = mask_array,
-                                                      normalize = normalize,
-                                                      nbins = nbins,
-                                                      max_bound = max_bound)
+        hist_df: pd.DataFrame = distrib.get_histogram(
+            data,
+            mask_array = mask_array,
+            normalize = normalize,
+            nbins = nbins,
+            max_bound = max_bound)
         
     else:
         
         hist_df: pd.DataFrame = data.copy()
         
-    hist_mean: float = np.sum((hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
+    hist_mean: float = np.sum(
+        (hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
     print(f"\n{"Histogram Mean:":<16} {hist_mean}")
     
     if not normalize:
         
-        ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(hist_df["Bin Centers"], hist_df["Counts"])            
+        ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(
+            hist_df["Bin Centers"],
+            hist_df["Counts"])            
         hist_std: float = np.std(ext_bin_centers)
         print(f"{"Histogram StDv:":<16} {hist_std}")
         print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
+        hist_stats_df: pd.DataFrame = pd.DataFrame(
+            np.array([[hist_mean, hist_std, np.sum(hist_df["Counts"])]]),
+            columns = ["Mean", "Std. Dev.", "Counts"])
+        
+    else:
+        
+        hist_stats_df: pd.DataFrame = pd.DataFrame(
+            np.array([[hist_mean]]),
+            columns = ["Mean"])
         
     if ignore_edges:
         
@@ -1124,7 +1141,13 @@ def histogram_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         
     hist_ax.tick_params(axis = "both", labelsize = tick_fontsize)
         
-    return hist_ax
+    if return_stats_df:
+        
+        return hist_ax, hist_stats_df
+    
+    else:
+        
+        return hist_ax
 
 def histogram(
         data: np.ndarray | pd.DataFrame, *,
@@ -1135,10 +1158,12 @@ def histogram(
         ignore_edges: bool = False,
         normalize: bool = False,
         nbins: int | None = None,
-        logx: bool = False) -> plt.Figure:
+        logx: bool = False,
+        return_df: bool = False,
+        return_stats_df: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots(layout = "constrained")
-    hist_ax = histogram_axis(
+    hist_ax, hist_stats_df = histogram_axis(
         data, hist_ax,
         x_label = x_label,
         mask_array = mask_array,
@@ -1147,39 +1172,51 @@ def histogram(
         ignore_edges = ignore_edges,
         normalize = normalize,
         nbins = nbins,
-        logx = logx)
+        logx = logx,
+        return_df = False,
+        return_stats_df = True)
     
-    return fig
+    if return_stats_df:
+    
+        return fig, hist_stats_df
+    
+    else:
+        
+        return fig
 
-def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
-                         mode: str = "vol",
-                         diam_rad_mode = "vol",
-                         units: str = "pix",
-                         mask_array: np.ndarray = None,
-                         x_label: str = None,
-                         xlims: tuple = None,
-                         ylims: tuple = None,
-                         pixel_size: float = 1.0,
-                         ignore_edges: bool = False,
-                         normalize: bool = False,
-                         connectivity: int = None,
-                         background: float | int = 0,
-                         nbins: int = 100,
-                         max_bound: float | None = None) -> plt.Axes:
+def size_distribution_ax(
+        data: np.ndarray | pd.DataFrame,
+        input_ax: plt.Axes, *,
+        mode: str = "vol",
+        diam_rad_mode = "vol",
+        units: str = "pix",
+        mask_array: np.ndarray = None,
+        x_label: str = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        pixel_size: float = 1.0,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        connectivity: int = None,
+        background: float | int = 0,
+        nbins: int = 100,
+        max_bound: float | None = None,
+        return_df: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
-        psd_df: pd.DataFrame = distrib.get_size_distribution(data,
-                                                             mask_array = mask_array,
-                                                             mode = mode,
-                                                             diam_rad_mode = diam_rad_mode,
-                                                             pixel_size = pixel_size,
-                                                             units = units,
-                                                             connectivity = connectivity,
-                                                             background = background,
-                                                             normalize = normalize,
-                                                             nbins = nbins,
-                                                             max_bound = max_bound)
+        psd_df: pd.DataFrame = distrib.get_size_distribution(
+            data,
+            mask_array = mask_array,
+            mode = mode,
+            diam_rad_mode = diam_rad_mode,
+            pixel_size = pixel_size,
+            units = units,
+            connectivity = connectivity,
+            background = background,
+            normalize = normalize,
+            nbins = nbins,
+            max_bound = max_bound)
     
     else:
         
@@ -1194,53 +1231,72 @@ def size_distribution_ax(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
         x_label: str = f"Domain Size ({psd_df.attrs["units"]})"
         
     psd_ax = input_ax
-    psd_ax = histogram_axis(psd_df, psd_ax,
-                            x_label = x_label,
-                            mask_array = mask_array,
-                            xlims = xlims,
-                            ylims = ylims,
-                            ignore_edges = ignore_edges,
-                            normalize = normalize,
-                            nbins = nbins,
-                            max_bound = max_bound)
+    psd_ax, hist_stats_df = histogram_axis(
+        psd_df,
+        psd_ax,
+        x_label = x_label,
+        mask_array = mask_array,
+        xlims = xlims,
+        ylims = ylims,
+        ignore_edges = ignore_edges,
+        normalize = normalize,
+        nbins = nbins,
+        max_bound = max_bound,
+        return_stats_df = True)
     psd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
-    return psd_ax
+    if return_df:
+        
+        return psd_ax, psd_df, hist_stats_df
+    
+    else:
+        
+        return psd_ax
 
-def size_distribution(data: np.ndarray | pd.DataFrame, *,
-                      mode: str = "vol",
-                      diam_rad_mode: str = "vol",
-                      units: str = "pix",
-                      mask_array: np.ndarray = None,
-                      x_label: str = None,
-                      xlims: tuple = None,
-                      ylims: tuple = None,
-                      pixel_size: float = 1.0,
-                      ignore_edges: bool = False,
-                      normalize: bool = False,
-                      connectivity: int = None,
-                      background: float | int = 0,
-                      nbins: int = 100,
-                      max_bound: float | None = None) -> plt.Figure:
+def size_distribution(
+        data: np.ndarray | pd.DataFrame, *,
+        mode: str = "vol",
+        diam_rad_mode: str = "vol",
+        units: str = "pix",
+        mask_array: np.ndarray = None,
+        x_label: str = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        pixel_size: float = 1.0,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        connectivity: int = None,
+        background: float | int = 0,
+        nbins: int = 100,
+        max_bound: float | None = None,
+        return_df: bool = False) -> plt.Figure:
     
     fig, psd_ax = plt.subplots(layout = "constrained")
-    psd_ax = size_distribution_ax(data, psd_ax,
-                                  mode = mode,
-                                  diam_rad_mode = diam_rad_mode,
-                                  units = units,
-                                  mask_array = mask_array,
-                                  x_label = x_label,
-                                  xlims = xlims,
-                                  ylims = ylims,
-                                  pixel_size = pixel_size,
-                                  ignore_edges = ignore_edges,
-                                  normalize = normalize,
-                                  connectivity = connectivity,
-                                  background = background,
-                                  nbins = nbins,
-                                  max_bound = max_bound)
+    psd_ax, psd_df, hist_stats_df = size_distribution_ax(
+        data, psd_ax,
+        mode = mode,
+        diam_rad_mode = diam_rad_mode,
+        units = units,
+        mask_array = mask_array,
+        x_label = x_label,
+        xlims = xlims,
+        ylims = ylims,
+        pixel_size = pixel_size,
+        ignore_edges = ignore_edges,
+        normalize = normalize,
+        connectivity = connectivity,
+        background = background,
+        nbins = nbins,
+        max_bound = max_bound,
+        return_df = True)
     
-    return fig
+    if return_df:
+        
+        return fig, psd_df, hist_stats_df
+    
+    else:
+        
+        return fig
 
 def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
              x_label: str = "Value",

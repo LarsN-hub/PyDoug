@@ -103,6 +103,7 @@ def apply_parameters(
             parameters_dict["Start"] = im_array
             parameter["Acting On"] = "Start"
             prev_name: str = parameter["Name"]
+            last_image_name: str = "Start"
             
         else:
             
@@ -140,7 +141,10 @@ def apply_parameters(
                         parameter["Acting On"]])
                 layer.iso_gradient_mode = parameter["ISO Gradient Mode"]
                 layer.rendering = parameter["Rendering"]
-                layer.colormap = cmaps[parameter["Colormap Used"]]
+                
+                if parameter["Colormap Used"] != "label_colormap":
+                    
+                    layer.colormap = cmaps[parameter["Colormap Used"]]
             
             elif parameter["Layer Type"] == "image":
                 
@@ -244,6 +248,8 @@ def apply_parameters(
                 bounds_dict = bounds_dict,
                 bounds_as_slices = bounds_as_slices,
                 conserve_mem = True)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Padded") == 0:
             
@@ -302,6 +308,8 @@ def apply_parameters(
                 bounds_as_slices = bounds_as_slices,
                 padded_color = padded_color,
                 conserve_mem = True)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Cropped") == 0:
             
@@ -321,6 +329,8 @@ def apply_parameters(
                 mask_array,
                 mask_color = mask_color,
                 conserve_mem = True)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Extend") == 0:
             
@@ -328,6 +338,8 @@ def apply_parameters(
             im_array = cc.project_mask(
                 im_array,
                 num_slices = int(parameter["Slice Count"]) - 1)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         ########################
@@ -341,6 +353,8 @@ def apply_parameters(
             im_array = trans.reslice(
                 im_array,
                 parameter["Orientation"])
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Rotated") == 0:
             
@@ -369,11 +383,16 @@ def apply_parameters(
                     float(
                         parameter["Angle"]),
                     resize = resize)
+            
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Mirrored") == 0:
             
             print("\nMirroring...")
             im_array = trans.mirror(im_array, int(parameter["Direction"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Resized") == 0:
             
@@ -412,11 +431,15 @@ def apply_parameters(
                 dims: tuple = (y_dim, x_dim)
                 
             im_array = trans.resize(im_array, dims)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Rescaled") == 0:
             
             print("\nRescaling...")
             im_array = trans.rescale(im_array, float(parameter["Scale"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         ######################
@@ -442,6 +465,8 @@ def apply_parameters(
                 method = parameter["Method"],
                 mask_color = mask_color,
                 conserve_mem = True)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Mask Logic") == 0:
             
@@ -451,6 +476,8 @@ def apply_parameters(
                 im_array,
                 mask_array,
                 parameter["Method"])
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         ###########################
@@ -485,6 +512,9 @@ def apply_parameters(
                     im_array,
                     parameter["Type"],
                     norm = auto_normalize)
+                
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Normalized") == 0:
             
@@ -514,6 +544,8 @@ def apply_parameters(
                 im_array,
                 in_range = in_range,
                 out_range = out_range)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Saturated") == 0:
             
@@ -552,6 +584,8 @@ def apply_parameters(
                 auto_normalize = auto_normalize,
                 bounds_as_percents = bounds_as_percentages,
                 mask_array = mask_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Equalized") == 0:
             
@@ -580,22 +614,30 @@ def apply_parameters(
                 radius = int(parameter["Local Radius"]),
                 along_axis = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Re-assigned") == 0:
             
             print("\nRe-assigning...")
             im_array[im_array == float(parameter["Input Intensity"])] = float(
-                parameter["Output Intensity"])  
+                parameter["Output Intensity"])
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Grayscale") == 0:
             
             print("\nConverting to grayscale...")
             im_array = pixels.rgb_2_gray(im_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Inverted") == 0:
             
             print("\nInverting...")
             im_array = pixels.invert(im_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         ########################
@@ -623,6 +665,8 @@ def apply_parameters(
                 bins = int(parameter["Bins"]),
                 mode = parameter["Mode"],
                 cval = float(parameter["CVal"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Gaussian") == 0:
             
@@ -644,6 +688,8 @@ def apply_parameters(
                 cval = float(parameter["CVal"]),
                 axial = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Non-Local Means") == 0:
             
@@ -665,6 +711,8 @@ def apply_parameters(
                 sigma = float(parameter["Sigma"]),
                 axial = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Removed Background") == 0:
             
@@ -672,6 +720,8 @@ def apply_parameters(
             im_array = denoising.remove_background(
                 im_array,
                 radius = int(parameter["Radius"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Ring Removal") == 0:
             
@@ -704,6 +754,9 @@ def apply_parameters(
                     wavelet = parameter["Wavelet"],
                     sorting = sorting,
                     square_axis = int(parameter["Square Axis"]))
+                
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("TV Bregman") == 0:
             
@@ -733,6 +786,8 @@ def apply_parameters(
                 isotropic = isotropic,
                 axial = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("TV Chambolle") == 0:
             
@@ -753,6 +808,8 @@ def apply_parameters(
                 max_num_iter = int(parameter["Max Iterations"]),
                 axial = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Wavelet") == 0:
             
@@ -800,6 +857,8 @@ def apply_parameters(
                 method = parameter["Threshold Method"],
                 axial = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         ###########################
@@ -811,9 +870,10 @@ def apply_parameters(
             print("\nManual thresholding...")
             im_array = thresh.gui_threshold(
                 im_array,
-                (
-                    float(parameter["Min"]),
-                    float(parameter["Max"])))
+                (float(parameter["Min"]),
+                 float(parameter["Max"])))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
             
@@ -833,6 +893,8 @@ def apply_parameters(
                 method = parameter["Method"],
                 otsu_classes = int(parameter["Otsu Classes"]),
                 mask_array = mask_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Local Threshold") == 0:
             
@@ -863,6 +925,8 @@ def apply_parameters(
                 window_size = int(parameter["Radius"]),
                 k = float(parameter["Sigma Weight"]),
                 r = r)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Label Segmentation") == 0:
             
@@ -890,7 +954,10 @@ def apply_parameters(
                 connectivity = int(parameter["Connectivity"]),
                 background = float(parameter["Background"]),
                 positional = along_axis,
-                axis = int(parameter["Axis"]))
+                axis = int(parameter["Axis"]),
+                randomize = False)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Watershed") == 0:
             
@@ -920,7 +987,10 @@ def apply_parameters(
                 radius = int(parameter["Watershed Radius"]),
                 compactness = float(parameter["Watershed Compactness"]),
                 along_axis = along_axis,
-                axis = int(parameter["Axis"]))
+                axis = int(parameter["Axis"]),
+                randomize = False)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Random Walk") == 0:
             
@@ -931,6 +1001,8 @@ def apply_parameters(
                     float(parameter["Lower Percentile"]),
                     float(parameter["Upper Percentile"])),
                 float(parameter["Beta"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Morph Snakes") == 0:
             
@@ -943,6 +1015,8 @@ def apply_parameters(
                 smoothing = int(parameter["Smoothing"]),
                 alpha = float(parameter["Alpha"]),
                 sigma = float(parameter["Sigma"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         #########################
@@ -970,6 +1044,8 @@ def apply_parameters(
                 connectivity = int(parameter["Connectivity"]),
                 along_axis = along_axis,
                 axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Dilation") == 0:
             
@@ -987,6 +1063,8 @@ def apply_parameters(
                 im_array,
                 int(parameter["Iterations"]),
                 along_axis = along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Erosion") == 0:
             
@@ -1004,6 +1082,8 @@ def apply_parameters(
                 im_array,
                 int(parameter["Iterations"]),
                 along_axis = along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Closing") == 0:
             
@@ -1022,6 +1102,8 @@ def apply_parameters(
                 int(parameter["Dilations"]),
                 int(parameter["Erosions"]),
                 along_axis = along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Opening") == 0:
             
@@ -1040,6 +1122,8 @@ def apply_parameters(
                 int(parameter["Erosions"]),
                 int(parameter["Dilations"]),
                 along_axis = along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Top Hat") == 0:
             
@@ -1059,6 +1143,8 @@ def apply_parameters(
                 int(parameter["Dilations"]),
                 int(parameter["Erosions"]),
                 along_axis = along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
             
         #######################
@@ -1096,6 +1182,8 @@ def apply_parameters(
                 apply_axis = apply_axis,
                 edge_method = parameter["Edges Method"],
                 cval = float(parameter["Constant Value"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Corner Detection") == 0:
             
@@ -1120,6 +1208,8 @@ def apply_parameters(
                 window_size = int(parameter["Window Size"]),
                 correct_anomalies = correct_anomalies,
                 return_mode = parameter["Return Mode"])
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Ridge Detection") == 0:
             
@@ -1154,6 +1244,8 @@ def apply_parameters(
                 black_ridges = black_ridges,
                 mode = parameter["Mode"],
                 cval = float(parameter["Constant Value"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Blob Detection") == 0:
             
@@ -1195,6 +1287,8 @@ def apply_parameters(
                 threshold_rel = threshold_rel,
                 exclude_border = exclude_border,
                 log_scale = log_scale)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Skeleton Detection") == 0:
             
@@ -1202,6 +1296,8 @@ def apply_parameters(
             im_array = detect.skeleton(
                 im_array,
                 parameter["Method"])
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         
         #######################
@@ -1330,6 +1426,8 @@ def apply_parameters(
                 along_axis: bool = False
                 
             im_array = fourier.ft(im_array, along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             
@@ -1688,7 +1786,7 @@ def apply_parameters(
                 
                 x_label: None = None
             
-            fig = plots.size_distribution(
+            fig, psd_df, hist_stats_df = plots.size_distribution(
                 im_array,
                 mode = parameter["Type"],
                 diam_rad_mode = parameter["Diameter Radius Mode"],
@@ -1702,12 +1800,26 @@ def apply_parameters(
                 ignore_edges = ignore_edges,
                 background = float(parameter["Background"]),
                 nbins = nbins,
-                max_bound = max_bound)
+                max_bound = max_bound,
+                return_df = True)
             rw.write_plot(
                 fig,
                 f"{file_name}_size_distribution_{psd_index}",
                 save_dir)
             plt.close(fig)
+            
+            if parameter["Export Data"].lower() == "true":
+                
+                psd_df.to_csv(
+                    f"{save_dir}/{file_name}_size_distribution_{psd_index}.csv",
+                    header = "column names",
+                    index = False)
+                
+                hist_stats_df.to_csv(
+                    f"{save_dir}/{file_name}_size_distribution_stats_{psd_index}.csv",
+                    header = "column names",
+                    index = False)
+            
             psd_index += 1
         
         elif parameter["Name"].find("Heat Map") == 0:
@@ -1755,6 +1867,8 @@ def apply_parameters(
                     height_orientation = parameter["Height Direction"],
                     cbar_label = colorbar_label,
                     return_array = True)
+                parameters_dict[parameter["Name"]] = im_array
+                last_image_name: str = parameter["Name"]
             
             else:
                 
@@ -1783,6 +1897,8 @@ def apply_parameters(
             
             print("\nConverting labels to image...")
             im_array = pixels.labels_2_rgb(im_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Image to Labels") == 0:
             
@@ -1819,10 +1935,10 @@ def apply_parameters(
                 cmap: None = None
                 
             cmaps[parameter["Name"]] = cmap
-            
-        parameters_dict[parameter["Name"]] = im_array
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
     
-    return parameters_dict[parameter["Name"]]
+    return parameters_dict[last_image_name]
 
 
 # Main
@@ -1845,14 +1961,21 @@ def main(im_format: str = "Stacks",
     
     im_list: list[str] = rw.get_paths(directories, title)
     parameters_path: str = rw.get_path(True, "Select parameters directory")
-    parameters_dict: dict[str, list, np.ndarray] = rw.read_parameters_dir(parameters_path)
-    save_dir: str = rw.get_path(True, "Select output directory")
+    parameters_dict: dict[str, list, np.ndarray] = rw.read_parameters_dir(
+        parameters_path)
+    save_dir: str = rw.get_path(
+        True,
+        "Select output directory",
+        parameters_path[:parameters_path.rfind("/")])
     batch_start: float = timer()
     
     if copy_parameters:
         
         os.mkdir(save_dir + "/Parameters")
-        shutil.copytree(parameters_path, save_dir + "/Parameters", dirs_exist_ok = True)
+        shutil.copytree(
+            parameters_path,
+            save_dir + "/Parameters",
+            dirs_exist_ok = True)
         
     for index, im_path in enumerate(im_list, 1):
         
@@ -1861,11 +1984,13 @@ def main(im_format: str = "Stacks",
         
         if rw.get_ext(im_path) == "directory":
             
-            file_name: str = im_path[(im_path.rfind("/") + 1):]
+            file_name: str = im_path[
+                (im_path.rfind("/") + 1):]
             
         else:
             
-            file_name: str = im_path[(im_path.rfind("/") + 1):im_path.rfind(".")]
+            file_name: str = im_path[
+                (im_path.rfind("/") + 1):im_path.rfind(".")]
         
         if im_format == "Stacks":
             

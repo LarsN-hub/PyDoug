@@ -527,7 +527,7 @@ class ImageProcessor:
                 
                 parameters_append["ISO Gradient Mode"] = topmost_visible_layer.iso_gradient_mode
                 parameters_append["Rendering"] = topmost_visible_layer.rendering
-                parameters_append["Colormap Used"] = topmost_visible_layer.name
+                parameters_append["Colormap Used"] = topmost_visible_layer.colormap.name
                 
             elif parameters_append["Layer Type"] == "image":
                 
@@ -1089,7 +1089,7 @@ class ImageProcessor:
                         self.viewer,
                         shapes_layer = Shapes,
                         slice_range = (Slice_Start, Slice_End)),
-                    name = param_layer_name, opacity = 0.5)
+                    name = param_layer_name)
                 
             else:
                 
@@ -1098,7 +1098,7 @@ class ImageProcessor:
                         Image.data,
                         self.viewer,
                         shapes_layer = Shapes),
-                    name = param_layer_name, opacity = 0.5)
+                    name = param_layer_name)
             
         else:
             
@@ -1108,7 +1108,7 @@ class ImageProcessor:
                     self.viewer,
                     shapes_layer = Shapes,
                     convert_to_3d = False),
-                name = param_layer_name, opacity = 0.5)
+                name = param_layer_name)
     
     @magicgui(
         call_button = "Paint")
@@ -1135,8 +1135,7 @@ class ImageProcessor:
         mask_array = np.bool(mask_array)
         self.viewer.add_image(
             mask_array,
-            name = param_layer_name,
-            opacity = 0.5)
+            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": ["Union", "Subtract", "Intersect"]},
@@ -1163,7 +1162,7 @@ class ImageProcessor:
                 Mask_1.data,
                 Mask_2.data,
                 Method.lower()),
-            name = param_layer_name, opacity = 0.5)
+            name = param_layer_name)
 
 
     ########################
@@ -1869,8 +1868,10 @@ class ImageProcessor:
                     connectivity = Connectivity,
                     background = Background,
                     positional = Along_Axis,
-                    axis = Axis),
-                name = param_layer_name)
+                    axis = Axis,
+                    randomize = False),
+                name = param_layer_name,
+                opacity = 1)
                 
         elif Method == "Watershed":
             
@@ -1899,8 +1900,10 @@ class ImageProcessor:
                     radius = Watershed_Radius,
                     compactness = Watershed_Compactness,
                     along_axis = Along_Axis,
-                    axis = Axis),
-                name = param_layer_name)
+                    axis = Axis,
+                    randomize = False),
+                name = param_layer_name,
+                opacity = 1)
     
     @magicgui(
         Method = {"choices": [
@@ -2983,6 +2986,7 @@ class ImageProcessor:
         X_Max = {"max": 1000000},
         Y_Max = {"max": 1000000},
         Max_Bound = {"max": 1000000},
+        Save_Folder = {"mode": "d"},
         call_button = "Plot Distribution")
     def psd_widget(self,
             Labels: napari.layers.Labels,
@@ -3003,7 +3007,10 @@ class ImageProcessor:
             Apply_Mask: bool = False,
             Mask: napari.layers.Image = None,
             Unique_Batch_Masks: bool = False,
-            Add_as_Parameter: bool = False) -> None:
+            Add_as_Parameter: bool = False,
+            Export_Data: bool = False,
+            Save_Folder: pathlib.Path = pathlib.Path("~"),
+            Save_Name: str = "Name") -> None:
         
         if Type == "Volume":
             
@@ -3071,7 +3078,8 @@ class ImageProcessor:
                  "Max Bound": Max_Bound,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
-                 "Unique Masks": Unique_Batch_Masks,})
+                 "Unique Masks": Unique_Batch_Masks,
+                 "Export Data": Export_Data})
             
         if X_Max == 0:
             
@@ -3097,7 +3105,7 @@ class ImageProcessor:
             
             Max_Bound: None = None
             
-        _ = plots.size_distribution(
+        _, psd_df, hist_stats_df = plots.size_distribution(
             Labels.data,
             mode = Type,
             diam_rad_mode = diam_rad_mode,
@@ -3111,9 +3119,22 @@ class ImageProcessor:
             ignore_edges = Remove_Edges,
             background = Background,
             nbins = Num_Bins,
-            max_bound = Max_Bound)
+            max_bound = Max_Bound,
+            return_df = True)
             
         plt.show(block = False)
+        
+        if Export_Data:
+            
+            psd_df.to_csv(
+                f"{str(Save_Folder)}/{Save_Name}.csv",
+                header = "column names",
+                index = False)
+            
+            hist_stats_df.to_csv(
+                f"{str(Save_Folder)}/{Save_Name}_stats.csv",
+                header = "column names",
+                index = False)
     
     @magicgui(
         Method = {"choices": ["Thickness", "Height"]},

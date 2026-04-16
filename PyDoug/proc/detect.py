@@ -390,9 +390,12 @@ def watershed(
         compactness: float = 0,
         along_axis: bool = False,
         axis: int = 0,
+        correct_overreach: bool = True,
         randomize: bool = True) -> np.ndarray:
     
     if np.any(mask_array):
+        
+        mask_array = np.bool(mask_array)
         
         if mask_array.ndim < im_array.ndim:
             
@@ -408,7 +411,11 @@ def watershed(
         
         proc_array = np.copy(im_array)
         
-    if not np.any(proc_array) or not np.any(pixels.invert(proc_array)):
+    if np.unique(proc_array).shape[0] == 1:
+        
+        return np.astype(im_array, np.int32)
+    
+    elif np.any(mask_array) and np.unique(proc_array[mask_array]).shape[0] == 1:
         
         return np.astype(im_array, np.int32)
     
@@ -485,6 +492,22 @@ def watershed(
                 connectivity = connectivity,
                 compactness = compactness,
                 mask = proc_array)
+            
+        if correct_overreach:
+            
+            if np.any(np.logical_not(np.bool(water_array)) & proc_array):
+                
+                over_array: np.ndarray = thresh.label(
+                    np.logical_not(np.bool(water_array)) & proc_array,
+                    connectivity = connectivity,
+                    randomize = False)
+                max_label: np.int32 = np.max(water_array)
+                
+                for index, label in enumerate(np.unique(over_array)[1:], start = 1):
+                    
+                    over_array[over_array == label] = max_label + index
+                
+                water_array += over_array
         
         if randomize:
             

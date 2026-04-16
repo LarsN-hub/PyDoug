@@ -920,6 +920,9 @@ A widget for generating a domain size distribution plot for a segmented image/st
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the domain size distribution plot generation to the parameters log.
+- "Export Data" checkbox: check to export the size distribution data as a csv file upon generating the plot.
+- "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
+- "Save Name" string: if "Export Data" is checked, type in a name for the exported data file.
 - "Plot Distribution" button: click to generate the domain size distribution plot.
 
 **Heat Maps**
@@ -956,7 +959,8 @@ More info: https://scikit-image.org/docs/stable/api/skimage.color.html#skimage.c
 - "Labels to Image" button: click to perform the labels to image operation.
 
 **Image to Labels**
-A widget for converting a 3D segmented image layer to a colorful labels layer.
+A widget for converting a 3D segmented image layer to a colorful labels layer. 
+Note, to capture the creating labels in a screenshot for batch processing, the image to labels and capture screenshot operations must be in the same parameters log.
 - "Image" drop-down: images in the layer list. Select the image layer to convert to a labels layer.
 - "Gradient" checkbox: check to apply a color gradient from a pre-defined color map to the created labels layer. Leave unchecked to apply a random single color that can be changed with the shuffle button to the labels layer.
 - "Gradient Axis" drop-down: if "Gradient" is checked, select the axis along which the color gradient should be applied.

@@ -20,6 +20,8 @@ from PyDoug.proc import trans, cropclip as cc
 
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
+label_fontsize = 15
+tick_fontsize = 13
 
 
 # Functions
@@ -90,6 +92,10 @@ def get_colormap(
                 
         color_dict[actual_label] = color_grad_array[0, :]
         
+    cmap_return: napari.utils.DirectLabelColormap = napari.utils.DirectLabelColormap(
+        color_dict = color_dict)
+    cmap_return.name: str = cmap
+        
     if return_cbar:
         
         if cbar_units == "um":
@@ -117,11 +123,11 @@ def get_colormap(
             rotation = 270,
             va = "bottom")
         
-        return napari.utils.DirectLabelColormap(color_dict = color_dict), fig
+        return cmap_return, fig
     
     else:
         
-        return napari.utils.DirectLabelColormap(color_dict = color_dict)
+        return cmap_return
 
 def get_layer_type(layer: napari.layers.Layer) -> str:
     
