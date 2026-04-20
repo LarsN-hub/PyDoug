@@ -121,7 +121,9 @@ def get_colormap(
         fig_cbar.set_label(
             c_label,
             rotation = 270,
-            va = "bottom")
+            va = "bottom",
+            fontsize = label_fontsize)
+        fig_cbar.ax.tick_params(labelsize = tick_fontsize)
         
         return cmap_return, fig
     
