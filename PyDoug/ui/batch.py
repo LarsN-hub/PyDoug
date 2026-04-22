@@ -144,7 +144,7 @@ def apply_parameters(
                 
                 if parameter["Colormap Used"] != "label_colormap":
                     
-                    layer.colormap = cmaps[parameter["Colormap Used"]]
+                    layer.colormap = cmaps[parameter["Acting On"]]
             
             elif parameter["Layer Type"] == "image":
                 

@@ -1,3 +1,6 @@
+v0.7.4-alpha
+- Fixed bug in batch processing screenshot capture with "Image to Labels" color maps
+
 v0.7.3-alpha
 - Fixed watershed labeling crashing PyDoug on empty image arrays
 - Fixed watershed labeling radius causing it to overlook small regions
