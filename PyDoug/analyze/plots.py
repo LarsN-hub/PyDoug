@@ -10,7 +10,7 @@ import numpy as np
 import napari
 import math
 
-from matplotlib import colorbar as cbar, pyplot as plt, transforms as tr
+from matplotlib import colorbar as cbar, pyplot as plt, transforms as tr, ticker
 from typing import Callable
 
 from PyDoug.analyze import distrib, quant
@@ -1557,6 +1557,8 @@ def heat_axis(
     heat_ax.set_xlabel(f"Position ({units})", fontsize = label_fontsize)
     heat_ax.set_ylabel(f"Position ({units})", fontsize = label_fontsize)
     heat_ax.tick_params(axis = "both", labelsize = tick_fontsize)
+    #heat_ax.xaxis.set_major_locator(ticker.MaxNLocator(5))
+    #heat_ax.yaxis.set_major_locator(ticker.MaxNLocator(5))
     
     if return_array:
         
