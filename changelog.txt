@@ -1,3 +1,6 @@
+v0.7.5-alpha
+- Added cmasher module colormaps for plots and image to labels visualization, this will require the Powershell portion of the update section
+
 v0.7.4-alpha
 - Fixed bug in batch processing screenshot capture with "Image to Labels" color maps
 

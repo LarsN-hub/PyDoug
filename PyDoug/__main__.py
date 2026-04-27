@@ -5,12 +5,7 @@ Entry point for PyDoug GUI
 
 # Imports
 
-import magicclass.widgets as mcw
-import numpy as np
-import pathlib
-import napari
-import pywt
-import os
+import magicclass.widgets as mcw, numpy as np, pathlib, napari, pywt, os, cmasher as cmr
 
 from matplotlib import pyplot as plt, colormaps
 from magicgui import magicgui, widgets
@@ -25,7 +20,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.7.4-alpha"
+version_str: str = "v0.7.5-alpha"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 

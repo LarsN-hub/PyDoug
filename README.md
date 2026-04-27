@@ -70,8 +70,10 @@ Installing & Updating
 **Update**
 1. Download the .zip file source code for the most recent release.
 2. Extract the contents wherever you please.
-3. Navigate inside the extracted folder. Move the folder named "PyDoug" to the location of your current PyDoug folder.
-4. Allow it to replace all current files.
+3. Navigate inside the extracted folder. Move the folder named "PyDoug" and the text document named "requirements_dist.txt" to the location of your current PyDoug folder, allowing the system it to replace any encountered duplicate files.
+5. In the case that the "requirements.txt" file is actually different (this will not happen frequently, see changelog for details), open Windows Powershell. If not, no more steps are required.
+6. Navigate to the folder where you moved PyDoug and requirements_dist.txt to previously using "cd Path\to\Directory" then enter.
+7. Type "PyDoug_Env\Scripts\pip install -r requirements_dist.txt" then enter.
 
 ------------
 General Info
