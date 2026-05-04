@@ -20,7 +20,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.7.5-alpha"
+version_str: str = "v0.7.6-alpha"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 
@@ -758,9 +758,11 @@ class ImageProcessor:
         
         if Conserve_RAM:
             
-            Image.data = cc.crop(Image.data, Mask.data,
-                                 mask_color = color_spec,
-                                 conserve_mem = True)
+            Image.data = cc.crop(
+                Image.data,
+                Mask.data,
+                mask_color = color_spec,
+                conserve_mem = True)
             Image.name = param_layer_name
             self._on_layer_changed()
         

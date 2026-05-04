@@ -371,8 +371,8 @@ def crop(
     
     r_start: np.int64 = np.min(mask_indices[:, 0])
     c_start: np.int64 = np.min(mask_indices[:, 1])
-    r_end: np.int64 = np.max(mask_indices[:, 0])
-    c_end: np.int64 = np.max(mask_indices[:, 1])
+    r_end: np.int64 = np.max(mask_indices[:, 0]) + 1
+    c_end: np.int64 = np.max(mask_indices[:, 1]) + 1
     
     if util.is_3d_rgb(im_array)["3D"]:
         
