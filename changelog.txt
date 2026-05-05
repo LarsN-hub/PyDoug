@@ -1,5 +1,6 @@
 v0.7.6-alpha
 - Fixed inclusivity of mask bounds in crop widget
+- Fixed error when plotting PSD with only background present
 
 v0.7.5-alpha
 - Added cmasher module colormaps for plots and image to labels visualization, this will require the Powershell portion of the update section

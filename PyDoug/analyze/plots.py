@@ -40,7 +40,9 @@ def get_basic_colors() -> list[np.ndarray]:
             np.array([0, 0, 0]),
             np.array([0.5, 0.5, 0.5]))
 
-def get_color_list(mode: str = "br", num_colors: int = 2) -> list[np.ndarray]:
+def get_color_list(
+        mode: str = "br",
+        num_colors: int = 2) -> list[np.ndarray]:
     
     color_list: list[tuple] = []
     
@@ -76,7 +78,8 @@ def get_color_list(mode: str = "br", num_colors: int = 2) -> list[np.ndarray]:
             
     return color_list
 
-def remove_edges(data_df: pd.DataFrame) -> pd.DataFrame:
+def remove_edges(
+        data_df: pd.DataFrame) -> pd.DataFrame:
     
     data_df = data_df[1:-1].reset_index(drop = True)
     eval_array: np.ndarray = np.array(data_df[data_df.columns[1:]]) != 0
@@ -110,7 +113,8 @@ def remove_edges(data_df: pd.DataFrame) -> pd.DataFrame:
     
     return data_df[new_start: new_end].reset_index(drop = True)
 
-def subplot_layout(num_plots: int) -> tuple:
+def subplot_layout(
+        num_plots: int) -> tuple:
     
     if num_plots == 1:
         
@@ -136,7 +140,11 @@ def subplot_layout(num_plots: int) -> tuple:
         
         return (3, 3)
 
-def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims: tuple = None) -> plt.Axes:
+def set_axlims(
+        axis: plt.Axes,
+        data_type: np.dtype,
+        y_or_x: str = "x", *,
+        axlims: tuple = None) -> plt.Axes:
     
     if axlims:
         
@@ -172,10 +180,11 @@ def set_axlims(axis: plt.Axes, data_type: np.dtype, y_or_x: str = "x", *, axlims
                 
     return axis
 
-def get_log_starts_widths(log_ax_values: np.ndarray, *,
-                          points_per_value: int = 1,
-                          point_count_index: int = 0,
-                          width: float = 1) -> np.ndarray:
+def get_log_starts_widths(
+        log_ax_values: np.ndarray, *,
+        points_per_value: int = 1,
+        point_count_index: int = 0,
+        width: float = 1) -> np.ndarray:
     
     offset_starts: np.ndarray = np.zeros((points_per_value, log_ax_values.shape[0]))
     widths: np.ndarray = np.copy(offset_starts)
@@ -195,27 +204,30 @@ def get_log_starts_widths(log_ax_values: np.ndarray, *,
     
     return offset_starts, widths
 
-def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
-             x_labels: tuple[str] = None,
-             y_label: str = "Values",
-             x_label: str = "Categories",
-             y_units: str = None,
-             x_units: str = None,
-             width: float = 1,
-             labels: tuple[str] = None,
-             label_index: int = 0,
-             y_count: int = 1,
-             y_count_index: int = 0,
-             ymax: float = None,
-             xlims: tuple[float] = None,
-             colors: tuple | np.ndarray | str = None,
-             color_grad: bool = False,
-             add_lines: bool | tuple[bool] = False,
-             logx: bool = False,
-             logy: bool = False,
-             second_axis: bool = False,
-             edges: bool = True,
-             sci: bool = False) -> plt.Axes:
+def bar_axis(
+        x: np.ndarray,
+        y: np.ndarray,
+        input_ax: plt.Axes = None, *,
+        x_labels: tuple[str] = None,
+        y_label: str = "Values",
+        x_label: str = "Categories",
+        y_units: str = None,
+        x_units: str = None,
+        width: float = 1,
+        labels: tuple[str] = None,
+        label_index: int = 0,
+        y_count: int = 1,
+        y_count_index: int = 0,
+        ymax: float = None,
+        xlims: tuple[float] = None,
+        colors: tuple | np.ndarray | str = None,
+        color_grad: bool = False,
+        add_lines: bool | tuple[bool] = False,
+        logx: bool = False,
+        logy: bool = False,
+        second_axis: bool = False,
+        edges: bool = True,
+        sci: bool = False) -> plt.Axes:
     
     if edges:
         
@@ -257,9 +269,10 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
         
         if logx:
             
-            offset_starts, widths = get_log_starts_widths(x, points_per_value = y_count,
-                                                          point_count_index = y_count_index,
-                                                          width = width)
+            offset_starts, widths = get_log_starts_widths(
+                x, points_per_value = y_count,
+                point_count_index = y_count_index,
+                width = width)
             
             if y_count % 2 != 0:
                         
@@ -279,7 +292,10 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                 
                 offset_start: float = (-math.floor(y_count / 2) * width) / 2
                 
-            offset_incs: np.ndarray = np.arange(offset_start, offset_start + (y_count * width), width)
+            offset_incs: np.ndarray = np.arange(
+                offset_start,
+                offset_start + (y_count * width),
+                width)
             
         if y.ndim > 1:
             
@@ -317,51 +333,55 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                                 
                 if labels:
                 
-                    bar_ax.bar(offset_starts[y_index + (y_count_index * second_axis), :],
-                               cur_y,
-                               width = widths[y_index + (y_count_index * second_axis), :],
-                               color = color,
-                               label = labels[label_index],
-                               align = align,
-                               linewidth = line_width,
-                               edgecolor = "k",
-                               tick_label = x_labels)
+                    bar_ax.bar(
+                        offset_starts[y_index + (y_count_index * second_axis), :],
+                        cur_y,
+                        width = widths[y_index + (y_count_index * second_axis), :],
+                        color = color,
+                        label = labels[label_index],
+                        align = align,
+                        linewidth = line_width,
+                        edgecolor = "k",
+                        tick_label = x_labels)
                     label_index += 1
                     
                 else:
                     
-                    bar_ax.bar(offset_starts[y_index + (y_count_index * second_axis), :],
-                               cur_y,
-                               width = widths[y_index + (y_count_index * second_axis), :],
-                               color = color,
-                               align = align,
-                               linewidth = line_width,
-                               edgecolor = "k",
-                               tick_label = x_labels)
+                    bar_ax.bar(
+                        offset_starts[y_index + (y_count_index * second_axis), :],
+                        cur_y,
+                        width = widths[y_index + (y_count_index * second_axis), :],
+                        color = color,
+                        align = align,
+                        linewidth = line_width,
+                        edgecolor = "k",
+                        tick_label = x_labels)
             
             else:
                 
                 if labels:
                 
-                    bar_ax.bar(x + offset_incs[y_index + (y_count_index * second_axis)],
-                               cur_y,
-                               width = width,
-                               color = color,
-                               label = labels[label_index],
-                               linewidth = line_width,
-                               edgecolor = "k",
-                               tick_label = x_labels)
+                    bar_ax.bar(
+                        x + offset_incs[y_index + (y_count_index * second_axis)],
+                        cur_y,
+                        width = width,
+                        color = color,
+                        label = labels[label_index],
+                        linewidth = line_width,
+                        edgecolor = "k",
+                        tick_label = x_labels)
                     label_index += 1
                     
                 else:
                     
-                    bar_ax.bar(x + offset_incs[y_index + (y_count_index * second_axis)],
-                               cur_y,
-                               width = width,
-                               color = color,
-                               linewidth = line_width,
-                               edgecolor = "k",
-                               tick_label = x_labels)
+                    bar_ax.bar(
+                        x + offset_incs[y_index + (y_count_index * second_axis)],
+                        cur_y,
+                        width = width,
+                        color = color,
+                        linewidth = line_width,
+                        edgecolor = "k",
+                        tick_label = x_labels)
                 
             if add_lines:
                 
@@ -389,7 +409,10 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                     
                     if y_count % 2 != 0:
                         
-                        bar_ax.plot(offset_starts[y_index + (y_count_index * second_axis), :], cur_y, color = color / 2)
+                        bar_ax.plot(
+                            offset_starts[y_index + (y_count_index * second_axis), :],
+                            cur_y,
+                            color = color / 2)
                         
                     else:
                         
@@ -399,11 +422,17 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                             
                             line_offset_starts[index] = offset + np.diff(np.logspace(math.log10(offset), math.log10(offset + widths[y_index + (y_count_index * second_axis), index]), 3))[0]
                         
-                        bar_ax.plot(line_offset_starts, cur_y, color = color / 2)
+                        bar_ax.plot(
+                            line_offset_starts,
+                            cur_y,
+                            color = color / 2)
                     
                 else:
                 
-                    bar_ax.plot(x + offset_incs[y_index], cur_y, color = color / 2)
+                    bar_ax.plot(
+                        x + offset_incs[y_index],
+                        cur_y,
+                        color = color / 2)
     
     else:
         
@@ -422,11 +451,22 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
             
             if logx:
                 
-                range_markers: np.ndarray = np.astype(np.round(np.logspace(math.log10(1), math.log10(x.shape[0] + 1), (num_grads + 1))), np.int64)
+                range_markers: np.ndarray = np.astype(
+                    np.round(
+                        np.logspace(
+                            math.log10(1),
+                            math.log10(x.shape[0] + 1),
+                            (num_grads + 1))),
+                    np.int64)
                 
             else:
                 
-                range_markers: np.ndarray = np.astype(np.round(np.linspace(0, x.shape[0], (num_grads + 1))), np.int64)
+                range_markers: np.ndarray = np.astype(
+                    np.round(
+                        np.linspace(
+                            0, x.shape[0],
+                            (num_grads + 1))),
+                    np.int64)
             
             for index in range(0, num_grads):
                 
@@ -438,10 +478,12 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                     
                     cur_range += 1
             
-                cur_grad_colors: np.ndarray = np.concat((np.expand_dims((np.linspace(cur_start[0], cur_end[0], cur_range)), 1),
-                                                         np.expand_dims((np.linspace(cur_start[1], cur_end[1], cur_range)), 1),
-                                                         np.expand_dims((np.linspace(cur_start[2], cur_end[2], cur_range)), 1)),
-                                                        axis = 1)
+                cur_grad_colors: np.ndarray = np.concat(
+                    (np.expand_dims(
+                        (np.linspace(cur_start[0], cur_end[0], cur_range)), 1),
+                        np.expand_dims((np.linspace(cur_start[1], cur_end[1], cur_range)), 1),
+                        np.expand_dims((np.linspace(cur_start[2], cur_end[2], cur_range)), 1)),
+                    axis = 1)
                     
                 if index == 0:
                     
@@ -449,40 +491,45 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
                     
                 else:
                     
-                    grad_colors = np.concat((grad_colors, cur_grad_colors[1:, :]), axis = 0)
+                    grad_colors = np.concat(
+                        (grad_colors, cur_grad_colors[1:, :]),
+                        axis = 0)
             
             for index, x_value in enumerate(x):
                 
-                bar_ax.bar(x_value,
-                           y[index],
-                           width = widths[index],
-                           color = grad_colors[index, :],
-                           linewidth = line_width,
-                           edgecolor = "k",
-                           tick_label = x_labels)
+                bar_ax.bar(
+                    x_value,
+                    y[index],
+                    width = widths[index],
+                    color = grad_colors[index, :],
+                    linewidth = line_width,
+                    edgecolor = "k",
+                    tick_label = x_labels)
                 
         else:
                 
             if labels:
                     
-                bar_ax.bar(x,
-                           y,
-                           width = widths,
-                           color = colors,
-                           label = labels[label_index],
-                           linewidth = line_width,
-                           edgecolor = "k",
-                           tick_label = x_labels)
+                bar_ax.bar(
+                    x,
+                    y,
+                    width = widths,
+                    color = colors,
+                    label = labels[label_index],
+                    linewidth = line_width,
+                    edgecolor = "k",
+                    tick_label = x_labels)
                     
             else:
                     
-                bar_ax.bar(x,
-                           y,
-                           width = widths, 
-                           color = colors,
-                           linewidth = line_width,
-                           edgecolor = "k",
-                           tick_label = x_labels)
+                bar_ax.bar(
+                    x,
+                    y,
+                    width = widths, 
+                    color = colors,
+                    linewidth = line_width,
+                    edgecolor = "k",
+                    tick_label = x_labels)
         
             if add_lines:
                 
@@ -496,7 +543,11 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
         
     else:
         
-        bar_ax.set_ylabel(y_title, rotation = 270, va = "bottom", fontsize = label_fontsize)
+        bar_ax.set_ylabel(
+            y_title,
+            rotation = 270,
+            va = "bottom",
+            fontsize = label_fontsize)
         
     if logx:
         
@@ -528,40 +579,45 @@ def bar_axis(x: np.ndarray, y: np.ndarray, input_ax: plt.Axes = None, *,
             
     if sci:
         
-        bar_ax.ticklabel_format(axis = "y", style = "sci", scilimits = (0, 0))
+        bar_ax.ticklabel_format(
+            axis = "y",
+            style = "sci",
+            scilimits = (0, 0))
         
     bar_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return bar_ax, label_index
 
-def simple_bar(x: np.ndarray, y: np.ndarray, *,
-               x_labels: tuple[str] = None,
-               y_label: str = "Values",
-               x_label: str = "Categories",
-               y_units: str = None,
-               x_units: str = None,
-               width: float = 1,
-               labels: tuple[str] = None,
-               ymax: float = None,
-               xlims: tuple[float] = None,
-               colors: tuple | np.ndarray | str = None,
-               color_grad: bool = False,
-               add_lines: bool | tuple[bool] = False,
-               logx: bool = False,
-               logy: bool = False,
-               sci: bool = False,
-               axis2: bool = False,
-               y2: np.ndarray = None,
-               y2_label: str = "Values",
-               y2_units: str = None,
-               y2max: float = None,
-               colors2: tuple = None,
-               add_lines2: bool = False,
-               logy2: bool = False,
-               legend_axis: int = 2,
-               edges: bool = True,
-               sci2: bool = False,
-               dx: float = 0) -> plt.Figure:
+def simple_bar(
+        x: np.ndarray,
+        y: np.ndarray, *,
+        x_labels: tuple[str] = None,
+        y_label: str = "Values",
+        x_label: str = "Categories",
+        y_units: str = None,
+        x_units: str = None,
+        width: float = 1,
+        labels: tuple[str] = None,
+        ymax: float = None,
+        xlims: tuple[float] = None,
+        colors: tuple | np.ndarray | str = None,
+        color_grad: bool = False,
+        add_lines: bool | tuple[bool] = False,
+        logx: bool = False,
+        logy: bool = False,
+        sci: bool = False,
+        axis2: bool = False,
+        y2: np.ndarray = None,
+        y2_label: str = "Values",
+        y2_units: str = None,
+        y2max: float = None,
+        colors2: tuple = None,
+        add_lines2: bool = False,
+        logy2: bool = False,
+        legend_axis: int = 2,
+        edges: bool = True,
+        sci2: bool = False,
+        dx: float = 0) -> plt.Figure:
     
     if y.ndim > 1:
         
@@ -582,25 +638,28 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             y_count += 1
         
     fig, bar_ax = plt.subplots(layout = "constrained")
-    bar_ax, label_index = bar_axis(x, y, bar_ax,
-                                   x_labels = x_labels,
-                                   y_label = y_label,
-                                   x_label = x_label,
-                                   y_units = y_units,
-                                   x_units = x_units,
-                                   width = width,
-                                   labels = labels,
-                                   y_count = y_count,
-                                   y_count_index = 0,
-                                   ymax = ymax,
-                                   xlims = xlims,
-                                   colors = colors,
-                                   color_grad = color_grad,
-                                   add_lines = add_lines,
-                                   logx = logx,
-                                   logy = logy,
-                                   edges = edges,
-                                   sci = sci)
+    bar_ax, label_index = bar_axis(
+        x,
+        y,
+        bar_ax,
+        x_labels = x_labels,
+        y_label = y_label,
+        x_label = x_label,
+        y_units = y_units,
+        x_units = x_units,
+        width = width,
+        labels = labels,
+        y_count = y_count,
+        y_count_index = 0,
+        ymax = ymax,
+        xlims = xlims,
+        colors = colors,
+        color_grad = color_grad,
+        add_lines = add_lines,
+        logx = logx,
+        logy = logy,
+        edges = edges,
+        sci = sci)
     
     if axis2:
         
@@ -614,30 +673,39 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             y_count_index: int = 1
         
-        bar_ax2, _ = bar_axis(x, y2, bar_ax2,
-                              x_labels = x_labels,
-                              y_label = y2_label,
-                              y_units = y2_units,
-                              width = width,
-                              labels = labels,
-                              label_index = label_index,
-                              y_count = y_count,
-                              y_count_index = y_count_index,
-                              ymax = y2max,
-                              xlims = xlims,
-                              colors = colors2,
-                              add_lines = add_lines2,
-                              logx = logx,
-                              logy = logy2,
-                              second_axis = axis2,
-                              edges = edges,
-                              sci = sci2)
+        bar_ax2, _ = bar_axis(
+            x,
+            y2,
+            bar_ax2,
+            x_labels = x_labels,
+            y_label = y2_label,
+            y_units = y2_units,
+            width = width,
+            labels = labels,
+            label_index = label_index,
+            y_count = y_count,
+            y_count_index = y_count_index,
+            ymax = y2max,
+            xlims = xlims,
+            colors = colors2,
+            add_lines = add_lines2,
+            logx = logx,
+            logy = logy2,
+            second_axis = axis2,
+            edges = edges,
+            sci = sci2)
         
     if x_labels:
         
         dy: float = 0
-        bar_ax.tick_params(axis = "x", length = 0, labelsize = tick_fontsize)
-        offset: tr.ScaledTranslation = tr.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+        bar_ax.tick_params(
+            axis = "x",
+            length = 0,
+            labelsize = tick_fontsize)
+        offset: tr.ScaledTranslation = tr.ScaledTranslation(
+            dx,
+            dy,
+            fig.dpi_scale_trans)
         
         for label, line in zip(bar_ax.xaxis.get_majorticklabels(), bar_ax.xaxis.get_majorticklines()):
             
@@ -654,28 +722,41 @@ def simple_bar(x: np.ndarray, y: np.ndarray, *,
             
             if legend_axis == 2:
                 
-                bar_ax2.legend(bars + bars2, bars_labels + bars_labels2, frameon = False, fontsize = legend_fontsize)
+                bar_ax2.legend(
+                    bars + bars2,
+                    bars_labels + bars_labels2,
+                    frameon = False,
+                    fontsize = legend_fontsize)
                 
             else:
                 
-                bar_ax.legend(bars + bars2, bars_labels + bars_labels2, frameon = False, fontsize = legend_fontsize)
+                bar_ax.legend(
+                    bars + bars2,
+                    bars_labels + bars_labels2,
+                    frameon = False,
+                    fontsize = legend_fontsize)
             
         else:
             
-            bar_ax.legend(bars, bars_labels, frameon = False, fontsize = legend_fontsize)
+            bar_ax.legend(
+                bars,
+                bars_labels,
+                frameon = False,
+                fontsize = legend_fontsize)
     
     return fig
 
-def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
-                categories: list | tuple | np.ndarray = None,
-                cat_label: str = "Categories",
-                cat_units: str = None,
-                data_label: str = "Values",
-                data_units: str = None,
-                orientation: str = "vertical",
-                widths: float = 0.5,
-                data_lims: tuple = None,
-                colors: np.ndarray = None) -> plt.Figure:
+def box_whisker(
+        data: np.ndarray | tuple[np.ndarray], *,
+        categories: list | tuple | np.ndarray = None,
+        cat_label: str = "Categories",
+        cat_units: str = None,
+        data_label: str = "Values",
+        data_units: str = None,
+        orientation: str = "vertical",
+        widths: float = 0.5,
+        data_lims: tuple = None,
+        colors: np.ndarray = None) -> plt.Figure:
     
     if cat_units:
         
@@ -694,10 +775,12 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
         data_label = f"{data_label} ({data_units})"
         
     fig, box_ax = plt.subplots(layout = "constrained")
-    bp = box_ax.boxplot(data, orientation = orientation,
-                        tick_labels = categories,
-                        widths = widths,
-                        patch_artist = True)
+    bp = box_ax.boxplot(
+        data,
+        orientation = orientation,
+        tick_labels = categories,
+        widths = widths,
+        patch_artist = True)
     
     if orientation == "vertical":
         
@@ -743,81 +826,86 @@ def box_whisker(data: np.ndarray | tuple[np.ndarray], *,
         
     return fig
 
-def line_axis(data: np.ndarray | pd.DataFrame = None,
-              input_ax: plt.Axes = None,
-              mode: str = "line scan", *,
-              color_mode: str = "br",
-              viewer: napari.viewer.Viewer = None,
-              slice_range: tuple[int] = None,
-              distrib_mode: str = "vol",
-              size_mode: str = "area",
-              pixel_size: float = 1.0,
-              units: str = "pix",
-              mask_array: np.ndarray = None,
-              temporal_scale: float | int = None,
-              temporal_units: str = "s",
-              axis: int = 0,
-              include_background: bool = False,
-              background: float | int = 0,
-              ignore_edges: bool = False,
-              connectivity: int = None,
-              normalize: bool = False,
-              norm_method: str = "total",
-              xlims: tuple = None,
-              ylims: tuple = None,
-              return_df: bool = False) -> plt.Axes:
+def line_axis(
+        data: np.ndarray | pd.DataFrame = None,
+        input_ax: plt.Axes = None,
+        mode: str = "line scan", *,
+        color_mode: str = "br",
+        viewer: napari.viewer.Viewer = None,
+        slice_range: tuple[int] = None,
+        distrib_mode: str = "vol",
+        size_mode: str = "area",
+        pixel_size: float = 1.0,
+        units: str = "pix",
+        mask_array: np.ndarray = None,
+        temporal_scale: float | int = None,
+        temporal_units: str = "s",
+        axis: int = 0,
+        include_background: bool = False,
+        background: float | int = 0,
+        ignore_edges: bool = False,
+        connectivity: int = None,
+        normalize: bool = False,
+        norm_method: str = "total",
+        xlims: tuple = None,
+        ylims: tuple = None,
+        return_df: bool = False) -> plt.Axes:
     
     if not isinstance(data, pd.DataFrame):
         
         if mode == "line scan":
             
-            line_df: pd.DataFrame = sv.quick_get_line_scan(viewer,
-                                                           slice_range,
-                                                           pixel_size = pixel_size,
-                                                           units = units)
+            line_df: pd.DataFrame = sv.quick_get_line_scan(
+                viewer,
+                slice_range,
+                pixel_size = pixel_size,
+                units = units)
         
         elif mode == "phase distrib":
             
-            line_df: pd.DataFrame = distrib.get_position_distribution(data,
-                                                                      mode = distrib_mode,
-                                                                      mask_array = mask_array,
-                                                                      pixel_size = pixel_size,
-                                                                      units = units,
-                                                                      axis = axis,
-                                                                      include_background = include_background,
-                                                                      background = background,
-                                                                      normalize = normalize,
-                                                                      norm_method = norm_method)
+            line_df: pd.DataFrame = distrib.get_position_distribution(
+                data,
+                mode = distrib_mode,
+                mask_array = mask_array,
+                pixel_size = pixel_size,
+                units = units,
+                axis = axis,
+                include_background = include_background,
+                background = background,
+                normalize = normalize,
+                norm_method = norm_method)
         
         elif mode == "psd distrib":
             
-            line_df: pd.DataFrame = distrib.get_size_distribution(data,
-                                                                  mask_array = mask_array,
-                                                                  mode = distrib_mode,
-                                                                  pixel_size = pixel_size,
-                                                                  units = units,
-                                                                  connectivity = connectivity,
-                                                                  background = background,
-                                                                  normalize = normalize,
-                                                                  positional = True,
-                                                                  temporal_scale = temporal_scale,
-                                                                  temporal_units = temporal_units)
+            line_df: pd.DataFrame = distrib.get_size_distribution(
+                data,
+                mask_array = mask_array,
+                mode = distrib_mode,
+                pixel_size = pixel_size,
+                units = units,
+                connectivity = connectivity,
+                background = background,
+                normalize = normalize,
+                positional = True,
+                temporal_scale = temporal_scale,
+                temporal_units = temporal_units)
             
         elif mode == "time series":
             
-            line_df: pd.DataFrame = distrib.get_time_series(data,
-                                                            mode = distrib_mode,
-                                                            size_mode = size_mode,
-                                                            mask_array = mask_array,
-                                                            pixel_size = pixel_size,
-                                                            spatial_units = units,
-                                                            temporal_scale = temporal_scale,
-                                                            temporal_units = temporal_units,
-                                                            connectivity = connectivity,
-                                                            background = background,
-                                                            include_background = include_background,
-                                                            normalize = normalize,
-                                                            norm_method = norm_method)
+            line_df: pd.DataFrame = distrib.get_time_series(
+                data,
+                mode = distrib_mode,
+                size_mode = size_mode,
+                mask_array = mask_array,
+                pixel_size = pixel_size,
+                spatial_units = units,
+                temporal_scale = temporal_scale,
+                temporal_units = temporal_units,
+                connectivity = connectivity,
+                background = background,
+                include_background = include_background,
+                normalize = normalize,
+                norm_method = norm_method)
             
     else:
         
@@ -930,7 +1018,9 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
         line_df = remove_edges(line_df)
         
     line_ax: plt.Axes = input_ax
-    color_list: list[np.ndarray] = get_color_list(color_mode, len(line_df.columns) - 1)
+    color_list: list[np.ndarray] = get_color_list(
+        color_mode,
+        len(line_df.columns) - 1)
     
     for index, column in enumerate(line_df.columns):
         
@@ -971,28 +1061,29 @@ def line_axis(data: np.ndarray | pd.DataFrame = None,
         
         return line_ax
 
-def line(data: np.ndarray | pd.DataFrame,
-         mode: str = "line scan", *,
-         color_mode: str = "br",
-         viewer: napari.viewer.Viewer = None,
-         slice_range: tuple[int] = None,
-         distrib_mode: str = "vol",
-         size_mode: str = "area",
-         pixel_size: float = 1.0,
-         units: str = "pix",
-         mask_array: np.ndarray = None,
-         temporal_scale: float | int = None,
-         temporal_units: str = "s",
-         axis: int = 0,
-         include_background: bool = False,
-         background: float | int = 0,
-         connectivity: int = None,
-         ignore_edges: bool = False,
-         normalize: bool = False,
-         norm_method: str = "total",
-         xlims: tuple = None,
-         ylims: tuple = None,
-         return_df: bool = False) -> plt.Figure:
+def line(
+        data: np.ndarray | pd.DataFrame,
+        mode: str = "line scan", *,
+        color_mode: str = "br",
+        viewer: napari.viewer.Viewer = None,
+        slice_range: tuple[int] = None,
+        distrib_mode: str = "vol",
+        size_mode: str = "area",
+        pixel_size: float = 1.0,
+        units: str = "pix",
+        mask_array: np.ndarray = None,
+        temporal_scale: float | int = None,
+        temporal_units: str = "s",
+        axis: int = 0,
+        include_background: bool = False,
+        background: float | int = 0,
+        connectivity: int = None,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        norm_method: str = "total",
+        xlims: tuple = None,
+        ylims: tuple = None,
+        return_df: bool = False) -> plt.Figure:
     
     # if mode == "psd distrib":
         
@@ -1004,29 +1095,30 @@ def line(data: np.ndarray | pd.DataFrame,
     
     fig, line_ax = plt.subplots(layout = "constrained")
     
-    line_ax, line_df = line_axis(data,
-                                 line_ax,
-                                 mode = mode,
-                                 color_mode = color_mode,
-                                 viewer = viewer,
-                                 slice_range = slice_range,
-                                 distrib_mode = distrib_mode,
-                                 size_mode = size_mode,
-                                 pixel_size = pixel_size,
-                                 units = units,
-                                 mask_array = mask_array,
-                                 temporal_scale = temporal_scale,
-                                 temporal_units = temporal_units,
-                                 axis = axis,
-                                 include_background = include_background,
-                                 background = background,
-                                 connectivity = connectivity,
-                                 ignore_edges = ignore_edges,
-                                 normalize = normalize,
-                                 norm_method = norm_method,
-                                 xlims = xlims,
-                                 ylims = ylims,
-                                 return_df = True)
+    line_ax, line_df = line_axis(
+        data,
+        line_ax,
+        mode = mode,
+        color_mode = color_mode,
+        viewer = viewer,
+        slice_range = slice_range,
+        distrib_mode = distrib_mode,
+        size_mode = size_mode,
+        pixel_size = pixel_size,
+        units = units,
+        mask_array = mask_array,
+        temporal_scale = temporal_scale,
+        temporal_units = temporal_units,
+        axis = axis,
+        include_background = include_background,
+        background = background,
+        connectivity = connectivity,
+        ignore_edges = ignore_edges,
+        normalize = normalize,
+        norm_method = norm_method,
+        xlims = xlims,
+        ylims = ylims,
+        return_df = True)
         
     # fig_cbar: cbar.Colorbar = fig.colorbar(ax_im)
     # fig_cbar.set_label(c_label, rotation = 270, va = "bottom")
@@ -1039,9 +1131,13 @@ def line(data: np.ndarray | pd.DataFrame,
         
         return fig
 
-def gui_line_scan(im_array: np.ndarray, shapes_layer: napari.layers.Shapes) -> plt.Figure:
+def gui_line_scan(
+        im_array: np.ndarray,
+        shapes_layer: napari.layers.Shapes) -> plt.Figure:
     
-    line_scan_df: pd.DataFrame = sv.quick_get_line_scan(im_array = im_array, shapes_layer = shapes_layer)
+    line_scan_df: pd.DataFrame = sv.quick_get_line_scan(
+        im_array = im_array,
+        shapes_layer = shapes_layer)
     fig, ls_ax = plt.subplots(layout = "constrained")
     ls_ax.set_xlabel("Position [pix]", fontsize = label_fontsize)
     ls_ax.set_ylabel("Gray Value", fontsize = label_fontsize)
@@ -1084,27 +1180,35 @@ def histogram_axis(
         
         hist_df: pd.DataFrame = data.copy()
         
-    hist_mean: float = np.sum(
-        (hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
-    print(f"\n{"Histogram Mean:":<16} {hist_mean}")
-    
-    if not normalize:
+    if np.sum(hist_df["Counts"]) != 0:
+              
+        hist_mean: float = np.sum(
+            (hist_df["Bin Centers"] * hist_df["Counts"])) / np.sum(hist_df["Counts"])
+        print(f"\n{"Histogram Mean:":<16} {hist_mean}")
         
-        ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(
-            hist_df["Bin Centers"],
-            hist_df["Counts"])            
-        hist_std: float = np.std(ext_bin_centers)
-        print(f"{"Histogram StDv:":<16} {hist_std}")
-        print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
-        hist_stats_df: pd.DataFrame = pd.DataFrame(
-            np.array([[hist_mean, hist_std, np.sum(hist_df["Counts"])]]),
-            columns = ["Mean", "Std. Dev.", "Counts"])
-        
+        if not normalize:
+            
+            ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(
+                hist_df["Bin Centers"],
+                hist_df["Counts"])            
+            hist_std: float = np.std(ext_bin_centers)
+            print(f"{"Histogram StDv:":<16} {hist_std}")
+            print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
+            hist_stats_df: pd.DataFrame = pd.DataFrame(
+                np.array([[hist_mean, hist_std, np.sum(hist_df["Counts"])]]),
+                columns = ["Mean", "Std. Dev.", "Counts"])
+            
+        else:
+            
+            hist_stats_df: pd.DataFrame = pd.DataFrame(
+                np.array([[hist_mean]]),
+                columns = ["Mean"])
+            
     else:
         
         hist_stats_df: pd.DataFrame = pd.DataFrame(
-            np.array([[hist_mean]]),
-            columns = ["Mean"])
+            np.array([[0, 0, 0]]),
+            columns = ["Mean", "Std. Dev.", "Counts"])
         
     if ignore_edges:
         
@@ -1121,15 +1225,25 @@ def histogram_axis(
         
         hist_ax.set_ylabel("Counts", fontsize = label_fontsize)
         
-    hist_ax.hist(hist_df["Bin Centers"], hist_df["Bin Centers"], weights = hist_df["Counts"], edgecolor = "k")
+    hist_ax.hist(
+        hist_df["Bin Centers"],
+        hist_df["Bin Centers"],
+        weights = hist_df["Counts"],
+        edgecolor = "k")
     
     if xlims:
         
-        hist_ax = set_axlims(hist_ax, hist_df["Bin Centers"].dtype, "x", axlims = xlims)
+        hist_ax = set_axlims(
+            hist_ax,
+            hist_df["Bin Centers"].dtype,
+            "x",
+            axlims = xlims)
         
     else:
         
-        hist_ax.set_xlim(np.min(hist_df["Bin Centers"]), np.max(hist_df["Bin Centers"]))
+        hist_ax.set_xlim(
+            np.min(hist_df["Bin Centers"]),
+            np.max(hist_df["Bin Centers"]))
         
     if ylims:
         
@@ -1139,7 +1253,9 @@ def histogram_axis(
         
         hist_ax.set_xscale("log")
         
-    hist_ax.tick_params(axis = "both", labelsize = tick_fontsize)
+    hist_ax.tick_params(
+        axis = "both",
+        labelsize = tick_fontsize)
         
     if return_stats_df:
         
@@ -1298,15 +1414,19 @@ def size_distribution(
         
         return fig
 
-def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
-             x_label: str = "Value",
-             mask_array: np.ndarray = None,
-             xlims: tuple = None,
-             ylims: tuple = None) -> plt.Axes:
+def cdf_axis(
+        data: np.ndarray | pd.DataFrame,
+        input_ax: plt.Axes, *,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
     
-        cdf_df: pd.DataFrame = distrib.get_cdf(data, mask_array = mask_array)
+        cdf_df: pd.DataFrame = distrib.get_cdf(
+            data,
+            mask_array = mask_array)
         
     else:
         
@@ -1320,11 +1440,18 @@ def cdf_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, *,
     
     if xlims:
         
-        cdf_ax = set_axlims(cdf_ax, cdf_df["Bin Centers"].dtype, "x", axlims = xlims)
+        cdf_ax = set_axlims(
+            cdf_ax,
+            cdf_df["Bin Centers"].dtype,
+            "x",
+            axlims = xlims)
         
     else:
         
-        cdf_ax.set_xlim(np.min(cdf_df["Bin Centers"]), np.max(cdf_df["Bin Centers"]))
+        cdf_ax.set_xlim(
+            np.min(
+                cdf_df["Bin Centers"]),
+            np.max(cdf_df["Bin Centers"]))
         
     if ylims:
         
@@ -1341,42 +1468,62 @@ def cdf(data: np.ndarray | pd.DataFrame, *,
         ylims: tuple = None) -> plt.Figure:
     
     fig, cdf_ax = plt.subplots(layout = "constrained")
-    cdf_ax = cdf_axis(data, cdf_ax, mask_array = mask_array, xlims = xlims, ylims = ylims)
+    cdf_ax = cdf_axis(
+        data,
+        cdf_ax,
+        mask_array = mask_array,
+        xlims = xlims,
+        ylims = ylims)
     
     return fig
 
-def hist_cdf(data: np.ndarray | dict, *,
-             x_label: str = "Value",
-             mask_array: np.ndarray = None,
-             xlims: tuple = None,
-             ylims: tuple = None,
-             ignore_edges: bool = False,
-             normalize: bool = False) -> plt.Figure:
+def hist_cdf(
+        data: np.ndarray | dict, *,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        ignore_edges: bool = False,
+        normalize: bool = False) -> plt.Figure:
     
     fig, hist_ax = plt.subplots(layout = "constrained")
-    hist_ax = histogram_axis(data, hist_ax,
-                             x_label = x_label,
-                             mask_array = mask_array,
-                             xlims = xlims,
-                             ylims = ylims,
-                             ignore_edges = ignore_edges,
-                             normalize = normalize)
+    hist_ax = histogram_axis(
+        data,
+        hist_ax,
+        x_label = x_label,
+        mask_array = mask_array,
+        xlims = xlims,
+        ylims = ylims,
+        ignore_edges = ignore_edges,
+        normalize = normalize)
     cdf_ax: plt.Axes = hist_ax.twinx()
-    cdf_ax.set_ylabel("Probability", rotation = 270, va = "bottom", fontsize = label_fontsize)
-    cdf_ax = cdf_axis(data, cdf_ax,
-                      x_label = x_label,
-                      mask_array = mask_array,
-                      xlims = xlims,
-                      ylims = ylims)
+    cdf_ax.set_ylabel(
+        "Probability",
+        rotation = 270,
+        va = "bottom",
+        fontsize = label_fontsize)
+    cdf_ax = cdf_axis(
+        data,
+        cdf_ax,
+        x_label = x_label,
+        mask_array = mask_array,
+        xlims = xlims,
+        ylims = ylims)
     
     return fig
 
-def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_axis: int = 0, *,
-                    mask_array: np.ndarray = None) -> plt.Axes:
+def gray_level_axis(
+        data: np.ndarray | pd.DataFrame,
+        input_ax: plt.Axes,
+        quant_axis: int = 0, *,
+        mask_array: np.ndarray = None) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
-        gray_df: pd.DataFrame = quant.single_ax_statistics(data, quant_axis, mask_array = mask_array)
+        gray_df: pd.DataFrame = quant.single_ax_statistics(
+            data,
+            quant_axis,
+            mask_array = mask_array)
         
     else:
         
@@ -1391,28 +1538,44 @@ def gray_level_axis(data: np.ndarray | pd.DataFrame, input_ax: plt.Axes, quant_a
     gray_ax.plot(gray_df["Position"], gray_df["Mean"], "black")
     gray_ax.plot(gray_df["Position"], gray_df["Max"], "red")
     gray_ax.plot(gray_df["Position"], gray_df["Min"], "blue")
-    gray_ax.fill_between(gray_df["Position"], y1 = pos_std, y2 = neg_std, color = "gray", alpha = 0.5)
+    gray_ax.fill_between(
+        gray_df["Position"],
+        y1 = pos_std,
+        y2 = neg_std,
+        color = "gray",
+        alpha = 0.5)
     gray_ax.set_title(f"Axis {quant_axis}")
     gray_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
     return gray_ax
 
-def gray_level(data: np.ndarray | pd.DataFrame, *,
-               return_axes: bool = False,
-               mask_array: np.ndarray = None) -> plt.Figure:
+def gray_level(
+        data: np.ndarray | pd.DataFrame, *,
+        return_axes: bool = False,
+        mask_array: np.ndarray = None) -> plt.Figure:
 
-    return multi_plot(np.array([data] * 3), (["gray lvl"] * 3), mask_array = mask_array, return_axes = return_axes)
+    return multi_plot(
+        np.array([data] * 3),
+        (["gray lvl"] * 3),
+        mask_array = mask_array,
+        return_axes = return_axes)
 
-def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
-                     denoiser: Callable[[np.ndarray], np.ndarray] = None,
-                     parameters: dict[str, np.ndarray] = None,
-                     stride: int = 4,
-                     approximate_loss: bool = True) -> plt.Axes:
+def denoise_ssl_axis(
+        data: np.ndarray | dict,
+        input_axis: plt.Axes, *,
+        denoiser: Callable[[np.ndarray], np.ndarray] = None,
+        parameters: dict[str, np.ndarray] = None,
+        stride: int = 4,
+        approximate_loss: bool = True) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
         
-        ssl_dict: dict[str, list] = quant.get_denoising_losses(data, denoiser, parameters,
-                                                               stride = stride, approximate_loss = approximate_loss)
+        ssl_dict: dict[str, list] = quant.get_denoising_losses(
+            data,
+            denoiser,
+            parameters,
+            stride = stride,
+            approximate_loss = approximate_loss)
         
     else:
         
@@ -1490,14 +1653,21 @@ def denoise_ssl_axis(data: np.ndarray | dict, input_axis: plt.Axes, *,
         
     return ssl_ax
 
-def denoise_ssl(data: np.ndarray | dict, denoiser: Callable[[np.ndarray], np.ndarray] = None,
-                parameters: dict[str, np.ndarray] = None, *,
-                stride: int = 4,
-                approximate_loss: bool = True) -> plt.Figure:
+def denoise_ssl(
+        data: np.ndarray | dict,
+        denoiser: Callable[[np.ndarray], np.ndarray] = None,
+        parameters: dict[str, np.ndarray] = None, *,
+        stride: int = 4,
+        approximate_loss: bool = True) -> plt.Figure:
     
     fig, ssl_ax = plt.subplots(layout = "constrained")
-    ssl_ax = denoise_ssl_axis(data, ssl_ax, denoiser = denoiser, parameters = parameters,
-                              stride = stride, approximate_loss = approximate_loss)
+    ssl_ax = denoise_ssl_axis(
+        data,
+        ssl_ax,
+        denoiser = denoiser,
+        parameters = parameters,
+        stride = stride,
+        approximate_loss = approximate_loss)
     
     return fig
 
@@ -1670,19 +1840,22 @@ def heat_map(
     
         return fig
 
-def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[str], layout: tuple = None, *,
-               return_axes: bool = False,
-               x_label: str = "Value",
-               mask_array: np.ndarray = None,
-               xlims: tuple = None,
-               ylims: tuple = None,
-               ignore_edges: bool = False,
-               normalize: bool = False,
-               quant_axes: tuple = (0, 1, 2),
-               mode: str = "vol",
-               units: str = "pix",
-               connectivity: int = None,
-               background: float | int = 0) -> plt.Figure:
+def multi_plot(
+        data_list: list[np.ndarray, pd.DataFrame],
+        function_list: list[str],
+        layout: tuple = None, *,
+        return_axes: bool = False,
+        x_label: str = "Value",
+        mask_array: np.ndarray = None,
+        xlims: tuple = None,
+        ylims: tuple = None,
+        ignore_edges: bool = False,
+        normalize: bool = False,
+        quant_axes: tuple = (0, 1, 2),
+        mode: str = "vol",
+        units: str = "pix",
+        connectivity: int = None,
+        background: float | int = 0) -> plt.Figure:
        
     if len(function_list) == 1:
         
@@ -1702,22 +1875,57 @@ def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[st
         
         if function_list[index] == "hist":
             
-            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+            axs[index] = histogram_axis(
+                data,
+                axs[index],
+                x_label = x_label,
+                mask_array = mask_array,
+                xlims = xlims,
+                ylims = ylims,
+                ignore_edges = ignore_edges,
+                normalize = normalize)
         
         elif function_list[index] == "cdf":
             
-            axs[index] = cdf_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims)
+            axs[index] = cdf_axis(
+                data,
+                axs[index],
+                x_label = x_label,
+                mask_array = mask_array,
+                xlims = xlims,
+                ylims = ylims)
         
         elif function_list[index] == "hist cdf":
             
-            axs[index] = histogram_axis(data, axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize)
+            axs[index] = histogram_axis(
+                data,
+                axs[index],
+                x_label = x_label,
+                mask_array = mask_array,
+                xlims = xlims,
+                ylims = ylims,
+                ignore_edges = ignore_edges,
+                normalize = normalize)
             cdf_axs[index]: plt.Axes = axs[index].twinx()
-            cdf_axs[index].set_ylabel("Probability", rotation = 270, va = "bottom", fontsize = label_fontsize)
-            cdf_axs[index] = cdf_axis(data, cdf_axs[index], x_label = x_label, mask_array = mask_array, xlims = xlims)
+            cdf_axs[index].set_ylabel(
+                "Probability",
+                rotation = 270,
+                va = "bottom",
+                fontsize = label_fontsize)
+            cdf_axs[index] = cdf_axis(
+                data,
+                cdf_axs[index],
+                x_label = x_label,
+                mask_array = mask_array,
+                xlims = xlims)
             
         elif function_list[index] == "gray lvl":
             
-            axs[index] = gray_level_axis(data, axs[index], quant_axes[index], mask_array = mask_array)
+            axs[index] = gray_level_axis(
+                data,
+                axs[index],
+                quant_axes[index],
+                mask_array = mask_array)
             
         elif function_list[index] == "ssl":
             
@@ -1725,7 +1933,18 @@ def multi_plot(data_list: list[np.ndarray, pd.DataFrame], function_list: list[st
             
         elif function_list[index] == "size":
             
-            axs[index] = size_distribution_ax(data, axs[index], mask_array = mask_array, mode = mode, units = units, xlims = xlims, ylims = ylims, ignore_edges = ignore_edges, normalize = normalize, connectivity = connectivity, background = background)
+            axs[index] = size_distribution_ax(
+                data,
+                axs[index],
+                mask_array = mask_array,
+                mode = mode,
+                units = units,
+                xlims = xlims,
+                ylims = ylims,
+                ignore_edges = ignore_edges,
+                normalize = normalize,
+                connectivity = connectivity,
+                background = background)
         
     fig.tight_layout()
     

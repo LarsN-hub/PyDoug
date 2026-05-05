@@ -22,11 +22,13 @@ def rgb_2_gray(im_array: np.ndarray) -> np.ndarray:
         
         if im_array.ndim == 3:
             
-            return convert_im_type(color.rgb2gray(im_array[:, :, 0:3]), "uint8")
+            return convert_im_type(
+                color.rgb2gray(im_array[:, :, 0:3]), "uint8")
         
         elif im_array.ndim == 4:
             
-            return convert_im_type(color.rgb2gray(im_array[:, :, :, 0:3]), "uint8")
+            return convert_im_type(
+                color.rgb2gray(im_array[:, :, :, 0:3]), "uint8")
         
     else:
     
@@ -36,7 +38,10 @@ def labels_2_rgb(im_array: np.ndarray) -> np.ndarray:
     
     return convert_im_type(color.label2rgb(im_array), "uint8")
 
-def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: tuple | str = None) -> np.ndarray:
+def normalize(
+        im_array: np.ndarray, *,
+        in_range: tuple | str = None,
+        out_range: tuple | str = None) -> np.ndarray:
      
     if in_range:
         
@@ -58,20 +63,28 @@ def normalize(im_array: np.ndarray, *, in_range: tuple | str = None, out_range: 
             
             return exposure.rescale_intensity(im_array, "image", "dtype")
 
-def saturate(im_array: np.ndarray, bounds: tuple, *,
-             auto_normalize: bool = True,
-             bounds_as_percents: bool = True,
-             mask_array: np.ndarray = None,
-             cdf_df: pd.DataFrame = None,
-             conserve_mem: bool = False) -> np.ndarray:
+def saturate(
+        im_array: np.ndarray,
+        bounds: tuple, *,
+        auto_normalize: bool = True,
+        bounds_as_percents: bool = True,
+        mask_array: np.ndarray = None,
+        cdf_df: pd.DataFrame = None,
+        conserve_mem: bool = False) -> np.ndarray:
     
     if bounds_as_percents:
         
         if np.any(cdf_df):
             
-            cdf_df: pd.DataFrame = distrib.get_cdf(im_array, mask_array = mask_array)
+            cdf_df: pd.DataFrame = distrib.get_cdf(
+                im_array,
+                mask_array = mask_array)
         
-        bounds = quant.get_percent_intensities(im_array, bounds, mask_array = mask_array, cdf_df = cdf_df)
+        bounds = quant.get_percent_intensities(
+            im_array,
+            bounds,
+            mask_array = mask_array,
+            cdf_df = cdf_df)
         
     if conserve_mem:
         
@@ -100,9 +113,11 @@ def saturate(im_array: np.ndarray, bounds: tuple, *,
             
             return sat_array
 
-def convert_im_type(im_array: np.ndarray, convert_type: str, *,
-                    norm: bool = False,
-                    float_bounds: tuple[float] = None) -> np.ndarray:
+def convert_im_type(
+        im_array: np.ndarray,
+        convert_type: str, *,
+        norm: bool = False,
+        float_bounds: tuple[float] = None) -> np.ndarray:
     
     valid_types: tuple[str] = ("uint8", "uint16", "int16", "float", "float32", "float64", "bool")
     
@@ -154,16 +169,19 @@ def convert_im_type(im_array: np.ndarray, convert_type: str, *,
             
         print("\nInvalid convert type!")
         
-def invert(im_array: np.ndarray) -> np.ndarray:
+def invert(
+        im_array: np.ndarray) -> np.ndarray:
     
     return skutil.invert(im_array)
 
-def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
-                       mask_array: np.ndarray = None,
-                       clip_limit: float = 0.01,
-                       radius: int = 3,
-                       along_axis: bool = False,
-                       axis: int = 0) -> np.ndarray:
+def equalize_histogram(
+        im_array: np.ndarray,
+        method: str = "global", *,
+        mask_array: np.ndarray = None,
+        clip_limit: float = 0.01,
+        radius: int = 3,
+        along_axis: bool = False,
+        axis: int = 0) -> np.ndarray:
     
     if np.any(mask_array):
                 
@@ -180,7 +198,9 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
         
         if np.any(mask_array):
             
-            proc_mask_array: np.ndrray = util.get_along_axis_array(mask_array, axis)
+            proc_mask_array: np.ndrray = util.get_along_axis_array(
+                mask_array,
+                axis)
         
         if method == "global":
             
@@ -190,7 +210,11 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 
                     if np.any(proc_mask_array[n]):
                         
-                        eq_array[n] = convert_im_type(exposure.equalize_hist(proc_array[n], mask = proc_mask_array[n]), im_array.dtype)
+                        eq_array[n] = convert_im_type(
+                            exposure.equalize_hist(
+                                proc_array[n],
+                                mask = proc_mask_array[n]),
+                            im_array.dtype)
                         
                     else:
                         
@@ -200,7 +224,10 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 
                 for n in range(0, proc_array.shape[0]):
                 
-                    eq_array[n] = convert_im_type(exposure.equalize_hist(proc_array[n]), im_array.dtype)
+                    eq_array[n] = convert_im_type(
+                        exposure.equalize_hist(
+                            proc_array[n]),
+                        im_array.dtype)
             
         elif method == "local":
             
@@ -210,7 +237,10 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 
             if im_array.ndim == 2:
                     
-                eq_array = filters.rank.equalize(proc_array, footprint = footprint, mask = mask_array)
+                eq_array = filters.rank.equalize(
+                    proc_array,
+                    footprint = footprint,
+                    mask = mask_array)
                     
             else:
                 
@@ -220,7 +250,10 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                         
                         if np.any(proc_mask_array[n]):
                 
-                            eq_array[n] = filters.rank.equalize(proc_array[n], footprint = footprint, mask = proc_mask_array[n])
+                            eq_array[n] = filters.rank.equalize(
+                                proc_array[n],
+                                footprint = footprint,
+                                mask = proc_mask_array[n])
                             
                         else:
                             
@@ -230,13 +263,20 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                     
                     for n in range(0, proc_array.shape[0]):
                 
-                        eq_array[n] = filters.rank.equalize(proc_array[n], footprint = footprint)
+                        eq_array[n] = filters.rank.equalize(
+                            proc_array[n],
+                            footprint = footprint)
                         
         elif method == "adaptive":
             
             for n in range(0, proc_array.shape[0]):
                 
-                eq_array[n] = convert_im_type(exposure.equalize_adapthist(proc_array[n], radius, clip_limit), im_array.dtype)
+                eq_array[n] = convert_im_type(
+                    exposure.equalize_adapthist(
+                        proc_array[n],
+                        radius,
+                        clip_limit),
+                    im_array.dtype)
         
         return util.undo_axial_array(eq_array, axis)
     
@@ -244,7 +284,11 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 
         if method == "global":
                 
-            return convert_im_type(exposure.equalize_hist(im_array, mask = mask_array), im_array.dtype)
+            return convert_im_type(
+                exposure.equalize_hist(
+                    im_array,
+                    mask = mask_array),
+                im_array.dtype)
             
         elif method == "local":
                 
@@ -260,15 +304,29 @@ def equalize_histogram(im_array: np.ndarray, method: str = "global", *,
                 ball.radius = radius
                 footprint = ball.get_footprint()
                 
-            return filters.rank.equalize(im_array, footprint = footprint, mask = mask_array)
+            return filters.rank.equalize(
+                im_array,
+                footprint = footprint,
+                mask = mask_array)
             
         elif method == "adaptive":
                 
-            return convert_im_type(exposure.equalize_adapthist(im_array, radius, clip_limit), im_array.dtype)
+            return convert_im_type(
+                exposure.equalize_adapthist(
+                    im_array,
+                    radius,
+                    clip_limit),
+                im_array.dtype)
         
-def histogram_matching(im_array: np.ndarray, ref_array: np.ndarray) -> np.ndarray:
+def histogram_matching(
+        im_array: np.ndarray,
+        ref_array: np.ndarray) -> np.ndarray:
     
-    return convert_im_type(exposure.match_histograms(im_array, ref_array), im_array.dtype)
+    return convert_im_type(
+        exposure.match_histograms(
+            im_array,
+            ref_array),
+        im_array.dtype)
 
 
 # Main
