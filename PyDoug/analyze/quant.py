@@ -24,18 +24,28 @@ def global_statistics(
     
     im_stats: dict = {}
     
-    if np.any(mask_array):
-        
-        if mask_array.ndim < im_array.ndim:
+    if not isinstance(mask_array, type(None)):
+    
+        if np.any(mask_array):
             
-            mask_array = cc.project_mask(mask_array, im_array.shape[0])
+            if mask_array.ndim < im_array.ndim:
+                
+                mask_array = cc.project_mask(mask_array, im_array.shape[0])
+                
+            mask_array = np.bool(mask_array)
+            im_stats["Mean"] = np.mean(im_array[mask_array])
+            im_stats["Median"] = np.median(im_array[mask_array])
+            im_stats["Min"] = np.min(im_array[mask_array])
+            im_stats["Max"] = np.max(im_array[mask_array])
+            im_stats["Std Dev"] = np.std(im_array[mask_array])
             
-        mask_array = np.bool(mask_array)
-        im_stats["Mean"] = np.mean(im_array[mask_array])
-        im_stats["Median"] = np.median(im_array[mask_array])
-        im_stats["Min"] = np.min(im_array[mask_array])
-        im_stats["Max"] = np.max(im_array[mask_array])
-        im_stats["Std Dev"] = np.std(im_array[mask_array])
+        else:
+            
+            im_stats["Mean"] = 0
+            im_stats["Median"] = 0
+            im_stats["Min"] = 0
+            im_stats["Max"] = 0
+            im_stats["Std Dev"] = 0
 
     else:
         
