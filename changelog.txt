@@ -1,4 +1,5 @@
-v0.7.6-alpha
+v0.8.0-alpha
+- Turned PyDoug into a single downloadable folder with an executable file to operate
 - Fixed inclusivity of mask bounds in crop widget
 - Fixed error when plotting PSD with only background present
 - Fixed error when calculating statistics with an empty mask returning statistics for the entire image instead of just zeros
