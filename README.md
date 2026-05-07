@@ -33,47 +33,15 @@ Installing & Updating
 ---------------------
 
 **Windows Installation**
-1. Ensure that Python v3.13 is installed on your computer (NOT currently compatible with v3.14).
-2. Test that you have it by opening Windows PowerShell and typing "python".
-   - If it worked, some information about python (3.13._) should pop up and the input line should have ">>>" in front of it.
-   - If this is the case, type quit() to exit python and proceed. If this did not happen, do not continue with this process and figure this out first.
-3. Download the .zip file source code for the most recent PyDoug release.
-5. Extract the contents wherever you please.
-6. Navigate inside the extracted folder. You should see a folder named "PyDoug" and several text documents.
-7. Move the PyDoug folder and the requirements_dist.txt file to your user folder (e.g. "C:\Users\Your_Name")
-   - Note, "Your_Name" should be replaced with your user account name.
-   - Note, you may place these wherever you want but this is the simplest option and I will only provide guidance for installation from this folder. If you are knowledgeable enough, then changing the commands that follow to a different folder should not be too difficult.
-8. Your filetree should now look like this:
-```
-   |--C:
-      |--Users
-         |--Your_Name
-            |--Your_User_Files
-            |--requirements_dist.txt
-            |--PyDoug
-               |--__init__.py
-               |--__main__.py
-               |--analyze
-               |--proc
-               |--ui
-```
-9. Open Windows Powershell if not already open from before.
-10. It should open in C:\Users\Your_Name by default, but if not type 'cd "C:\Users\Your_Name"' then enter.
-    - Note that "Your_Name" is the folder where you moved PyDoug and requirements_dist.txt to previously.
-11. Type 'python -m venv PyDoug_Env' then enter. This will create a new folder named 'PyDoug_Env' in your C:\Users\Your_Name folder.
-12. Once it is finished, type 'PyDoug_Env\Scripts\pip install -r requirements_dist.txt' then enter.
-    - Note, this will take some time. Allow it to install everything before doing anything else.
-13. Once it is finished, type 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug.
-    - Note, the napari GUI may take a minute to launch. It is normal for it to flash many small popups during this process.
-14. If this worked and PyDoug launches successfully, you need only launch Windows PowerShell and re-enter the above command 'PyDoug_Env\Scripts\python -m PyDoug' to launch PyDoug every time (assuming that you launch PowerShell in the C:\Users\Your_Name folder where the PyDoug folder is located).
+1. Download PyDoug.zip.
+2. Extract wherever you would like your PyDoug executable.
+3. Run the PyDoug.exe file to launch.
 
 **Update**
-1. Download the .zip file source code for the most recent release.
-2. Extract the contents wherever you please.
-3. Navigate inside the extracted folder. Move the folder named "PyDoug" and the text document named "requirements_dist.txt" to the location of your current PyDoug folder, allowing the system it to replace any encountered duplicate files.
-5. In the case that the "requirements.txt" file is actually different (this will not happen frequently, see changelog for details), open Windows Powershell. If not, no more steps are required.
-6. Navigate to the folder where you moved PyDoug and requirements_dist.txt to previously using "cd Path\to\Directory" then enter.
-7. Type "PyDoug_Env\Scripts\pip install -r requirements_dist.txt" then enter.
+1. Download PyDoug.zip.
+2. Delete the old PyDoug.exe and _internal folder.
+3. Extract the new PyDoug.exe and _internal folder wherever you would like.
+4. Run the PyDoug.exe file to launch.
 
 ------------
 General Info
