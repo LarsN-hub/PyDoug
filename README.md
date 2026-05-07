@@ -4,9 +4,7 @@ Preface
 
 I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
 
-I have only ever used Windows systems, so I cannot say whether or not this works on Linux or Apple systems nor can I currently provide support for installing this on those systems.
-
-I am working on figuring out how to make this a single, downloadable executable file, but this has proven more difficult than I realized. Until then, installing PyDoug will require a few more steps as explained below.
+I only have a Windows system on which to create the executable file. Until I have access other OS devices I cannot make executables for those systems. I plan to circumvent this with virtual machines at a later date.
 
 ---------
 Resources
@@ -18,9 +16,10 @@ The GUI is built on napari's n-dimensional image viewing GUI: https://napari.org
 
 Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/ and magic-class: https://hanjinliu.github.io/magic-class/
 
-Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, algotom: https://myalgotomo.readthedocs.io/en/latest/index.html, and cmasher: https://cmasher.readthedocs.io/.
+Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, and algotom: https://myalgotomo.readthedocs.io/en/latest/index.html.
 
 Other miscellaneous resources used:
+- cmasher: https://cmasher.readthedocs.io/
 - h5py: https://docs.h5py.org/en/stable/index.html
 - numba: https://numba.pydata.org/
 - pandas: https://pandas.pydata.org/
