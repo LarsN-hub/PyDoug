@@ -33,14 +33,14 @@ Installing & Updating
 
 **Windows Installation**
 1. Download PyDoug_App.zip.
-2. Extract wherever you would like your PyDoug_App folder.
-3. Run the PyDoug_App.exe (or PyDoug.exe for version 0.8.0-alpha) to launch.
+2. Extract PyDoug_App folder (NOTE, PyDoug_App.exe file must stay in PyDoug_App folder with _internal folder).
+3. Run the PyDoug_App.exe inside the PyDoug_App folder to launch.
 
 **Windows Update**
 1. Download PyDoug_App.zip.
 2. Delete the old PyDoug_App folder.
-3. Extract the new PyDoug_App folder wherever you would like.
-4. Run the PyDoug_App.exe file to launch.
+3. Extract the new PyDoug_App folder.
+4. Run the PyDoug_App.exe file inside the PyDoug_App folder to launch.
 
 ------------
 General Info

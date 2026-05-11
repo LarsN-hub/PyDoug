@@ -1,3 +1,7 @@
+v0.8.1-alpha
+- Consolidated requirements files as only dev environment now required
+- Added median output to histograms and heatmaps in analysis tab
+
 v0.8.0-alpha
 - Turned PyDoug into a single downloadable folder with an executable file to operate
 - Fixed inclusivity of mask bounds in crop widget

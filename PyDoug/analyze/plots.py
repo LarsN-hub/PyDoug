@@ -193,14 +193,22 @@ def get_log_starts_widths(
     
     for index, value in enumerate(log_ax_values):
         
-        log_left: np.ndarray = np.logspace(math.log10(value) - 1, math.log10(value), max(round(10 / width), points_per_value))
-        log_right: np.ndarray = np.logspace(math.log10(value), math.log10(value) + 1, max(round(10 / width), points_per_value))
+        log_left: np.ndarray = np.logspace(
+            math.log10(value) - 1,
+            math.log10(value),
+            max(round(10 / width), points_per_value))
+        log_right: np.ndarray = np.logspace(
+            math.log10(value),
+            math.log10(value) + 1,
+            max(round(10 / width), points_per_value))
         log_range: np.ndarray = np.concat((log_left, log_right[1:]))
         
         for point_index in range(point_count_index, points_per_value):
             
-            offset_starts[point_index, index] = log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
-            widths[point_index, index] = log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index] + 1] - log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
+            offset_starts[point_index, index] = log_range[
+                (max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
+            widths[point_index, index] = log_range[
+                (max(round(10 / width), points_per_value) - 1) + offset_indices[point_index] + 1] - log_range[(max(round(10 / width), points_per_value) - 1) + offset_indices[point_index]]
     
     return offset_starts, widths
 
@@ -1190,13 +1198,19 @@ def histogram_axis(
             
             ext_bin_centers: np.ndarray = distrib.extend_histogram_bins(
                 hist_df["Bin Centers"],
-                hist_df["Counts"])            
+                hist_df["Counts"])   
+            hist_med: float = np.median(ext_bin_centers)
             hist_std: float = np.std(ext_bin_centers)
+            print(f"{"Histogram Med:":<16} {hist_med}")
             print(f"{"Histogram StDv:":<16} {hist_std}")
             print(f"{"Total Counts:":<16} {np.sum(hist_df["Counts"])}")
             hist_stats_df: pd.DataFrame = pd.DataFrame(
-                np.array([[hist_mean, hist_std, np.sum(hist_df["Counts"])]]),
-                columns = ["Mean", "Std. Dev.", "Counts"])
+                np.array([
+                    [hist_mean,
+                     hist_med,
+                     hist_std,
+                     np.sum(hist_df["Counts"])]]),
+                columns = ["Mean", "Median", "Std. Dev.", "Counts"])
             
         else:
             
@@ -1207,8 +1221,8 @@ def histogram_axis(
     else:
         
         hist_stats_df: pd.DataFrame = pd.DataFrame(
-            np.array([[0, 0, 0]]),
-            columns = ["Mean", "Std. Dev.", "Counts"])
+            np.array([[0, 0, 0, 0]]),
+            columns = ["Mean", "Median", "Std. Dev.", "Counts"])
         
     if ignore_edges:
         
