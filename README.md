@@ -4,7 +4,7 @@ Preface
 
 I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
 
-I only have a Windows system on which to create the executable file. Until I have access other OS devices I cannot make executables for those systems. I plan to circumvent this with virtual machines at a later date.
+I only have a Windows system on which to create the executable file. Until I have access to other OS devices I cannot make executables for those systems. I plan to circumvent this with virtual machines at a later date.
 
 ---------
 Resources
