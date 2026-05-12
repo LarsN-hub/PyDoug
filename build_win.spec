@@ -73,7 +73,7 @@ exe = EXE(
     pyz,
     a.scripts,
     exclude_binaries = True,
-    name = "PyDoug_App",
+    name = "PyDoug_Windows",
     console = True
 )
 
@@ -81,5 +81,5 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    name = "PyDoug_App"
+    name = "PyDoug_Windows"
 )
