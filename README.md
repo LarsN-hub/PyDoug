@@ -2,9 +2,7 @@
 Preface
 -------
 
-I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB or ORS Dragonfly due to monetary or licensing limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
-
-I only have a Windows system on which to create the executable file. Until I have access to other OS devices I cannot make executables for those systems. I plan to circumvent this with virtual machines at a later date.
+I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB, ORS Dragonfly, etc. due to monetary limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
 
 ---------
 Resources
@@ -33,22 +31,23 @@ Other miscellaneous resources used:
 Installing & Updating
 ---------------------
 
-**Windows Installation**
-1. Download PyDoug_App.zip.
-2. Extract PyDoug_App folder (NOTE, PyDoug_App.exe file must stay in PyDoug_App folder with _internal folder).
-3. Run the PyDoug_App.exe inside the PyDoug_App folder to launch.
+**Installation**
+1. Navigate to the "Releases" section of the PyDoug GitHub page.
+2. Download the latest release PyDoug_OS.zip, where OS is your operating system (Windows, Linux, or Mac).
+3. Extract PyDoug_OS folder (NOTE, the PyDoug_OS.exe file must stay in PyDoug_OS folder with _internal folder).
+4. Run the PyDoug_OS.exe inside the PyDoug_OS folder to launch.
 
-**Windows Update**
-1. Download PyDoug_App.zip.
-2. Delete the old PyDoug_App folder.
-3. Extract the new PyDoug_App folder.
-4. Run the PyDoug_App.exe file inside the PyDoug_App folder to launch.
+**Update**
+1. Download the newest release PyDoug_OS.zip.
+2. Delete the old PyDoug_OS folder.
+3. Extract the new PyDoug_OS folder.
+4. Run the PyDoug_OS.exe file inside the PyDoug_OS folder to launch.
 
 ------------
 General Info
 ------------
 
-When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Also, DO NOT close Windows PowerShell or PyDoug will force close as well. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
+When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Also, DO NOT close the terminal window that appears with it or PyDoug will force close as well. This terminal window is where the program will output measured quantities as well. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
 
 - Any single image file (other than .h5-type formats) can simply be dragged and dropped into the napari window to open.
 - You can move the image around by clicking and dragging with the mouse.

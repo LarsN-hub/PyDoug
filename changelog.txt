@@ -1,3 +1,6 @@
+v0.9.0-beta
+- Created executables for Linux, Mac, and Windows OS
+
 v0.8.1-alpha
 - Consolidated requirements files as only dev environment now required
 - Added median output to histograms and heatmaps in analysis tab
