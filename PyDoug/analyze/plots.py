@@ -15,7 +15,6 @@ from typing import Callable
 
 from PyDoug.analyze import distrib, quant
 from PyDoug.ui import sliceview as sv
-from PyDoug.proc import util
 
 
 # Globals
@@ -88,15 +87,16 @@ def remove_edges(
     
     for col_index in range(0, eval_array.shape[1]):
         
-        cur_start: int = util.quick_get_first_index(eval_array[:, col_index])
+        cur_start_array: np.ndarray = np.nonzero(eval_array[:, col_index])[0]
         
-        if cur_start == None:
+        if not cur_start_array.shape[0]:
             
             continue
         
         else:
             
-            cur_end: int = eval_array.shape[0] - util.quick_get_first_index(np.flip(eval_array[:, col_index]))
+            cur_start: int = cur_start_array[0]
+            cur_end: int = np.nonzero(eval_array[:, col_index])[0][-1]
         
         if col_index == 0:
             
@@ -1741,6 +1741,7 @@ def heat_axis(
     heat_ax.set_xlabel(f"Position ({units})", fontsize = label_fontsize)
     heat_ax.set_ylabel(f"Position ({units})", fontsize = label_fontsize)
     heat_ax.tick_params(axis = "both", labelsize = tick_fontsize)
+    heat_ax.xaxis.set_major_locator(ticker.AutoLocator())
     #heat_ax.xaxis.set_major_locator(ticker.MaxNLocator(5))
     #heat_ax.yaxis.set_major_locator(ticker.MaxNLocator(5))
     

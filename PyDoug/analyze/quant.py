@@ -230,24 +230,25 @@ def get_percent_intensities(
         np.array([cdf_df["Probability"]]))
     bin_centers: pd.Series = np.squeeze(
         np.array([cdf_df["Bin Centers"]]))
-    low_index = util.quick_get_first_index(
-        im_cdf,
-        min(percentages), "greater or equal")
+    low_index_array: np.ndarray = np.nonzero(im_cdf >= min(percentages))[0]
+    high_index_array: np.ndarray = np.nonzero(im_cdf <= max(percentages))[0]
     
-    if not low_index:
+    if not low_index_array.shape[0]:
         
-        low_index = 0
+        low_index: int = 0
         
-    high_sub: int = util.quick_get_first_index(
-        np.flip(im_cdf, 0),
-        max(percentages),
-        "less or equal")
-    
-    if not high_sub:
+    else:
         
-        high_sub = 0
+        low_index: int = low_index_array[0]
         
-    high_index = len(im_cdf) - 1 - high_sub
+    if not high_index_array.shape[0]:
+        
+        high_index: int = 0
+        
+    else:
+        
+        high_index: int = high_index_array[-1]
+        
     low_bin = np.astype(bin_centers[low_index], im_array.dtype)
     high_bin = np.astype(bin_centers[high_index], im_array.dtype)
     low_str: str = str(min(percentages) * 100) + "%:"
