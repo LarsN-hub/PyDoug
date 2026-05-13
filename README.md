@@ -12,6 +12,8 @@ Resources
 
 PyDoug is built completely in Python: https://www.python.org/
 
+The executable files were created with pyinstaller: https://pyinstaller.org/en/stable/
+
 The GUI is built on napari's n-dimensional image viewing GUI: https://napari.org/stable/
 
 Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/ and magic-class: https://hanjinliu.github.io/magic-class/
