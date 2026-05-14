@@ -43,6 +43,12 @@ Installing & Updating
 3. Extract the new PyDoug_OS folder.
 4. Run the PyDoug_OS.exe file inside the PyDoug_OS folder to launch.
 
+---------------
+Developer Tools
+---------------
+
+If you would like to edit the code for PyDoug yourself, download the source code zip file and extract it. In the dev_tools folder you will find requirements_OS.txt files for each OS that you can use to create a virtual environment (using python v3.13) with all of the required modules and the tools that I used to work on PyDoug (it will create a spyder IDE in your virtual environment). With the virtual envionment activated, PyDoug can be launched without creating an exe file from your terminal/shell by navigating to the folder containing the extracted files (should have README, changelog, PyDoug folder, and dev_tools folder) and using the command "python -m PyDoug". This will call the __main__.py file in the PyDoug folder, which launches the app. All of the GUI functionality is contained in this file (i.e. making the widgets). The widgets mostly call functions from the three packages contained in the PyDoug folder (analyze, proc, and ui). Have at it!
+
 ------------
 General Info
 ------------
