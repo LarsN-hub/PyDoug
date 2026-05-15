@@ -8,6 +8,8 @@ I am not a software developer. I am a PhD candidate who knows some things about 
 Resources
 ---------
 
+I made this because I was very inspired by MATBOX: https://github.com/NatLabRockies/MATBOX_Microstructure_analysis_toolbox
+
 PyDoug is built completely in Python: https://www.python.org/
 
 The executable files were created with pyinstaller: https://pyinstaller.org/en/stable/
