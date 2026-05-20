@@ -35,7 +35,7 @@ Installing & Updating
 
 **Installation**
 1. Navigate to the "Releases" section of the PyDoug GitHub page.
-2. Download the latest release PyDoug_OS.zip, where OS is your operating system (Windows, Linux, or Mac).
+2. Download the latest release PyDoug_OS.zip, where OS is your operating system (Windows or Linux).
 3. Extract PyDoug_OS folder (NOTE, the PyDoug_OS.exe file must stay in PyDoug_OS folder with _internal folder).
 4. Run the PyDoug_OS.exe inside the PyDoug_OS folder to launch.
 
@@ -52,6 +52,8 @@ Developer Tools
 If you would like to edit the code for PyDoug yourself, download the source code zip file and extract it. In the dev_tools folder you will find requirements_OS.txt files for each OS that you can use to create a virtual environment (using python v3.13) with all of the required modules and the tools that I used to work on PyDoug (it will create a spyder IDE in your virtual environment). With the virtual envionment activated, PyDoug can be launched without creating an exe file from your terminal/shell by navigating to the folder containing the extracted files (should have README, changelog, PyDoug folder, and dev_tools folder) and using the command "python -m PyDoug". This will call the __main__.py file in the PyDoug folder, which launches the app. All of the GUI functionality is contained in this file (i.e. making the widgets). The widgets mostly call functions from the three packages contained in the PyDoug folder (analyze, proc, and ui). If you want to create the executable file yourself, you will need to move the build_OS.spec file for your OS out of the dev_tools folder and into the topmost PyDoug folder. Navigate to that folder and (with the PyDoug environment activated) use  `pyinstaller --clean build_OS.spec` to generate the file. This will create two folder in your PyDoug folder, "build" and "dist". Within the dist folder will be the PyDoug folder with your executable inside.
 
 Note, for Linux you will need to install the full version of python with `sudo apt install -y python3-full` and then I recommend setting up pyenv to use python 3.13.13 (https://www.dedicatedcore.com/blog/install-pyenv-ubuntu/). You also may need to install this random dependency that will cause the program not to launch `sudo apt install libxcb-xinerama0`. For me, I still see a warning about `XDG_SESSION_TYPE=wayland` but it never gives me any errors.
+
+I am still working on getting this to work with MacOS.
 
 ------------
 General Info
