@@ -7,6 +7,7 @@ Module for import/export of images, parameters, and plots
 
 import numpy as np
 import platform
+import imageio
 import napari
 import h5py
 import csv
@@ -426,16 +427,22 @@ def read_stack_fast(
         
     else:
         
-        with Image.open(stack_path) as im:
-        
-            if im.n_frames > 1:
-                
-                im_collection: io.MultiImage = io.MultiImage(stack_path)
-                im_array: np.ndarray = io.concatenate_images(im_collection)
-                
-            else:
-                
-                im_array: np.ndarray = read_im(stack_path)
+        try:
+            
+            with Image.open(stack_path) as im:
+            
+                if im.n_frames > 1:
+                    
+                    im_collection: io.MultiImage = io.MultiImage(stack_path)
+                    im_array: np.ndarray = io.concatenate_images(im_collection)
+                    
+                else:
+                    
+                    im_array: np.ndarray = read_im(stack_path)
+                    
+        except Image.UnidentifiedImageError:
+            
+            im_array: np.ndarray = imageio.v2.imread(stack_path)
     
     return np.squeeze(im_array)
     
