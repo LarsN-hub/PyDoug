@@ -326,7 +326,7 @@ def is_3d_rgb(im_array: np.ndarray) -> dict[str, bool]:
     
     if im_array.ndim == 3:
         
-        if im_array.shape[2] == 3:
+        if im_array.shape[2] == 3 or im_array.shape[2] == 4:
             
             is_rgb: bool = True
             is_3d: bool = False

@@ -26,7 +26,7 @@ def trim_pad_bounds(
         bounds_as_slices: bool = False,
         method: str = "trim") -> dict[int, list[int]]:
     
-    is_3d_rgb_dict = util.is_3d_rgb(im_array)
+    is_3d_rgb_dict: dict = util.is_3d_rgb(im_array)
         
     if bounds_dict:
         
@@ -34,16 +34,22 @@ def trim_pad_bounds(
         y_bounds = bounds_dict["Y"]
         z_bounds = bounds_dict["Z"]
             
-    x_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "X")
-    y_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "Y")
-    x_bounds: list[int] = util.reformat_bounds(x_bounds, im_array.shape[x_ax], bounds_as_slices, method)
-    y_bounds: list[int] = util.reformat_bounds(y_bounds, im_array.shape[y_ax], bounds_as_slices, method)
+    x_ax: int = util.convert_ax_str_to_int(
+        im_array, is_3d_rgb_dict["RGB"], "X")
+    y_ax: int = util.convert_ax_str_to_int(
+        im_array, is_3d_rgb_dict["RGB"], "Y")
+    x_bounds: list[int] = util.reformat_bounds(
+        x_bounds, im_array.shape[x_ax], bounds_as_slices, method)
+    y_bounds: list[int] = util.reformat_bounds(
+        y_bounds, im_array.shape[y_ax], bounds_as_slices, method)
     bounds: dict[int, list] = {x_ax: x_bounds, y_ax: y_bounds}
     
     if is_3d_rgb_dict["3D"]:
         
-        z_ax: int = util.convert_ax_str_to_int(im_array, is_3d_rgb_dict["RGB"], "Z")
-        z_bounds: list[int] = util.reformat_bounds(z_bounds, im_array.shape[z_ax], bounds_as_slices, method)
+        z_ax: int = util.convert_ax_str_to_int(
+            im_array, is_3d_rgb_dict["RGB"], "Z")
+        z_bounds: list[int] = util.reformat_bounds(
+            z_bounds, im_array.shape[z_ax], bounds_as_slices, method)
         bounds[z_ax] = z_bounds
         
     return bounds
@@ -57,28 +63,47 @@ def trim(
         bounds_as_slices: bool = False,
         conserve_mem: bool = False) -> np.ndarray:
     
-    bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "trim")
-    is_3d_rgb_dict = util.is_3d_rgb(im_array)
+    bounds = trim_pad_bounds(
+        im_array,
+        x_bounds,
+        y_bounds,
+        z_bounds,
+        bounds_dict,
+        bounds_as_slices,
+        "trim")
+    is_3d_rgb_dict: dict = util.is_3d_rgb(im_array)
     
     if conserve_mem:
         
         if not is_3d_rgb_dict["3D"]:
                 
-            return im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]        
+            return im_array[
+                bounds[0][0]:bounds[0][1],
+                bounds[1][0]:bounds[1][1]]        
         
         else:
                 
-            return np.squeeze(im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]])
+            return np.squeeze(
+                im_array[
+                    bounds[0][0]:bounds[0][1],
+                    bounds[1][0]:bounds[1][1],
+                    bounds[2][0]:bounds[2][1]])
             
     else:
         
         if not is_3d_rgb_dict["3D"]:
                 
-            trim_array: np.ndarray = im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1]]
+            trim_array: np.ndarray = im_array[
+                bounds[0][0]:bounds[0][1],
+                bounds[1][0]:bounds[1][1]]
                 
         else:
                 
-            trim_array: np.ndarray = np.squeeze(im_array[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]])
+            trim_array: np.ndarray = np.squeeze(
+                im_array[
+                    bounds[0][0]:bounds[0][1],
+                    bounds[1][0]:bounds[1][1],
+                    bounds[2][0]:bounds[2][1]])
         
         return trim_array
     
@@ -91,27 +116,43 @@ def pad_operation(
     
     if not is_3d_rgb_dict["3D"]:
             
-        left_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0]), im_array.dtype) * padded_color
-        right_x_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1]), im_array.dtype) * padded_color
+        left_x_insert: np.ndarray = np.ones(
+            (im_array.shape[0], bounds[1][0]), im_array.dtype) * padded_color
+        right_x_insert: np.ndarray = np.ones(
+            (im_array.shape[0], bounds[1][1]), im_array.dtype) * padded_color
         im_array = np.concat((left_x_insert, im_array), axis = 1)
         im_array = np.concat((im_array, right_x_insert), axis = 1)
-        top_y_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1]), im_array.dtype) * padded_color
-        bot_y_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1]), im_array.dtype) * padded_color
+        top_y_insert: np.ndarray = np.ones(
+            (bounds[0][0], im_array.shape[1]), im_array.dtype) * padded_color
+        bot_y_insert: np.ndarray = np.ones(
+            (bounds[0][1], im_array.shape[1]), im_array.dtype) * padded_color
         im_array = np.concat((top_y_insert, im_array), axis = 0)
         im_array = np.concat((im_array, bot_y_insert), axis = 0)
             
     else:
         
-        left_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][0]), im_array.dtype) * padded_color
-        right_x_insert: np.ndarray = np.ones((im_array.shape[0], im_array.shape[1], bounds[2][1]), im_array.dtype) * padded_color
+        left_x_insert: np.ndarray = np.ones(
+            (im_array.shape[0], im_array.shape[1], bounds[2][0]),
+            im_array.dtype) * padded_color
+        right_x_insert: np.ndarray = np.ones(
+            (im_array.shape[0], im_array.shape[1], bounds[2][1]),
+            im_array.dtype) * padded_color
         im_array = np.concat((left_x_insert, im_array), axis = 2)
         im_array = np.concat((im_array, right_x_insert), axis = 2)
-        top_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][0], im_array.shape[2]), im_array.dtype) * padded_color
-        bot_y_insert: np.ndarray = np.ones((im_array.shape[0], bounds[1][1], im_array.shape[2]), im_array.dtype) * padded_color
+        top_y_insert: np.ndarray = np.ones(
+            (im_array.shape[0], bounds[1][0], im_array.shape[2]),
+            im_array.dtype) * padded_color
+        bot_y_insert: np.ndarray = np.ones(
+            (im_array.shape[0], bounds[1][1], im_array.shape[2]),
+            im_array.dtype) * padded_color
         im_array = np.concat((top_y_insert, im_array), axis = 1)
         im_array = np.concat((im_array, bot_y_insert), axis = 1)
-        front_z_insert: np.ndarray = np.ones((bounds[0][0], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
-        back_z_insert: np.ndarray = np.ones((bounds[0][1], im_array.shape[1], im_array.shape[2]), im_array.dtype) * padded_color
+        front_z_insert: np.ndarray = np.ones(
+            (bounds[0][0], im_array.shape[1], im_array.shape[2]),
+            im_array.dtype) * padded_color
+        back_z_insert: np.ndarray = np.ones(
+            (bounds[0][1], im_array.shape[1], im_array.shape[2]),
+            im_array.dtype) * padded_color
         im_array = np.concat((front_z_insert, im_array), axis = 0)
         im_array = np.concat((im_array, back_z_insert), axis = 0)
         
@@ -127,7 +168,14 @@ def pad(
         padded_color: float | int = 0,
         conserve_mem: bool = False) -> np.ndarray:
     
-    bounds = trim_pad_bounds(im_array, x_bounds, y_bounds, z_bounds, bounds_dict, bounds_as_slices, "pad")
+    bounds = trim_pad_bounds(
+        im_array,
+        x_bounds,
+        y_bounds,
+        z_bounds,
+        bounds_dict,
+        bounds_as_slices,
+        "pad")
     
     if conserve_mem:
         
@@ -168,7 +216,9 @@ def get_rot_angle(
     
     if shape_coords.shape[0] == 4 and shape_type != "polygon":
 
-        rot_angle: float = -math.atan2((shape_coords[1, 0] - shape_coords[0, 0]), (shape_coords[1, 1] - shape_coords[0, 1]))
+        rot_angle: float = -math.atan2(
+            (shape_coords[1, 0] - shape_coords[0, 0]),
+            (shape_coords[1, 1] - shape_coords[0, 1]))
     
     else:
         
@@ -191,11 +241,19 @@ def shape_2_mask(
         if shape_type == "ellipse":
                 
             rot_angle: float = get_rot_angle(shape_dict)
-            r_radius: float = math.sqrt(((shape_coords[3, 0] - shape_coords[0, 0])**2) + ((shape_coords[3, 1] - shape_coords[0, 1])**2)) / 2
-            c_radius: float = math.sqrt(((shape_coords[1, 0] - shape_coords[0, 0])**2) + ((shape_coords[1, 1] - shape_coords[0, 1])**2)) / 2
+            r_radius: float = math.sqrt(
+                ((shape_coords[3, 0] - shape_coords[0, 0])**2) + ((shape_coords[3, 1] - shape_coords[0, 1])**2)) / 2
+            c_radius: float = math.sqrt(
+                ((shape_coords[1, 0] - shape_coords[0, 0])**2) + ((shape_coords[1, 1] - shape_coords[0, 1])**2)) / 2
             r_center: float = shape_coords[0, 0] + ((shape_coords[2, 0] - shape_coords[0, 0]) / 2)
             c_center: float = shape_coords[0, 1] + ((shape_coords[2, 1] - shape_coords[0, 1]) / 2)
-            rr, cc = draw.ellipse(r_center, c_center, r_radius, c_radius, shape = mask_shape, rotation = rot_angle)
+            rr, cc = draw.ellipse(
+                r_center,
+                c_center,
+                r_radius,
+                c_radius,
+                shape = mask_shape,
+                rotation = rot_angle)
             mask_array[rr, cc] = 1
                 
         elif shape_type == "polygon" or shape_type == "rectangle":
@@ -240,9 +298,10 @@ def expand_2d_mask(
             
             if util.is_3d_rgb(im_array)["RGB"]:
                 
-                mask_array = np.expand_dims(mask_array, 3)
-                
-                return np.concat((mask_array, mask_array, mask_array), axis = 3)
+                return np.repeat(
+                    np.expand_dims(mask_array, 3),
+                    im_array.shape[3],
+                    axis = 3)
             
             else:
                 
@@ -250,9 +309,10 @@ def expand_2d_mask(
                 
         else:
             
-            mask_array = np.expand_dims(mask_array, 2)
-            
-            return np.concat((mask_array, mask_array, mask_array), axis = 2)
+            return np.repeat(
+                np.expand_dims(mask_array, 2),
+                im_array.shape[2],
+                axis = 2)
 
 def get_mask(
         im_array: np.ndarray,
@@ -273,17 +333,21 @@ def get_mask(
         
         if slice_range:
             
-            mask_array = project_mask(mask_array, max(slice_range) - min(slice_range))
+            mask_array = project_mask(
+                mask_array, max(slice_range) - min(slice_range))
             zero_shape = (mask_array.shape[1], mask_array.shape[2])
             
             if min(slice_range) != 0:
                 
-                zero_insert: np.ndarray = project_mask(np.zeros(zero_shape, mask_array.dtype), min(slice_range))
+                zero_insert: np.ndarray = project_mask(
+                    np.zeros(zero_shape, mask_array.dtype), min(slice_range))
                 mask_array = np.append(zero_insert, mask_array, axis = 0)
                 
             if max(slice_range) != im_array.shape[0]:
                 
-                zero_insert: np.ndarray = project_mask(np.zeros(zero_shape, mask_array.dtype), (im_array.shape[0] - max(slice_range)))
+                zero_insert: np.ndarray = project_mask(
+                    np.zeros(zero_shape, mask_array.dtype),
+                    (im_array.shape[0] - max(slice_range)))
                 mask_array = np.append(mask_array, zero_insert, axis = 0)
             
         else:
@@ -346,7 +410,12 @@ def quick_mask(
     
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
-    return mask(im_array, mask_array, method = method, mask_color = mask_color, conserve_mem = conserve_mem)
+    return mask(
+        im_array,
+        mask_array,
+        method = method,
+        mask_color = mask_color,
+        conserve_mem = conserve_mem)
 
 def crop(
         im_array: np.ndarray,
@@ -402,11 +471,19 @@ def crop(
         
         if conserve_mem:
         
-            im_array = mask(im_array, bool_array, mask_color = mask_color, conserve_mem = True)
+            im_array = mask(
+                im_array,
+                bool_array,
+                mask_color = mask_color,
+                conserve_mem = True)
             
         else:
             
-            crop_array = mask(crop_array, bool_array, mask_color = mask_color, conserve_mem = False)
+            crop_array = mask(
+                crop_array,
+                bool_array,
+                mask_color = mask_color,
+                conserve_mem = False)
     
     if conserve_mem:
         
@@ -424,7 +501,11 @@ def quick_crop(
     
     mask_array: np.ndarray = get_mask(im_array, viewer)
     
-    return crop(im_array, mask_array, mask_color = mask_color, conserve_mem = conserve_mem)
+    return crop(
+        im_array,
+        mask_array,
+        mask_color = mask_color,
+        conserve_mem = conserve_mem)
 
 def mask_logic(
         mask_array1: np.ndarray,
