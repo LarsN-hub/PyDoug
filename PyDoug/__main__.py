@@ -27,7 +27,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.9.2-beta"
+version_str: str = "v0.10.0-beta"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 
@@ -69,6 +69,9 @@ class ImageProcessor:
         self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
         self.corner_detect_widget.Harris_Epsilon.step = 0.000001
         self.corner_detect_widget.Harris_Epsilon.value = 0.000001
+        self.max_inscribed_spheres_widget.Pixel_Scale.native.setDecimals(3)
+        self.max_inscribed_spheres_widget.Pixel_Scale.stpe = 0.001
+        self.max_inscribed_spheres_widget.Pixel_Scale.value = 1
         self.histogram_widget.Y_Max.native.setDecimals(3)
         self.histogram_widget.Y_Max.step = 0.001
         self.histogram_widget.Y_Max.value = 0
@@ -2244,7 +2247,62 @@ class ImageProcessor:
                 Erosions,
                 along_axis = Along_Z_Axis),
             name = param_layer_name)
+   
+    
+    ###################
+    # Filters Widgets #
+    ###################
+    
+    @magicgui(
+        call_button = "FFT")
+    def fft_widget(self,
+            Image: napari.layers.Image,
+            Along_Z_Axis: bool = False) -> None:
         
+        param_layer_name = get_param_layer_name("FFT", self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Acting On": Image.name,
+             "Along Axis": Along_Z_Axis})
+        self.viewer.add_image(
+            pixels.convert_im_type(
+                np.real(
+                    fourier.ft(
+                        Image.data,
+                        Along_Z_Axis)),
+                "uint8", norm = True),
+            name = param_layer_name)
+    
+    @magicgui(
+        call_button = "Distance Transform")
+    def distance_transform_widget(self,
+            Image: napari.layers.Image) -> None:
+        
+        param_layer_name = get_param_layer_name(
+            "Distance Transform",
+            self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Acting On": Image.name})
+        self.viewer.add_image(
+            morph.distance_transform(Image.data), name = param_layer_name)
+        
+    @magicgui(
+        call_button = "Max Inscribed Spheres")
+    def max_inscribed_spheres_widget(self,
+            Image: napari.layers.Image,
+            Pixel_Scale: float = 1.0) -> None:
+        
+        param_layer_name = get_param_layer_name(
+            "Max Inscribed Spheres",
+            self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Pixel Size": Pixel_Scale,
+            "Acting On": Image.name})
+        self.viewer.add_image(
+            morph.max_inscribed_spheres(Image.data), name = param_layer_name)
+    
     
     ####################
     # Features Widgets #
@@ -2699,26 +2757,6 @@ class ImageProcessor:
         _ = plots.gray_level(Image.data, mask_array = mask_array)
             
         plt.show(block = False)
-        
-    @magicgui(
-        call_button = "FFT")
-    def fft_widget(self,
-            Image: napari.layers.Image,
-            Along_Z_Axis: bool = False) -> None:
-        
-        param_layer_name = get_param_layer_name("FFT", self.operation_count)
-        self.parameters_log.append(
-            {"Name": param_layer_name,
-             "Acting On": Image.name,
-             "Along Axis": Along_Z_Axis})
-        self.viewer.add_image(
-            pixels.convert_im_type(
-                np.real(
-                    fourier.ft(
-                        Image.data,
-                        Along_Z_Axis)),
-                "uint8", norm = True),
-            name = param_layer_name)
         
     @magicgui(
         Method = {"choices": [
@@ -3636,6 +3674,23 @@ def main() -> napari.viewer.Viewer:
     tabs.addTab(morphology_container.native, "Morphology")
     
     
+    # Filters Tab
+    
+    mod_fft: widgets.Container = modify_funcgui(
+        ui.fft_widget, "FFT")
+    mod_distance_transform: widgets.Container = modify_funcgui(
+        ui.distance_transform_widget, "Distance Transform")
+    mod_max_inscribed_spheres: widgets.Container = modify_funcgui(
+        ui.max_inscribed_spheres_widget, "Max Inscribed Spheres")
+    filters_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [
+            mod_fft,
+            mod_distance_transform,
+            mod_max_inscribed_spheres],
+        labels = False)
+    tabs.addTab(filters_container.native, "Filters")
+    
+    
     # Features Widgets
     
     mod_edge_detect: widgets.Container = modify_funcgui(
@@ -3667,8 +3722,6 @@ def main() -> napari.viewer.Viewer:
         ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(
         ui.gray_level_widget, "Gray Level")
-    mod_fft: widgets.Container = modify_funcgui(
-        ui.fft_widget, "FFT")
     mod_misc_calc: widgets.Container = modify_funcgui(
         ui.misc_calc_widget, "Misc Calculations")
     mod_axis_distribution: widgets.Container = modify_funcgui(
@@ -3682,7 +3735,6 @@ def main() -> napari.viewer.Viewer:
             mod_histogram,
             mod_line_scan,
             mod_gray_level,
-            mod_fft,
             mod_misc_calc,
             mod_axis_distribution,
             mod_psd,

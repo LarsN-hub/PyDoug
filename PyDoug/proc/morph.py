@@ -7,7 +7,9 @@ Module for altering morphology of image features
 
 import numpy as np
 
-from skimage import morphology
+from timeit import default_timer as timer
+from skimage import morphology, draw
+from scipy import ndimage as ndi
 
 from PyDoug.proc import pixels, util, thresh
 
@@ -264,6 +266,48 @@ def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_
     elif method == "White":
         
         return im_array - opening(im_array, n_dilations = n_dilations, n_erosions = n_erosions, footprint = footprint, along_axis = along_axis)
+
+def distance_transform(
+        im_array: np.ndarray,
+    ) -> np.ndarray:
+    
+    return ndi.distance_transform_edt(im_array)
+
+def max_inscribed_spheres(
+        im_array: np.ndarray,
+        pixel_size: float = 1.0
+    ) -> np.ndarray:
+    
+    start = timer()
+    np.seterr(divide = "ignore", invalid = "ignore")
+    
+    mis_array: np.ndarray = np.zeros(im_array.shape)
+    radius_array: np.ndarray = distance_transform(im_array)
+    index_array: np.ndarray = np.argsort(radius_array, axis = None)
+    
+    if im_array.ndim == 2:
+        for index in index_array:
+            rr, cc = draw.disk(
+                np.unravel_index(index, im_array.shape),
+                radius_array.flat[index],
+                shape = im_array.shape
+            )
+            mis_array[rr, cc] = radius_array.flat[index]
+    else:
+        for index in index_array:
+            ball_footprint: np.ndarray = morphology.ball(
+                radius_array.flat[index])
+            coords: np.ndarray = np.argwhere(ball_footprint)
+            coords[:, 0] += np.unravel(index, im_array.shape)[0]
+            coords[:, 1] += np.unravel(index, im_array.shape)[1]
+            coords[:, 2] += np.unravel(index, im_array.shape)[2]
+            mis_array[coords] = radius_array.flat[index]
+            
+    mis_array[np.logical_not(im_array)] = 0
+    end = timer()
+    print(f"Time: {(end - start):.2f} s!")
+    np.seterr(divide = "warn", invalid = "warn")
+    return mis_array * pixel_size * 2
 
 
 # Main

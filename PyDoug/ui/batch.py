@@ -1146,6 +1146,42 @@ def apply_parameters(
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
+        
+        ######################
+        # Filters Operations #
+        ######################
+        
+        elif parameter["Name"].find("FFT") == 0:
+            
+            print("\nComputing FFT...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = fourier.ft(im_array, along_axis)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
+        
+        elif parameter["Name"].find("Distance Transform") == 0:
+            
+            print("\nComputing distance transform...")
+            im_array = morph.distance_transform(im_array)
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
+            
+        elif parameter["Name"].find("Max Inscribed Spheres") == 0:
+            
+            print("\nComputing max inscribed spheres...")
+            im_array = morph.max_inscribed_spheres(
+                im_array, float(parameter["Pixel Scale"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
+            
             
         #######################
         # Features Operations #
@@ -1412,22 +1448,6 @@ def apply_parameters(
                 save_dir)
             plt.close(fig)
             gray_index += 1
-            
-        elif parameter["Name"].find("FFT") == 0:
-            
-            print("\nComputing FFT...")
-            
-            if parameter["Along Axis"].lower() == "true":
-                
-                along_axis: bool = True
-                
-            else:
-                
-                along_axis: bool = False
-                
-            im_array = fourier.ft(im_array, along_axis)
-            parameters_dict[parameter["Name"]] = im_array
-            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Misc Calculations") == 0:
             

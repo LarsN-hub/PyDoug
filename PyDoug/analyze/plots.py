@@ -1566,7 +1566,8 @@ def gray_level_axis(
 def gray_level(
         data: np.ndarray | pd.DataFrame, *,
         return_axes: bool = False,
-        mask_array: np.ndarray = None) -> plt.Figure:
+        mask_array: np.ndarray = None
+    ) -> plt.Figure:
 
     return multi_plot(
         np.array([data] * 3),
