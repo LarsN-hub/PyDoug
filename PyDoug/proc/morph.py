@@ -298,9 +298,9 @@ def max_inscribed_spheres(
             ball_footprint: np.ndarray = morphology.ball(
                 radius_array.flat[index])
             coords: np.ndarray = np.argwhere(ball_footprint)
-            coords[:, 0] += np.unravel(index, im_array.shape)[0]
-            coords[:, 1] += np.unravel(index, im_array.shape)[1]
-            coords[:, 2] += np.unravel(index, im_array.shape)[2]
+            coords[:, 0] += np.unravel(index, im_array.shape)[0] - ((ball_footprint.shape[0] - 1) / 2)
+            coords[:, 1] += np.unravel(index, im_array.shape)[1] - ((ball_footprint.shape[0] - 1) / 2)
+            coords[:, 2] += np.unravel(index, im_array.shape)[2] - ((ball_footprint.shape[0] - 1) / 2)
             mis_array[coords] = radius_array.flat[index]
             
     mis_array[np.logical_not(im_array)] = 0
