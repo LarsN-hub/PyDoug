@@ -691,6 +691,33 @@ More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skim
 - "Along Z Axis" checkbox: check to perform erosions along the Z axis if image is 3D.
 - "Top Hat" button: click to perform the top hat operation.
 
+Filters Tab
+-----------
+
+**FFT**
+
+A widget for computing a fast-Fourier transform of an image/stack.
+More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2, https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
+- "Image" drop-down: images in the layer list. Select the image to compute an FFT.
+- "Along Z Axis" checkbox: check to perform the FFT along the Z axis of a 3D image stack.
+- "FFT" button: click to perform the FFT operation.
+
+**Distance Transform**
+
+A widget for computing the closest distance to the background for each foreground pixel.
+More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.distance_transform_edt.html#scipy.ndimage.distance_transform_edt
+- "Image" drop-down: images in the layer list. Select the image to compute the distance transform.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Distance Transform" button: click to perform the distance transform operation.
+
+**Max Inscribed Spheres**
+
+A widget for computing the maximum inscribed sphere at each foreground pixel.
+More info: https://pubs.acs.org/doi/10.1021/la9808418
+- "Image" drop-down: images in the layer list. Select the image to compute maximally incsribed spheres.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Max Inscribed Spheres" button: click to perform the distance transform operation.
+
 Features Tab
 ------------
 A tab containing widgets that detect features in images.
@@ -823,14 +850,6 @@ A widget for generating gray level statistical plots along each axis of a 3D ima
 - "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the gray level plot step to the parameters log.
 - "Plot Gray Level" button: click to plot the gray level statistics.
-
-**FFT**
-
-A widget for computing a fast-Fourier transform of an image/stack.
-More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.html#scipy.fft.fft2, https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fftn.html#scipy.fft.fftn
-- "Image" drop-down: images in the layer list. Select the image to compute an FFT.
-- "Along Z Axis" checkbox: check to perform the FFT along the Z axis of a 3D image stack.
-- "FFT" button: click to perform the FFT operation.
 
 **Misc Calculations**
 

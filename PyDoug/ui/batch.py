@@ -1170,7 +1170,8 @@ def apply_parameters(
         elif parameter["Name"].find("Distance Transform") == 0:
             
             print("\nComputing distance transform...")
-            im_array = morph.distance_transform(im_array)
+            im_array = morph.distance_transform(
+                im_array, float(parameter["Pixel Scale"]))
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             

@@ -69,6 +69,9 @@ class ImageProcessor:
         self.corner_detect_widget.Harris_Epsilon.native.setDecimals(6)
         self.corner_detect_widget.Harris_Epsilon.step = 0.000001
         self.corner_detect_widget.Harris_Epsilon.value = 0.000001
+        self.distance_transform_widget.Pixel_Scale.native.setDecimals(3)
+        self.distance_transform_widget.Pixel_Scale.stpe = 0.001
+        self.distance_transform_widget.Pixel_Scale.value = 1
         self.max_inscribed_spheres_widget.Pixel_Scale.native.setDecimals(3)
         self.max_inscribed_spheres_widget.Pixel_Scale.stpe = 0.001
         self.max_inscribed_spheres_widget.Pixel_Scale.value = 1
@@ -2276,16 +2279,19 @@ class ImageProcessor:
     @magicgui(
         call_button = "Distance Transform")
     def distance_transform_widget(self,
-            Image: napari.layers.Image) -> None:
+            Image: napari.layers.Image,
+            Pixel_Scale: float - 1.0) -> None:
         
         param_layer_name = get_param_layer_name(
             "Distance Transform",
             self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
+             "Pixel Size": Pixel_Scale,
              "Acting On": Image.name})
         self.viewer.add_image(
-            morph.distance_transform(Image.data), name = param_layer_name)
+            morph.distance_transform(Image.data, Pixel_Scale),
+            name = param_layer_name)
         
     @magicgui(
         call_button = "Max Inscribed Spheres")
@@ -2301,7 +2307,8 @@ class ImageProcessor:
              "Pixel Size": Pixel_Scale,
             "Acting On": Image.name})
         self.viewer.add_image(
-            morph.max_inscribed_spheres(Image.data), name = param_layer_name)
+            morph.max_inscribed_spheres(Image.data, Pixel_Scale),
+            name = param_layer_name)
     
     
     ####################

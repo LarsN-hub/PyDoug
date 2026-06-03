@@ -7,7 +7,6 @@ Module for altering morphology of image features
 
 import numpy as np
 
-from timeit import default_timer as timer
 from skimage import morphology, draw
 from scipy import ndimage as ndi
 
@@ -269,18 +268,17 @@ def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_
 
 def distance_transform(
         im_array: np.ndarray,
+        pixel_size: float = 1.0
     ) -> np.ndarray:
     
-    return ndi.distance_transform_edt(im_array)
+    return ndi.distance_transform_edt(im_array) * pixel_size
 
 def max_inscribed_spheres(
         im_array: np.ndarray,
         pixel_size: float = 1.0
     ) -> np.ndarray:
     
-    start = timer()
     np.seterr(divide = "ignore", invalid = "ignore")
-    
     mis_array: np.ndarray = np.zeros(im_array.shape)
     radius_array: np.ndarray = distance_transform(im_array)
     index_array: np.ndarray = np.argsort(radius_array, axis = None)
@@ -298,14 +296,16 @@ def max_inscribed_spheres(
             ball_footprint: np.ndarray = morphology.ball(
                 radius_array.flat[index])
             coords: np.ndarray = np.argwhere(ball_footprint)
-            coords[:, 0] += np.unravel(index, im_array.shape)[0] - ((ball_footprint.shape[0] - 1) / 2)
-            coords[:, 1] += np.unravel(index, im_array.shape)[1] - ((ball_footprint.shape[0] - 1) / 2)
-            coords[:, 2] += np.unravel(index, im_array.shape)[2] - ((ball_footprint.shape[0] - 1) / 2)
+            coords[:, 0] += np.int32(np.unravel_index(index, im_array.shape)[0] - ((ball_footprint.shape[0] - 1) / 2))
+            coords[:, 1] += np.int32(np.unravel_index(index, im_array.shape)[1] - ((ball_footprint.shape[1] - 1) / 2))
+            coords[:, 2] += np.int32(np.unravel_index(index, im_array.shape)[2] - ((ball_footprint.shape[2] - 1) / 2))
+            coords = np.delete(coords, np.unique(np.argwhere(coords < 0)[:, 0]), 0)
+            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 0] >= im_array.shape[0])), 0)
+            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 1] >= im_array.shape[1])), 0)
+            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 2] >= im_array.shape[2])), 0)
             mis_array[coords] = radius_array.flat[index]
             
     mis_array[np.logical_not(im_array)] = 0
-    end = timer()
-    print(f"Time: {(end - start):.2f} s!")
     np.seterr(divide = "warn", invalid = "warn")
     return mis_array * pixel_size * 2
 
