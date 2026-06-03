@@ -7,8 +7,9 @@ Module for altering morphology of image features
 
 import numpy as np
 
-from skimage import morphology, draw
+from skimage import morphology
 from scipy import ndimage as ndi
+from porespy import filters
 
 from PyDoug.proc import pixels, util, thresh
 
@@ -268,47 +269,76 @@ def tophat(im_array: np.ndarray, method: str = "Black", n_dilations: int = 1, n_
 
 def distance_transform(
         im_array: np.ndarray,
-        pixel_size: float = 1.0
+        pixel_size: float = 1.0, *,
+        round_values: bool = True,
+        mask_array: np.ndarray = None,
+        mask_before_dt: bool = False
     ) -> np.ndarray:
     
-    return ndi.distance_transform_edt(im_array) * pixel_size
+    if mask_before_dt and np.any(mask_array):
+        dt_array: np.ndarray = ndi.distance_transform_edt(
+            im_array * np.bool(mask_array))
+    else:
+        dt_array: np.ndarray = ndi.distance_transform_edt(im_array)
+    
+    if round_values:
+        dt_array = np.round(dt_array)
+        
+    if not mask_before_dt and np.any(mask_array):
+        dt_array *= np.bool(mask_array)
+    
+    return dt_array * pixel_size
 
 def max_inscribed_spheres(
         im_array: np.ndarray,
-        pixel_size: float = 1.0
+        method: str = "distance transform",
+        pixel_size: float = 1.0, *,
+        return_diameter: bool = True,
+        smooth: bool = False,
+        mask_array: np.ndarray = None,
+        mask_before_dt: bool = False,
+        imj_approx: bool = False,
+        sizes: int = 25
     ) -> np.ndarray:
     
-    np.seterr(divide = "ignore", invalid = "ignore")
-    mis_array: np.ndarray = np.zeros(im_array.shape)
-    radius_array: np.ndarray = distance_transform(im_array)
-    index_array: np.ndarray = np.argsort(radius_array, axis = None)
+    if method.lower() == "distance transform":
+        method = "dt"
+    elif method.lower() == "brute force":
+        method = "bf"
+    elif method.lower() == "fft":
+        method = "conv"
+    elif method.lower() == "imagej":
+        method = "imj"
+        
+    dt_array: np.ndarray = distance_transform(
+        im_array,
+        mask_array = mask_array,
+        mask_before_dt = mask_before_dt
+    )
     
-    if im_array.ndim == 2:
-        for index in index_array:
-            rr, cc = draw.disk(
-                np.unravel_index(index, im_array.shape),
-                radius_array.flat[index],
-                shape = im_array.shape
-            )
-            mis_array[rr, cc] = radius_array.flat[index]
+    if np.any(mask_array):
+        mis_array: np.ndarray = filters.local_thickness(
+            np.bool(im_array) * np.bool(mask_array),
+            dt = dt_array,
+            method = method,
+            smooth = smooth,
+            approx = imj_approx,
+            sizes = sizes
+        )
     else:
-        for index in index_array:
-            ball_footprint: np.ndarray = morphology.ball(
-                radius_array.flat[index])
-            coords: np.ndarray = np.argwhere(ball_footprint)
-            coords[:, 0] += np.int32(np.unravel_index(index, im_array.shape)[0] - ((ball_footprint.shape[0] - 1) / 2))
-            coords[:, 1] += np.int32(np.unravel_index(index, im_array.shape)[1] - ((ball_footprint.shape[1] - 1) / 2))
-            coords[:, 2] += np.int32(np.unravel_index(index, im_array.shape)[2] - ((ball_footprint.shape[2] - 1) / 2))
-            coords = np.delete(coords, np.unique(np.argwhere(coords < 0)[:, 0]), 0)
-            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 0] >= im_array.shape[0])), 0)
-            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 1] >= im_array.shape[1])), 0)
-            coords = np.delete(coords, np.unique(np.argwhere(coords[:, 2] >= im_array.shape[2])), 0)
-            mis_array[coords] = radius_array.flat[index]
-            
-    mis_array[np.logical_not(im_array)] = 0
-    np.seterr(divide = "warn", invalid = "warn")
-    return mis_array * pixel_size * 2
-
+        mis_array: np.ndarray = filters.local_thickness(
+            np.bool(im_array),
+            dt = dt_array,
+            method = method,
+            smooth = smooth,
+            approx = imj_approx,
+            sizes = sizes
+        )
+    
+    if return_diameter:
+        return mis_array * pixel_size * 2
+    else:
+        return mis_array
 
 # Main
 

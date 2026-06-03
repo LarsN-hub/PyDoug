@@ -18,12 +18,11 @@ The GUI is built on napari's n-dimensional image viewing GUI: https://napari.org
 
 Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/ and magic-class: https://hanjinliu.github.io/magic-class/
 
-Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, and algotom: https://myalgotomo.readthedocs.io/en/latest/index.html.
+Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, algotom: https://myalgotomo.readthedocs.io/en/latest/index.html, and porespy: https://porespy.org/.
 
 Other miscellaneous resources used:
 - cmasher: https://cmasher.readthedocs.io/
 - h5py: https://docs.h5py.org/en/stable/index.html
-- numba: https://numba.pydata.org/
 - pandas: https://pandas.pydata.org/
 - PyQt5: https://pypi.org/project/PyQt5/
 - QtPy: https://pypi.org/project/QtPy/
@@ -628,20 +627,6 @@ Morphology Tab
 --------------
 A tab containing widgets that apply morphology-based filters to segmented images.
 
-**Remove Small Objects**
-
-A widget for removing small particles or holes in segmented images/stacks.
-More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects, https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
-- "Image" drop-down: images in the layer list. Select the image to remove objects.
-- "Method" drop-down: select "Particles" for small white objects or "Holes" for small black objects.
-- "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
-- "Size Threshold" float: input the smallest allowed size of the objects being removed.
-- "Background" integer: input the background ROI intensity.
-- "Pixel Scale" float: input the units/pixel (leave as 1 if "Size Threshold" is entered in pixels).
-- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
-- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
-- "Remove Objects" button: click to perform the remove objects operation.
-
 **Dilation**
 
 A widget for dilating segmented images.
@@ -693,6 +678,7 @@ More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skim
 
 Filters Tab
 -----------
+A tab containing miscellaneous filters to apply to images.
 
 **FFT**
 
@@ -702,21 +688,49 @@ More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft2.h
 - "Along Z Axis" checkbox: check to perform the FFT along the Z axis of a 3D image stack.
 - "FFT" button: click to perform the FFT operation.
 
+**Remove Small Objects**
+
+A widget for removing small particles or holes in segmented images/stacks.
+More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects, https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_holes
+- "Image" drop-down: images in the layer list. Select the image to remove objects.
+- "Method" drop-down: select "Particles" for small white objects or "Holes" for small black objects.
+- "Connectivity" drop-down: select the number of orthogonal hops allowed to consider a neighboring pixel connected (applies to both methods).
+- "Size Threshold" float: input the smallest allowed size of the objects being removed.
+- "Background" integer: input the background ROI intensity.
+- "Pixel Scale" float: input the units/pixel (leave as 1 if "Size Threshold" is entered in pixels).
+- "Along Axis" checkbox: check to apply the operation along an axis of an image stack.
+- "Axis" drop-dpown: select the axis to apply the operation along if "Along Axis" is checked.
+- "Remove Objects" button: click to perform the remove objects operation.
+
 **Distance Transform**
 
 A widget for computing the closest distance to the background for each foreground pixel.
 More info: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.distance_transform_edt.html#scipy.ndimage.distance_transform_edt
 - "Image" drop-down: images in the layer list. Select the image to compute the distance transform.
 - "Pixel Scale" float: input the unit length per pixel.
+- "Round Pixel Distance" checkbox: leave checked to round the measured pixel distance to the nearest integer (does not apply to pixel scale which is applied after rounding).
+- "Apply Mask" checkbox: check to apply a mask to the image during the distance transform.
+- "Mask Before DT" checkbox: if "Apply Mask" is checked, check to apply the mask before the distance transform (thus changing the distance values). Leave unchecked to apply the mask after the operation (thus preserving distance values).
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Distance Transform" button: click to perform the distance transform operation.
 
 **Max Inscribed Spheres**
 
 A widget for computing the maximum inscribed sphere at each foreground pixel.
-More info: https://pubs.acs.org/doi/10.1021/la9808418
+More info: https://porespy.org/autoapi/porespy/filters/local_thickness.html
 - "Image" drop-down: images in the layer list. Select the image to compute maximally incsribed spheres.
+- "Method" drop-down: select the algorithm to use for the max inscribed spheres operation.
 - "Pixel Scale" float: input the unit length per pixel.
-- "Max Inscribed Spheres" button: click to perform the distance transform operation.
+- "Return Diameter" checkbox: leave checked to return the sphere diamter. Uncheck to return the radius.
+- "Smooth" checkbox: check to remove small protrusions from larger spheres.
+- "DT or FFT Sizes" integer: if "Method" is "Distance Transform" or "FFT", input the number of points along the distance transform to use to speed up the operation. Enter 0 to use all values in the distance transform (slower).
+- "ImageJ Approx" checkbox: if "Method" is "ImageJ", check to increase the number of voxels skipped in the operation (faster but less accurate).
+- "Apply Mask" checkbox: check to apply a mask to the image during the max spheres inscribed operation.
+- "Mask Before DT" checkbox: if "Apply Mask" is checked, check to apply the mask before the distance transform (thus changing the distance values). Leave unchecked to apply the mask after the operation (thus preserving distance values).
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Max Inscribed Spheres" button: click to perform the max inscribed spheres operation.
 
 Features Tab
 ------------
@@ -812,9 +826,88 @@ More info: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skim
 - "Method" drop-down: select the skeleton detection algorithm.
 - "Detect Skeleton" button: perform the skeleton detection operation.
 
-Analysis Tab
-------------
-A tab containing widgets that generate plots and measurements of images.
+
+Calculations Tab
+----------------
+A tab containing widgets for calculating miscellaneous values about images.
+
+**Calculate Statistics**
+
+A widget for calculating the gray level statistics of an image.
+- "Image" drop-down: images in the layer list. Select the image to calculate statistics.
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Add as Parameter" checkbox: check to include the statistics calculation step in the parameters log to be output during batch processing.
+- "Calculate Statistics" button: click to perform the statistics calculation operation.
+
+**Calculate Percent Intensities**
+
+A widget for calculating the intensity values at lower and upper percentage bounds of the total pixel/voxel count. Can be used to directly input intensity values into the Saturation widget.
+Note that this widget cannot be used in batch operations.
+- "Image" drop-down: images in the layer list. Select the image to calculate percent intensities.
+- "Min Percent" float: input the minimum percentage to calculate.
+- "Max Percent" float: input the maximum percentage to calculate.
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Add as Parameter" checkbox: check to include the statistics calculation step in the parameters log to be output during batch processing.
+- "Calculate Percent Intensities" button: click to perform the percent intensities calculation operation.
+
+**Calculate Bulk Value**
+
+A widget for calculating the total volume (3D), area (2D) or length (2D or 3D, only multiples pixel count by pixel scale 1x) of a phase in an image or image stack.
+- "Image" drop-down: images in the layer list. Select the image to calculate the bulk value.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Units" string: input the length units for the pixel scale.
+- "Quantity Measured" drop-down: select the quantity to be measured (volume, area, or length of segmented phase).
+- "Include Background" checkbox: check to include the volume/area/length of the background phase in the case of a segmented image/stack.
+- "Normalize" checkbox: check to provide normalized values (given as a ratio of the total volume, area, length).
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Add as Parameter" checkbox: check to include the statistics calculation step in the parameters log to be output during batch processing.
+- "Calculate Bulk Value" button: click to perform the bulk value calculation operation.
+
+**Calculate Surface Value**
+
+A widget for calculating the surface area (3D) or perimeter (2D) of a segmented phase in an image or image stack.
+- "Image" drop-down: images in the layer list. Select the image to calculate the surface value.
+- "Phase Intensity" float: input the intensity of the phase for surface value calculation.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Units" string: input the length units for the pixel scale.
+- "Correct Overestimation" checkbox: leave check to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Add as Parameter" checkbox: check to include the statistics calculation step in the parameters log to be output during batch processing.
+- "Calculate Surface Value" button: click to perform the surface value calculation operation.
+
+**Calculate Contact Value**
+
+A widget for calculating the contact area (3D) or perimeter (2D) between two segmented phases in an image or image stack.
+- "Image" drop-down: images in the layer list. Select the image to calculate the contact value.
+- "Phase 1 Intensity" float: input the intensity of the first phase for contact value calculation.
+- "Phase 2 Intensity" float: input the intensity of the second phase for contact value calculation.
+- "Pixel Scale" float: input the unit length per pixel.
+- "Units" string: input the length units for the pixel scale.
+- "Correct Overestimation" checkbox: leave check to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
+- "Add as Parameter" checkbox: check to include the statistics calculation step in the parameters log to be output during batch processing.
+- "Calculate Contact Value" button: click to perform the contact value calculation operation.
+
+**Calculate Fractal Dimension**
+A widget for calculating the fractal dimension of a segmented dataset.
+More info: https://porespy.org/autoapi/porespy/metrics/boxcount.html#porespy.metrics.boxcount
+- "Image" drop-down: images in the layer list. Select the image to calculate the fractal dimension.
+- "Add as Parameter" checkbox: check to add the fractal dimension calculation step to the parameters log.
+- "Calculate Fractal Dimension" button: click to perform the fractal dimension calculation operation.
+
+Plots Tab
+---------
+A tab containing widgets that generate plots of image metrics.
 
 **Histogram**
 
@@ -850,26 +943,6 @@ A widget for generating gray level statistical plots along each axis of a 3D ima
 - "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the gray level plot step to the parameters log.
 - "Plot Gray Level" button: click to plot the gray level statistics.
-
-**Misc Calculations**
-
-A widget for calculating miscellaneous information about an image/stack such as gray level statistics, intensity volume percentages (as used in saturation), intensity volume/area, segmented phase surface area/perimeter, and segmented phases contact area/perimeter. Calculated values are displayed in the terminal upon generation.
-- "Image" drop-down: images in the layer list. Select the image to calculate information.
-- "Method" drop-down: select the calculation to be performed.
-- "Min Percent" float: if "Method" is "Percent Intensities", input the minimum percentage to calculate.
-- "Max Percent" float: if "Method" is "Percent Intensities", input the maximum percentage to calculate.
-- "Quantity Measured" drop-down: if "Method" is "Total Quantity", select the quantity to be measured (volume, area, or length of segmented phase).
-- "Include Background" checkbox: if "Method" is "Total Quantity", check to include the volume/area of the background phase in the case of a segmented image/stack.
-- "Surface Phase" float: if "Method" is "Surface Area/Perimeter", input the intensity of the phase to calculate surface area/perimeter.
-- "Contact Phase 1" float: if "Method" is "Contact Area/Perimeter", input the intensity of one of the phases.
-- "Contact Phase 2" float: if "Method" is "Contact Area/Perimeter", input the intensity of the other phase.
-- "Pixel Scale" float: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the unit length per pixel.
-- "Units" string: if "Method" is "Volume/Area", "Surface Area/Perimeter", or "Contact Area/Perimeter", input the length units.
-- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in calculations.
-- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
-- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
-- "Add as Parameter" checkbox: check to include the miscellaneous calculation step in the parameters log to be output during batch processing.
-- "Calculate" button: click to perform the calculation operation.
 
 **Axial Distributions**
 
@@ -947,6 +1020,12 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Return Array" checkbox: check to return the generated heat map array as an image in the layers list for processing.
 - "Add as Parameter" checkbox: check to add the heat map generation step to the parameters log.
 - "Plot Heat Map" button: click to generate the heat map.
+
+**Fractal Dimension**
+
+A widget to plot the fractal distribution as a function of the pixel/voxel size.
+More info: https://porespy.org/autoapi/porespy/metrics/boxcount.html#porespy.metrics.boxcount
+- "Image" drop-down: images in the layer list. Select the image to plot the fractal dimension.
 
 Visualize Tab
 -------------

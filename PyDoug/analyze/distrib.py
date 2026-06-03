@@ -5,10 +5,10 @@ Module for multi-value measurements of images
 
 # Imports
 
-import pandas as pd
-import numpy as np
+import pandas as pd, numpy as np, math
 
 from skimage import exposure
+from porespy import metrics
 
 from PyDoug.analyze import quant
 from PyDoug.proc import thresh, pixels, trans, cropclip as cc
@@ -713,6 +713,38 @@ def get_heat_map(
                 1)
                 
         return heat_array * pixel_size
+    
+def get_fractal_distrib(
+        im_array: np.ndarray,
+        pixel_size: float = 1,
+        units: str = "pix",
+        bounds: tuple = None,
+        nbins: int = 10) -> pd.DataFrame:
+    
+    if units == "um":
+        
+        units = "\u00b5m"
+        
+    if bounds:
+        
+        nbins: np.ndarray = np.logspace(
+            math.log10(bounds[0]),
+            math.log10(bounds[1]),
+            num = nbins)
+    
+    fractal_distrib: metrics.Results = metrics.boxcount(im_array, nbins)
+    fractal_df: pd.DataFrame = pd.DataFrame(
+        np.concat(
+            (np.expand_dims(np.array(fractal_distrib.size), 1),
+            np.expand_dims(np.array(fractal_distrib.slope), 1)),
+            axis = 1
+        ),
+        columns = ["Pixel Size", "Fractal Dimension"]
+    )
+    fractal_df["Pixel Size"] *= pixel_size
+    fractal_df.attrs["units"] = units
+    
+    return fractal_df
 
 
 # Main

@@ -83,6 +83,7 @@ def apply_parameters(
     quantity_index: int = 0
     surf_index: int = 0
     cont_index: int = 0
+    frac_index: int = 0
     hist_index: int = 0
     gray_index: int = 0
     axis_dist_index: int = 0
@@ -480,9 +481,9 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         
-        ###########################
-        # Pixel Values Operations #
-        ###########################
+        ##########################
+        # Pixel Value Operations #
+        ##########################
         
         elif parameter["Name"].find("Converted") == 0:
             
@@ -1023,30 +1024,6 @@ def apply_parameters(
         # Morphology Operations #
         #########################
         
-        elif parameter["Name"].find("Remove Objects") == 0:
-            
-            print("\nRemoving objects...")
-            
-            if parameter["Along Axis"].lower() == "true":
-                
-                along_axis: bool = True
-                
-            else:
-                
-                along_axis: bool = False
-                
-            im_array = morph.remove_objects(
-                im_array,
-                float(parameter["Size Threshold"]),
-                parameter["Method"],
-                background = int(parameter["Background"]),
-                pixel_size = float(parameter["Pixel Size"]),
-                connectivity = int(parameter["Connectivity"]),
-                along_axis = along_axis,
-                axis = int(parameter["Axis"]))
-            parameters_dict[parameter["Name"]] = im_array
-            last_image_name: str = parameter["Name"]
-        
         elif parameter["Name"].find("Dilation") == 0:
             
             print("\nDilating...")
@@ -1147,9 +1124,9 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         
-        ######################
-        # Filters Operations #
-        ######################
+        #####################
+        # Filter Operations #
+        #####################
         
         elif parameter["Name"].find("FFT") == 0:
             
@@ -1166,27 +1143,131 @@ def apply_parameters(
             im_array = fourier.ft(im_array, along_axis)
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
+            
+        elif parameter["Name"].find("Remove Objects") == 0:
+            
+            print("\nRemoving objects...")
+            
+            if parameter["Along Axis"].lower() == "true":
+                
+                along_axis: bool = True
+                
+            else:
+                
+                along_axis: bool = False
+                
+            im_array = morph.remove_objects(
+                im_array,
+                float(parameter["Size Threshold"]),
+                parameter["Method"],
+                background = int(parameter["Background"]),
+                pixel_size = float(parameter["Pixel Size"]),
+                connectivity = int(parameter["Connectivity"]),
+                along_axis = along_axis,
+                axis = int(parameter["Axis"]))
+            parameters_dict[parameter["Name"]] = im_array
+            last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Distance Transform") == 0:
             
             print("\nComputing distance transform...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if parameter["Round Values"].lower() == "true":
+                
+                round_values: bool = True
+                
+            else:
+                
+                round_values: bool = False
+                
+            if parameter["Mask Before DT"].lower() == "true":
+                
+                mask_before_dt: bool = True
+                
+            else:
+                
+                mask_before_dt: bool = False
+                
             im_array = morph.distance_transform(
-                im_array, float(parameter["Pixel Scale"]))
+                im_array,
+                float(parameter["Pixel Size"]),
+                round_values = round_values,
+                mask_array = mask_array,
+                mask_before_dt = mask_before_dt)
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Max Inscribed Spheres") == 0:
             
             print("\nComputing max inscribed spheres...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+            
+            if parameter["Smooth"].lower() == "true":
+                
+                smooth: bool = True
+                
+            else:
+                
+                smooth: bool = False
+                
+            if parameter["ImJ Approx"].lower() == "true":
+                
+                imj_approx: bool = True
+                
+            else:
+                
+                imj_approx: bool = False
+                
+            if parameter["Mask Before DT"].lower() == "true":
+                
+                mask_before_dt: bool = True
+                
+            else:
+                
+                mask_before_dt: bool = False
+                
+            if parameter["Return Diameter"].lower() == "true":
+                
+                return_diameter: bool = True
+                
+            else:
+                
+                return_diameter: bool = False
+                
             im_array = morph.max_inscribed_spheres(
-                im_array, float(parameter["Pixel Scale"]))
+                im_array,
+                parameter["Method"].lower(),
+                float(parameter["Pixel Size"]),
+                return_diameter = return_diameter,
+                smooth = smooth,
+                imj_approx = imj_approx,
+                mask_array = mask_array,
+                mask_before_dt = mask_before_dt,
+                sizes = int(parameter["Sizes"]))
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
             
-        #######################
-        # Features Operations #
-        #######################
+        ######################
+        # Feature Operations #
+        ######################
         
         elif parameter["Name"].find("Edge Detection") == 0:
             
@@ -1337,9 +1418,242 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         
-        #######################
-        # Analysis Operations #
-        #######################
+        ##########################
+        # Calculation Operations #
+        ##########################
+        
+        elif parameter["Name"].find("Calculate Statistics") == 0:
+            
+            print("\nCalculating statistics...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            stats_df: pd.DataFrame = quant.global_statistics(
+                im_array,
+                mask_array = mask_array)
+            stats_df.insert(0, "File Name", file_name)
+            save_path: str = save_dir + f"/Stats_{stats_index}.csv"
+            
+            if not os.path.isfile(save_path):
+                
+                stats_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+                
+            else:
+                
+                stats_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+                
+            stats_index += 1
+        
+        elif parameter["Name"].find("Calculate Bulk Value") == 0:
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            if parameter["Include Background"].lower() == "true":
+                
+                include_background: bool = True
+                
+            else:
+                
+                include_background: bool = False
+                
+            if parameter["Normalize"].lower() == "true":
+                
+                auto_normalize: bool = True
+            
+            else:
+                
+                auto_normalize: bool = False
+                
+            if parameter["Quantity Measured"] == "Volume":
+                
+                print("\nMeasuring volume...")
+                quantity_df: pd.DataFrame = quant.get_volume(
+                    im_array,
+                    mask_array = mask_array,
+                    scale = float(parameter["Pixel Size"]),
+                    units = parameter["Units"],
+                    include_background = include_background,
+                    background = float(parameter["Background"]),
+                    normalize = auto_normalize)
+            
+            elif parameter["Quantity Measured"] == "Area":
+                
+                print("\nMeasuring area...")
+                quantity_df: pd.DataFrame = quant.get_area(
+                    im_array,
+                    mask_array = mask_array,
+                    scale = float(parameter["Pixel Size"]),
+                    units = parameter["Units"],
+                    include_background = include_background,
+                    background = float(parameter["Background"]),
+                    normalize = auto_normalize)
+                
+            elif parameter["Quantity Measured"] == "Length":
+                
+                print("\nMeasuring length...")
+                quantity_df: pd.DataFrame = quant.get_length(
+                    im_array,
+                    mask_array = mask_array,
+                    scale = float(parameter["Pixel Size"]),
+                    units = parameter["Units"],
+                    include_background = include_background,
+                    background = float(parameter["Background"]),
+                    normalize = auto_normalize)
+                
+            quantity_df.insert(0, "File Name", file_name)
+            quantity_df["Units"] = quantity_df.attrs["units"]
+            save_path: str = save_dir + f"/Bulk_Value_{quantity_index}.csv"
+            
+            if not os.path.isfile(save_path):
+                
+                quantity_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+                
+            else:
+                
+                quantity_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+                
+            quantity_index += 1
+        
+        elif parameter["Name"].find("Calculate Surface Value") == 0:
+            
+            print("\nCalculating surface perimeter/area...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            surf_df: pd.DataFrame = quant.get_surface_contact(
+                im_array,
+                float(parameter["Phase Intensity"]),
+                mask_array = mask_array,
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"])
+            save_path: str = save_dir + f"/Surface_Value_{surf_index}.csv"
+            surf_df.insert(0, "File Name", file_name)
+            surf_df["Units"] = surf_df.attrs["units"]
+            
+            if not os.path.isfile(save_path):
+                
+                surf_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+                
+            else:
+                
+                surf_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+                
+            surf_index += 1
+        
+        elif parameter["Name"].find("Calculate Contact Value") == 0:
+            
+            print("\nCalculating contact value...")
+            
+            if parameter["Apply Mask"].lower() == "true":
+                
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+                
+            else:
+                
+                mask_array: None = None
+                
+            cont_df: pd.DataFrame = quant.get_surface_contact(
+                im_array,
+                (
+                    float(parameter["Phase 1 Intensity"]),
+                    float(parameter["Phase 2 Intensity"])),
+                mask_array = mask_array,
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"])
+            save_path: str = save_dir + f"/Contact_Value_{cont_index}.csv"
+            cont_df.insert(0, "File Name", file_name)
+            cont_df["Units"] = cont_df.attrs["units"]
+            
+            if not os.path.isfile(save_path):
+                
+                cont_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+                
+            else:
+                
+                cont_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+                
+            cont_index += 1
+        
+        elif parameter["Name"].find("Calculate Fractal Dimension") == 0:
+            
+            print("\nCalculating fractal dimension...")
+            fractal_dim: np.float64 = quant.get_fractal_dimension(im_array)
+            fractal_df: pd.DataFrame = pd.DataFrame(
+                {"Fractal Dimension": np.array([fractal_dim])})
+            save_path: str = save_dir + f"/Fractal_Dimension_{frac_index}.csv"
+            fractal_df.insert(0, "File Name", file_name)
+            
+            if not os.path.isfile(save_path):
+                
+                fractal_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+                
+            else:
+                
+                fractal_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+                
+            frac_index += 1
+            
+        
+        ###################
+        # Plot Operations #
+        ###################
         
         elif parameter["Name"].find("Histogram Plot") == 0:
             
@@ -1449,190 +1763,6 @@ def apply_parameters(
                 save_dir)
             plt.close(fig)
             gray_index += 1
-        
-        elif parameter["Name"].find("Misc Calculations") == 0:
-            
-            if parameter["Apply Mask"].lower() == "true":
-                
-                mask_array: np.ndarray = parameters_dict[
-                    parameter["Mask Used"]]
-                
-            else:
-                
-                mask_array: None = None
-            
-            if parameter["Method"] == "Stats":
-            
-                print("\nCalculating statistics...")
-                stats_df: pd.DataFrame = quant.global_statistics(
-                    im_array,
-                    mask_array = mask_array)
-                stats_df.insert(0, "File Name", file_name)
-                save_path: str = save_dir + f"/Stats_{stats_index}.csv"
-                
-                if not os.path.isfile(save_path):
-                    
-                    stats_df.to_csv(
-                        save_path,
-                        header = "column_names",
-                        index = False)
-                    
-                else:
-                    
-                    stats_df.to_csv(
-                        save_path,
-                        mode = "a",
-                        header = False,
-                        index = False)
-                    
-                stats_index += 1
-                
-            elif parameter["Method"] == "Percent Intensities":
-                
-                print("\nCalculating percentage intensities...")
-                _ = quant.get_percent_intensities(
-                    im_array,
-                    percentages = (
-                        float(parameter["Min Percent"]),
-                        float(parameter["Max Percent"])),
-                    mask_array = mask_array)
-                
-            elif parameter["Method"] == "Total Quantity":
-                
-                if parameter["Include Background"].lower() == "true":
-                    
-                    include_background: bool = True
-                    
-                else:
-                    
-                    include_background: bool = False
-                    
-                if parameter["Normalize"].lower() == "true":
-                    
-                    auto_normalize: bool = True
-                
-                else:
-                    
-                    auto_normalize: bool = False
-                
-                if parameter["Quantity Measured"] == "Volume":
-                    
-                    print("\nMeasuring volume...")
-                    quantity_df: pd.DataFrame = quant.get_volume(
-                        im_array,
-                        mask_array = mask_array,
-                        scale = float(parameter["Pixel Size"]),
-                        units = parameter["Units"],
-                        include_background = include_background,
-                        background = float(parameter["Background"]),
-                        normalize = auto_normalize)
-                
-                elif parameter["Quantity Measured"] == "Area":
-                    
-                    print("\nMeasuring area...")
-                    quantity_df: pd.DataFrame = quant.get_area(
-                        im_array,
-                        mask_array = mask_array,
-                        scale = float(parameter["Pixel Size"]),
-                        units = parameter["Units"],
-                        include_background = include_background,
-                        background = float(parameter["Background"]),
-                        normalize = auto_normalize)
-                    
-                elif parameter["Quantity Measured"] == "Length":
-                    
-                    print("\nMeasuring length...")
-                    quantity_df: pd.DataFrame = quant.get_length(
-                        im_array,
-                        mask_array = mask_array,
-                        scale = float(parameter["Pixel Size"]),
-                        units = parameter["Units"],
-                        include_background = include_background,
-                        background = float(parameter["Background"]),
-                        normalize = auto_normalize)
-                    
-                quantity_df.insert(0, "File Name", file_name)
-                quantity_df["Units"] = quantity_df.attrs["units"]
-                save_path: str = save_dir + f"/Measured_Quantity_{quantity_index}.csv"
-                
-                if not os.path.isfile(save_path):
-                    
-                    quantity_df.to_csv(
-                        save_path,
-                        header = "column_names",
-                        index = False)
-                    
-                else:
-                    
-                    quantity_df.to_csv(
-                        save_path,
-                        mode = "a",
-                        header = False,
-                        index = False)
-                    
-                quantity_index += 1
-                
-            elif parameter["Method"] == "Surface Perimeter/Area":
-                
-                print("\nCalculating surface perimeter/area...")
-                surf_df: pd.DataFrame = quant.get_surface_contact(
-                    im_array,
-                    float(parameter["Surface Phase"]),
-                    mask_array = mask_array,
-                    pixel_size = float(parameter["Pixel Size"]),
-                    units = parameter["Units"])
-                save_path: str = save_dir + f"/Surface_Area_{surf_index}.csv"
-                surf_df.insert(0, "File Name", file_name)
-                surf_df["Units"] = surf_df.attrs["units"]
-                
-                if not os.path.isfile(save_path):
-                    
-                    surf_df.to_csv(
-                        save_path,
-                        header = "column_names",
-                        index = False)
-                    
-                else:
-                    
-                    surf_df.to_csv(
-                        save_path,
-                        mode = "a",
-                        header = False,
-                        index = False)
-                    
-                surf_index += 1
-                
-            elif parameter["Method"] == "Contact Perimeter/Area":
-                
-                print("\nCalculating contact perimeter/area...")
-                cont_df: pd.DataFrame = quant.get_surface_contact(
-                    im_array,
-                    (
-                        float(parameter["Contact Phase 1"]),
-                        float(parameter["Contact Phase 2"])),
-                    mask_array = mask_array,
-                    pixel_size = float(parameter["Pixel Size"]),
-                    units = parameter["Units"])
-                save_path: str = save_dir + f"/Contact_Area_{cont_index}.csv"
-                cont_df.insert(0, "File Name", file_name)
-                cont_df["Units"] = cont_df.attrs["units"]
-                
-                if not os.path.isfile(save_path):
-                    
-                    cont_df.to_csv(
-                        save_path,
-                        header = "column_names",
-                        index = False)
-                    
-                else:
-                    
-                    cont_df.to_csv(
-                        save_path,
-                        mode = "a",
-                        header = False,
-                        index = False)
-                    
-                cont_index += 1
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
             

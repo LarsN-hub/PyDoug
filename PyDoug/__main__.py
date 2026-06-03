@@ -78,9 +78,15 @@ class ImageProcessor:
         self.histogram_widget.Y_Max.native.setDecimals(3)
         self.histogram_widget.Y_Max.step = 0.001
         self.histogram_widget.Y_Max.value = 0
-        self.misc_calc_widget.Pixel_Scale.native.setDecimals(3)
-        self.misc_calc_widget.Pixel_Scale.step = 0.001
-        self.misc_calc_widget.Pixel_Scale.value = 1
+        self.calc_bulk_value_widget.Pixel_Scale.native.setDecimals(3)
+        self.calc_bulk_value_widget.Pixel_Scale.step = 0.001
+        self.calc_bulk_value_widget.Pixel_Scale.value = 1
+        self.calc_surface_value_widget.Pixel_Scale.native.setDecimals(3)
+        self.calc_surface_value_widget.Pixel_Scale.step = 0.001
+        self.calc_surface_value_widget.Pixel_Scale.value = 1
+        self.calc_contact_value_widget.Pixel_Scale.native.setDecimals(3)
+        self.calc_contact_value_widget.Pixel_Scale.step = 0.001
+        self.calc_contact_value_widget.Pixel_Scale.value = 1
         self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
         self.axis_distribution_widget.Pixel_Scale.step = 0.001
         self.axis_distribution_widget.Pixel_Scale.value = 1
@@ -96,6 +102,15 @@ class ImageProcessor:
         self.heat_map_widget.Max_Value.native.setDecimals(3)
         self.heat_map_widget.Max_Value.step = 0.001
         self.heat_map_widget.Max_Value.value = 0
+        self.fractal_distribution_widget.Pixel_Scale.native.setDecimals(3)
+        self.fractal_distribution_widget.Pixel_Scale.step = 0.001
+        self.fractal_distribution_widget.Pixel_Scale.value = 1
+        self.fractal_distribution_widget.Lower_Bound.native.setDecimals(3)
+        self.fractal_distribution_widget.Lower_Bound.step = 0.001
+        self.fractal_distribution_widget.Lower_Bound.value = 0
+        self.fractal_distribution_widget.Upper_Bound.native.setDecimals(3)
+        self.fractal_distribution_widget.Upper_Bound.step = 0.001
+        self.fractal_distribution_widget.Upper_Bound.value = 0
         self.image_2_labels_widget.Min_Value.native.setDecimals(3)
         self.image_2_labels_widget.Min_Value.step = 0.001
         self.image_2_labels_widget.Min_Value.value = 0
@@ -2079,56 +2094,6 @@ class ImageProcessor:
     ######################
     
     @magicgui(
-        Method = {"choices": ["Particles", "Holes"]},
-        Connectivity = {"choices": [1, 2, 3]},
-        Size_Threshold = {"max": 1000000000},
-        Axis = {"choices": ["X", "Y", "Z"]},
-        call_button = "Remove Objects")
-    def remove_objects_widget(self,
-            Image: napari.layers.Image,
-            Method: str = "Particles",
-            Connectivity: int = 3,
-            Size_Threshold: float = 25,
-            Background: int = 0,
-            Pixel_Scale: float = 1,
-            Along_Axis: bool = False,
-            Axis: str = "Z") -> None:
-        
-        if Connectivity > Image.data.ndim:
-            
-            Connectivity = 2
-            
-        elif Along_Axis and Connectivity > 2:
-            
-            Connectivity = 2
-            
-        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)            
-        param_layer_name = get_param_layer_name(
-            "Remove Objects",
-            self.operation_count)
-        self.parameters_log.append(
-            {"Name": param_layer_name,
-             "Acting On": Image.name,
-             "Method": Method.lower(),
-             "Connectivity": Connectivity,
-             "Size Threshold": Size_Threshold,
-             "Background": Background,
-             "Pixel Size": Pixel_Scale,
-             "Along Axis": Along_Axis,
-             "Axis": Axis})
-        self.viewer.add_image(
-            morph.remove_objects(
-                Image.data,
-                Size_Threshold,
-                Method.lower(),
-                background = Background,
-                pixel_size = Pixel_Scale,
-                connectivity = Connectivity,
-                along_axis = Along_Axis,
-                axis = Axis),
-            name = param_layer_name)
-    
-    @magicgui(
         call_button = "Dilate")
     def dilate_widget(self,
             Image: napari.layers.Image,
@@ -2277,10 +2242,76 @@ class ImageProcessor:
             name = param_layer_name)
     
     @magicgui(
+        Method = {"choices": ["Particles", "Holes"]},
+        Connectivity = {"choices": [1, 2, 3]},
+        Size_Threshold = {"max": 1000000000},
+        Axis = {"choices": ["X", "Y", "Z"]},
+        call_button = "Remove Objects")
+    def remove_objects_widget(self,
+            Image: napari.layers.Image,
+            Method: str = "Particles",
+            Connectivity: int = 3,
+            Size_Threshold: float = 25,
+            Background: int = 0,
+            Pixel_Scale: float = 1,
+            Along_Axis: bool = False,
+            Axis: str = "Z") -> None:
+        
+        if Connectivity > Image.data.ndim:
+            
+            Connectivity = 2
+            
+        elif Along_Axis and Connectivity > 2:
+            
+            Connectivity = 2
+            
+        Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)            
+        param_layer_name = get_param_layer_name(
+            "Remove Objects",
+            self.operation_count)
+        self.parameters_log.append(
+            {"Name": param_layer_name,
+             "Acting On": Image.name,
+             "Method": Method.lower(),
+             "Connectivity": Connectivity,
+             "Size Threshold": Size_Threshold,
+             "Background": Background,
+             "Pixel Size": Pixel_Scale,
+             "Along Axis": Along_Axis,
+             "Axis": Axis})
+        self.viewer.add_image(
+            morph.remove_objects(
+                Image.data,
+                Size_Threshold,
+                Method.lower(),
+                background = Background,
+                pixel_size = Pixel_Scale,
+                connectivity = Connectivity,
+                along_axis = Along_Axis,
+                axis = Axis),
+            name = param_layer_name)
+    
+    
+    @magicgui(
         call_button = "Distance Transform")
     def distance_transform_widget(self,
             Image: napari.layers.Image,
-            Pixel_Scale: float - 1.0) -> None:
+            Pixel_Scale: float = 1.0,
+            Round_Pixel_Distance: bool = True,
+            Apply_Mask: bool = False,
+            Mask_Before_DT: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False) -> None:
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            mask_array = None
+            
+        else:
+            
+            mask_name = Mask.name
+            mask_array = Mask.data
         
         param_layer_name = get_param_layer_name(
             "Distance Transform",
@@ -2288,26 +2319,78 @@ class ImageProcessor:
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Pixel Size": Pixel_Scale,
+             "Round Values": Round_Pixel_Distance,
+             "Apply Mask": Apply_Mask,
+             "Mask Before DT": Mask_Before_DT,
+             "Mask Used": mask_name,
+             "Unique Masks": Unique_Batch_Masks,
              "Acting On": Image.name})
         self.viewer.add_image(
-            morph.distance_transform(Image.data, Pixel_Scale),
+            morph.distance_transform(
+                Image.data,
+                Pixel_Scale,
+                round_values = Round_Pixel_Distance,
+                mask_array = mask_array,
+                mask_before_dt = Mask_Before_DT),
             name = param_layer_name)
         
     @magicgui(
+        Method = {"choices": [
+            "Brute Force",
+            "Distance Transform",
+            "FFT",
+            "ImageJ"]},
         call_button = "Max Inscribed Spheres")
     def max_inscribed_spheres_widget(self,
             Image: napari.layers.Image,
-            Pixel_Scale: float = 1.0) -> None:
+            Method: str = "Distance Transform",
+            Pixel_Scale: float = 1.0,
+            Return_Diameter: bool = True,
+            Smooth: bool = False,
+            DT_or_FFT_Sizes: int = 25,
+            ImageJ_Approx: bool = False,
+            Apply_Mask: bool = False,
+            Mask_Before_DT: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False) -> None:
+        
+        if not Apply_Mask:
+            
+            mask_name = None
+            mask_array = None
+            
+        else:
+            
+            mask_name = Mask.name
+            mask_array = Mask.data
         
         param_layer_name = get_param_layer_name(
             "Max Inscribed Spheres",
             self.operation_count)
         self.parameters_log.append(
             {"Name": param_layer_name,
+             "Method": Method.lower(),
              "Pixel Size": Pixel_Scale,
-            "Acting On": Image.name})
+             "Return Diameter": Return_Diameter,
+             "Smooth": Smooth,
+             "Sizes": DT_or_FFT_Sizes,
+             "ImJ Approx": ImageJ_Approx,
+             "Apply Mask": Apply_Mask,
+             "Mask Before DT": Mask_Before_DT,
+             "Mask Used": mask_name,
+             "Unique Masks": Unique_Batch_Masks,
+             "Acting On": Image.name})
         self.viewer.add_image(
-            morph.max_inscribed_spheres(Image.data, Pixel_Scale),
+            morph.max_inscribed_spheres(
+                Image.data,
+                Method.lower(),
+                Pixel_Scale,
+                return_diameter = Return_Diameter,
+                smooth = Smooth,
+                imj_approx = ImageJ_Approx,
+                mask_array = mask_array,
+                mask_before_dt = Mask_Before_DT,
+                sizes = DT_or_FFT_Sizes),
             name = param_layer_name)
     
     
@@ -2615,10 +2698,261 @@ class ImageProcessor:
                 Method),
             name = param_layer_name)
     
+    
+    ########################
+    # Calculations Widgets #
+    ########################
+    
+    @magicgui(
+        call_button = "Calculate Statistics")
+    def calc_stats_widget(self,
+            Image: napari.layers.Image,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
+            Add_as_Parameter: bool = False) -> None:
         
-    ####################
-    # Analysis Widgets #
-    ####################
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+            
+        else:
+            
+            mask_array = None
+            mask_name = None
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Calculate Statistics",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
+        
+        _ = quant.global_statistics(
+            Image.data,
+            mask_array = mask_array)
+        
+    @magicgui(
+        call_button = "Calculate Percent Intensities")
+    def calc_percent_intensities_widget(self,
+            Image: napari.layers.Image,
+            Min_Percent: float = 0,
+            Max_Percent: float = 100,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            
+        else:
+            
+            mask_array = None
+        
+        _ = quant.get_percent_intensities(
+            Image.data,
+            (Min_Percent, Max_Percent),
+            mask_array = mask_array)
+        
+    @magicgui(
+        Quantity_Measured = {"choices": ["Volume", "Area", "Length"]},
+        call_button = "Calculate Quantity")
+    def calc_bulk_value_widget(self,
+            Image: napari.layers.Image,
+            Quantity_Measured: str = "Volume",
+            Pixel_Scale: float = 1.0,
+            Units: str = "pixels",
+            Include_Background: bool = False,
+            Background: float = 0,
+            Normalize: bool = False,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
+            Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+            
+        else:
+            
+            mask_array = None
+            mask_name = None
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Calculate Bulk Value",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Quantity Measured": Quantity_Measured,
+                 "Include Background": Include_Background,
+                 "Background": Background,
+                 "Normalize": Normalize,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
+        
+        if Quantity_Measured == "Volume":
+            
+            _ = quant.get_volume(
+                Image.data,
+                mask_array = mask_array,
+                scale = Pixel_Scale,
+                units = Units,
+                include_background = Include_Background,
+                background = Background,
+                normalize = Normalize)
+            
+        elif Quantity_Measured == "Area":
+            
+            _ = quant.get_area(
+                Image.data,
+                mask_array = mask_array,
+                scale = Pixel_Scale,
+                units = Units,
+                include_background = Include_Background,
+                background = Background,
+                normalize = Normalize)  
+            
+        elif Quantity_Measured == "Length":
+            
+            _ = quant.get_length(
+                Image.data,
+                mask_array = mask_array,
+                scale = Pixel_Scale,
+                units = Units,
+                include_background = Include_Background,
+                background = Background,
+                normalize = Normalize)
+            
+    @magicgui(
+        call_button = "Calculate Surface Value")
+    def calc_surface_value_widget(self,
+            Image: napari.layers.Image,
+            Phase_Intensity: float = 255,
+            Pixel_Scale: float = 1.0,
+            Units: str = "pixels",
+            Correct_Overestimation: bool = True,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
+            Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+            
+        else:
+            
+            mask_array = None
+            mask_name = None
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Calculate Surface Value",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Phase Intensity": Phase_Intensity,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Correct Overestimation": Correct_Overestimation,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
+            
+        _ = quant.get_surface_contact(
+            Image.data,
+            Phase_Intensity,
+            mask_array = mask_array,
+            pixel_size = Pixel_Scale,
+            units = Units,
+            correct_overestimation = Correct_Overestimation)
+        
+    @magicgui(
+        call_button = "Calculate Contact Value")
+    def calc_contact_value_widget(self,
+            Image: napari.layers.Image,
+            Phase_1_Intensity: float = 0,
+            Phase_2_Intensity: float = 255,
+            Pixel_Scale: float = 1.0,
+            Units: str = "pixels",
+            Correct_Overestimation: bool = True,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
+            Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+            
+        else:
+            
+            mask_array = None
+            mask_name = None
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Calculate Surface Value",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Phase 1 Intensity": Phase_1_Intensity,
+                 "Phase 2 Intensity": Phase_2_Intensity,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Correct Overestimation": Correct_Overestimation,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
+            
+        _ = quant.get_surface_contact(
+            Image.data,
+            (Phase_1_Intensity, Phase_2_Intensity),
+            mask_array = mask_array,
+            pixel_size = Pixel_Scale,
+            units = Units,
+            correct_overestimation = Correct_Overestimation)
+    
+    @magicgui(
+        call_button = "Calculate Fractal Dimension")
+    def calc_fractal_dimension_widget(self,
+            Image: napari.layers.Image,
+            Add_as_Parameter: bool = False) -> None:
+        
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Calculate Fractal Dimension",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name})
+        
+        _ = quant.get_fractal_dimension(Image.data)
+
+    #################
+    # Plots Widgets #
+    #################
     
     @magicgui(
         X_Max = {"max": 1000000},
@@ -2764,135 +3098,7 @@ class ImageProcessor:
         _ = plots.gray_level(Image.data, mask_array = mask_array)
             
         plt.show(block = False)
-        
-    @magicgui(
-        Method = {"choices": [
-            "Stats",
-            "Percent Intensities",
-            "Total Quantity",
-            "Surface Perimeter/Area",
-            "Contact Perimeter/Area"]},
-        Quantity_Measured = {"choices": ["Volume", "Area", "Length"]},
-        call_button = "Calculate")
-    def misc_calc_widget(self,
-            Image: napari.layers.Image,
-            Method: str = "Stats",
-            Min_Percent: float = 0,
-            Max_Percent: float = 100,
-            Quantity_Measured: str = "Volume",
-            Include_Background: bool = False,
-            Background: float = 0,
-            Normalize: bool = False,
-            Surface_Phase: float = 255,
-            Contact_Phase_1: float = 0,
-            Contact_Phase_2: float = 255,
-            Pixel_Scale: float = 1.0,
-            Units: str = "pixels",
-            Apply_Mask: bool = False,
-            Mask: napari.layers.Image = None,
-            Unique_Batch_Masks: bool = False,
-            Add_as_Parameter: bool = False) -> None:
-        
-        if Apply_Mask:
-            
-            mask_array: np.ndarray = Mask.data
-            mask_name = Mask.name
-            
-        else:
-            
-            mask_array = None
-            mask_name = None
-            
-        if Add_as_Parameter:
-            
-            param_layer_name = get_param_layer_name(
-                "Misc Calculations",
-                self.operation_count)
-            self.parameters_log.append(
-                {"Name": param_layer_name,
-                 "Acting On": Image.name,
-                 "Method": Method,
-                 "Min Percent": Min_Percent,
-                 "Max Percent": Max_Percent,
-                 "Quantity Measured": Quantity_Measured,
-                 "Include Background": Include_Background,
-                 "Background": Background,
-                 "Normalize": Normalize,
-                 "Surface Phase": Surface_Phase,
-                 "Contact Phase 1": Contact_Phase_1,
-                 "Contact Phase 2": Contact_Phase_2,
-                 "Pixel Size": Pixel_Scale,
-                 "Units": Units,
-                 "Apply Mask": Apply_Mask,
-                 "Mask Used": mask_name,
-                 "Unique Masks": Unique_Batch_Masks})
-        
-        if Method == "Stats":
-            
-            _ = quant.global_statistics(
-                Image.data,
-                mask_array = mask_array)
-        
-        elif Method == "Percent Intensities":
-            
-            _ = quant.get_percent_intensities(
-                Image.data,
-                (Min_Percent, Max_Percent),
-                mask_array = mask_array)
-        
-        elif Method == "Total Quantity":
-            
-            if Quantity_Measured == "Volume":
-                
-                _ = quant.get_volume(
-                    Image.data,
-                    mask_array = mask_array,
-                    scale = Pixel_Scale,
-                    units = Units,
-                    include_background = Include_Background,
-                    background = Background,
-                    normalize = Normalize)
-                
-            elif Quantity_Measured == "Area":
-                
-                _ = quant.get_area(
-                    Image.data,
-                    mask_array = mask_array,
-                    scale = Pixel_Scale,
-                    units = Units,
-                    include_background = Include_Background,
-                    background = Background,
-                    normalize = Normalize)  
-                
-            elif Quantity_Measured == "Length":
-                
-                _ = quant.get_length(
-                    Image.data,
-                    mask_array = mask_array,
-                    scale = Pixel_Scale,
-                    units = Units,
-                    include_background = Include_Background,
-                    background = Background,
-                    normalize = Normalize)
-        
-        elif Method == "Surface Perimeter/Area":
-            
-            _ = quant.get_surface_contact(
-                Image.data,
-                Surface_Phase,
-                mask_array = mask_array,
-                pixel_size = Pixel_Scale,
-                units = Units)
-
-        elif Method == "Contact Perimeter/Area":
-            
-            _ = quant.get_surface_contact(
-                Image.data,
-                (Contact_Phase_1, Contact_Phase_2),
-                mask_array = mask_array,
-                pixel_size = Pixel_Scale,
-                units = Units)
-
+    
     @magicgui(
         Type = {"choices": ["Volume", "Area"]},
         Axis = {"choices": ["X", "Y", "Z"]},
@@ -3292,6 +3498,71 @@ class ImageProcessor:
             
         plt.show(block = False)
         
+    @magicgui(
+        call_button = "Plot Fractal Distribution")
+    def fractal_distribution_widget(self,
+            Image: napari.layers.Image,
+            Lower_Bound: float = 0,
+            Upper_Bound: float = 0,
+            Num_Bins: int = 10,
+            Pixel_Scale: float = 1,
+            Units: str = "pixels",
+            X_Min: float = 0,
+            X_Max: float = 0,
+            Y_Min: float = 0,
+            Y_Max: float = 0,
+            Add_as_Parameter: bool = False,
+            Export_Data: bool = False,
+            Save_Folder: pathlib.Path = pathlib.Path("~"),
+            Save_Name: str = "Name") -> None:
+        
+        if Lower_Bound == 0 or Upper_Bound == 0: 
+            bounds: None = None
+        else:
+            bounds: tuple = (Lower_Bound, Upper_Bound)
+            
+        if Units == "um":
+            Units = "\u00b5m"
+            
+        if X_Min == 0:
+            xlims: None = None
+        else:
+            xlims: tuple = (X_Min, X_Max)
+            
+        if Y_Max == 0:
+            ylims: None = None
+        else:
+            ylims: tuple = (Y_Min, Y_Max)
+            
+        if Add_as_Parameter:
+            
+            param_layer_name = get_param_layer_name(
+                "Fractal Distribution",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Lower Bound": Lower_Bound,
+                 "Upper Bound": Upper_Bound,
+                 "Num Bins": Num_Bins,
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "X Min": X_Min,
+                 "X Max": X_Max,
+                 "Y Min": Y_Min,
+                 "Y Max": Y_Max,
+                 "Export Data": Export_Data})
+        # Needs data export, bounds need to be modified by pixel size, batch
+        _ = plots.fractal_dimension_plot(
+            Image.data,
+            pixel_size = Pixel_Scale,
+            units = Units,
+            bounds = bounds,
+            nbins = Num_Bins,
+            xlims = xlims,
+            ylims = ylims)
+        plt.show(block = False)
+    
     
     #####################
     # Visualize Widgets #
@@ -3657,8 +3928,6 @@ def main() -> napari.viewer.Viewer:
     
     # Morphology Widgets
     
-    mod_remove_objects: widgets.Container = modify_funcgui(
-        ui.remove_objects_widget, "Remove Small Objects")
     mod_dilate: widgets.Container = modify_funcgui(
         ui.dilate_widget, "Dilation")
     mod_erode: widgets.Container = modify_funcgui(
@@ -3671,7 +3940,6 @@ def main() -> napari.viewer.Viewer:
         ui.tophat_widget, "Top Hat")
     morphology_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [
-            mod_remove_objects,
             mod_dilate,
             mod_erode,
             mod_close,
@@ -3685,6 +3953,8 @@ def main() -> napari.viewer.Viewer:
     
     mod_fft: widgets.Container = modify_funcgui(
         ui.fft_widget, "FFT")
+    mod_remove_objects: widgets.Container = modify_funcgui(
+        ui.remove_objects_widget, "Remove Small Objects")
     mod_distance_transform: widgets.Container = modify_funcgui(
         ui.distance_transform_widget, "Distance Transform")
     mod_max_inscribed_spheres: widgets.Container = modify_funcgui(
@@ -3692,6 +3962,7 @@ def main() -> napari.viewer.Viewer:
     filters_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [
             mod_fft,
+            mod_remove_objects,
             mod_distance_transform,
             mod_max_inscribed_spheres],
         labels = False)
@@ -3721,7 +3992,33 @@ def main() -> napari.viewer.Viewer:
     tabs.addTab(feature_container.native, "Features")
     
     
-    # Analysis Widgets
+    # Calculations Widgets
+    
+    mod_calc_stats: widgets.Container = modify_funcgui(
+        ui.calc_stats_widget, "Calculate Statistics")
+    mod_calc_percent_intensities: widgets.Container = modify_funcgui(
+        ui.calc_percent_intensities_widget, "Calculate Percent Intensities")
+    mod_calc_bulk_value: widgets.Container = modify_funcgui(
+        ui.calc_bulk_value_widget, "Calculate Bulk Value")
+    mod_calc_surface_value: widgets.Container = modify_funcgui(
+        ui.calc_surface_value_widget, "Calculate Surface Value")
+    mod_calc_contact_value: widgets.Container = modify_funcgui(
+        ui.calc_contact_value_widget, "Calculate Contact Value")
+    mod_calc_fractal_dimension: widgets.Container = modify_funcgui(
+        ui.calc_fractal_dimension_widget, "Calculate Fractal Dimension")
+    calculations_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+        widgets = [
+            mod_calc_stats,
+            mod_calc_percent_intensities,
+            mod_calc_bulk_value,
+            mod_calc_surface_value,
+            mod_calc_contact_value,
+            mod_calc_fractal_dimension],
+        labels = False)
+    tabs.addTab(calculations_container.native, "Calculations")
+    
+    
+    # Plots Widgets
     
     mod_histogram: widgets.Container = modify_funcgui(
         ui.histogram_widget, "Histogram")
@@ -3729,25 +4026,25 @@ def main() -> napari.viewer.Viewer:
         ui.line_scan_widget, "Line Scan")
     mod_gray_level: widgets.Container = modify_funcgui(
         ui.gray_level_widget, "Gray Level")
-    mod_misc_calc: widgets.Container = modify_funcgui(
-        ui.misc_calc_widget, "Misc Calculations")
     mod_axis_distribution: widgets.Container = modify_funcgui(
         ui.axis_distribution_widget, "Axial Distributions")
     mod_psd: widgets.Container = modify_funcgui(
         ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(
         ui.heat_map_widget, "Heat Maps")
-    analysis_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
+    mod_fractal_distribution: widgets.Container = modify_funcgui(
+        ui.fractal_distribution_widget, "Fractal Dimension")
+    plots_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [
             mod_histogram,
             mod_line_scan,
             mod_gray_level,
-            mod_misc_calc,
             mod_axis_distribution,
             mod_psd,
-            mod_heat_map],
+            mod_heat_map,
+            mod_fractal_distribution],
         labels = False)
-    tabs.addTab(analysis_container.native, "Analysis")
+    tabs.addTab(plots_container.native, "Plots")
     
     
     # Visualize Widgets

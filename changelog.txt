@@ -1,7 +1,13 @@
 v0.10.0-beta
-- Added filters tab
-- Moved FFT to filters tab
-- Added distance transform and max inscribed spheres widgets to filters tab
+- Separated Analysis tab into Plots and Calculations tabs
+- Moved Misc Calculations widget to Calculations tab, all other previous Analysis tab widgets remain in Plots tab
+- Separated Misc Calculations widget into Stats, Percent Intensities, Volume/Area, Surface Area/Perimeter, and Contact Area/Perimeter Widgets
+- Added overestimation correction to Surface Value and Contact Value calculation tab widgets
+- Added Fractal Dimension calculation widget to Calculations tab
+- Added Fractal Dimension distribution plot to Plots tab
+- Added Filters tab
+- Moved FFT and Remove Objects widgets to Filters tab
+- Added distance transform and max inscribed spheres widgets to Filters tab
 
 v0.9.2-beta
 - Fixed error with importing some labeled images

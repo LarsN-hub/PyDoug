@@ -5,10 +5,10 @@ Module for single-value measurements of images
 
 # Imports
 
-import pandas as pd
-import numpy as np
+import pandas as pd, numpy as np, math
 
 from skimage import feature
+from porespy import metrics
 from typing import Callable
 
 from PyDoug.analyze import distrib
@@ -700,6 +700,7 @@ def get_surface_contact(
         im_array: np.ndarray, phase_ints: tuple[int] | int | None = None, *,
         pixel_size: float = 1.0,
         units: str = "pix",
+        correct_overestimation: bool = True,
         mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if units == "um":
@@ -710,6 +711,12 @@ def get_surface_contact(
         im_array,
         phase_ints,
         mask_array = mask_array)
+    
+    if correct_overestimation:
+        if util.is_3d_rgb(im_array)["3D"]:
+            contact_counts *= (2 / 3)
+        else:
+            contact_counts *= (math.pi / 4)
     
     if phase_ints == None:
         
@@ -754,6 +761,13 @@ def get_surface_contact(
     
     return contact_df
 
+def get_fractal_dimension(
+        im_array: np.ndarray) -> np.float64:
+    
+    fractal_distrib: metrics.Results = metrics.boxcount(im_array, 2)
+    print_str: str = "Fractal Dim."
+    print(f"\n{print_str:<16} {fractal_distrib.slope[0]:.2f}")
+    return fractal_distrib.slope[0]
 
 # Main
 

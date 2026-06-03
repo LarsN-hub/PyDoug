@@ -15,6 +15,7 @@ from typing import Callable
 
 from PyDoug.analyze import distrib, quant
 from PyDoug.ui import sliceview as sv
+from PyDoug.proc import util
 
 
 # Globals
@@ -1038,7 +1039,7 @@ def line_axis(
             
         else:
             
-            line_ax.plot(x_values, line_df[column], color = color_list[index - 1])
+            line_ax.plot(x_values, line_df[column], color = color_list[index - 1], linewidth = 2)
     
     line_ax.set_xlabel(x_label, fontsize = label_fontsize)
     line_ax.set_ylabel(y_label, fontsize = label_fontsize)
@@ -1149,7 +1150,7 @@ def gui_line_scan(
     fig, ls_ax = plt.subplots(layout = "constrained")
     ls_ax.set_xlabel("Position [pix]", fontsize = label_fontsize)
     ls_ax.set_ylabel("Gray Value", fontsize = label_fontsize)
-    ls_ax.plot(line_scan_df["Position"], line_scan_df["Gray Value"], "red")
+    ls_ax.plot(line_scan_df["Position"], line_scan_df["Gray Value"], "red", linewidth = 2)
     ls_ax.set_xlim(0, line_scan_df["Position"][len(line_scan_df["Position"]) - 1])
     ls_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     
@@ -1450,7 +1451,7 @@ def cdf_axis(
     cdf_ax.set_xlabel(x_label, fontsize = label_fontsize)
     cdf_ax.set_ylabel("Probability", fontsize = label_fontsize)
     cdf_ax.set_ylim(0, 1)
-    cdf_ax.plot(cdf_df["Bin Centers"], cdf_df["Probability"], "red")
+    cdf_ax.plot(cdf_df["Bin Centers"], cdf_df["Probability"], "red", linewidth = 2)
     
     if xlims:
         
@@ -1549,9 +1550,9 @@ def gray_level_axis(
     gray_ax.set_xlabel("Position [pixels]", fontsize = label_fontsize)
     gray_ax.set_ylabel("Gray Value", fontsize = label_fontsize)
     gray_ax.set_xlim(0, max(gray_df["Position"]))
-    gray_ax.plot(gray_df["Position"], gray_df["Mean"], "black")
-    gray_ax.plot(gray_df["Position"], gray_df["Max"], "red")
-    gray_ax.plot(gray_df["Position"], gray_df["Min"], "blue")
+    gray_ax.plot(gray_df["Position"], gray_df["Mean"], "black", linewidth = 2)
+    gray_ax.plot(gray_df["Position"], gray_df["Max"], "red", linewidth = 2)
+    gray_ax.plot(gray_df["Position"], gray_df["Min"], "blue", linewidth = 2)
     gray_ax.fill_between(
         gray_df["Position"],
         y1 = pos_std,
@@ -1566,8 +1567,7 @@ def gray_level_axis(
 def gray_level(
         data: np.ndarray | pd.DataFrame, *,
         return_axes: bool = False,
-        mask_array: np.ndarray = None
-    ) -> plt.Figure:
+        mask_array: np.ndarray = None) -> plt.Figure:
 
     return multi_plot(
         np.array([data] * 3),
@@ -1855,6 +1855,69 @@ def heat_map(
     else:
     
         return fig
+    
+def fractal_dimension_axis(
+        data: np.ndarray | pd.DataFrame,
+        input_ax: plt.Axes, *,
+        pixel_size: float = 1,
+        units: str = "pix",
+        bounds: tuple = None,
+        nbins: int = 10,
+        xlims: tuple = None,
+        ylims: tuple = None) -> plt.Axes:
+    
+    if isinstance(data, np.ndarray):
+        
+        data_df: pd.DataFrame = distrib.get_fractal_distrib(
+            data, pixel_size, units, bounds, nbins)
+        if data.ndim == 3:
+            x_title: str = "Voxel Size"
+        else:
+            x_title: str = "Pixel Size"
+        
+    else:
+        
+        data_df: pd.DataFrame = data.copy()
+        x_title: str = "Pixel Size"
+        
+    x_units: str = data_df.attrs["units"]
+    x_label: str = f"{x_title} ({x_units})"
+    fd_ax: plt.Axes = input_ax
+    fd_ax.plot(
+        data_df["Pixel Size"],
+        data_df["Fractal Dimension"],
+        color = np.array([0.121, 0.465, 0.703]),
+        linewidth = 2)
+    fd_ax.set_xlabel(x_label, fontsize = label_fontsize)
+    fd_ax.set_ylabel("Fractal Dimension", fontsize = label_fontsize)
+    fd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
+    fd_ax.set_xscale("log")
+    #fd_ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+    fd_ax.set_xlim(xlims)
+    fd_ax.set_ylim(ylims)
+    
+    return fd_ax
+
+def fractal_dimension_plot(
+        data: np.ndarray | pd.DataFrame, *,
+        pixel_size: float = 1,
+        units: str = "pix",
+        bounds: tuple = None,
+        nbins: int = 10,
+        xlims: tuple = None,
+        ylims: tuple = None) -> plt.Figure:
+    
+    fig, fd_ax = plt.subplots(layout = "constrained")
+    fd_ax = fractal_dimension_axis(
+        data, fd_ax,
+        pixel_size = pixel_size,
+        units = units,
+        bounds = bounds,
+        nbins = nbins,
+        xlims = xlims,
+        ylims = ylims)
+    
+    return fig
 
 def multi_plot(
         data_list: list[np.ndarray, pd.DataFrame],
