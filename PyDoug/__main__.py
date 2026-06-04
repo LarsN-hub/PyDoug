@@ -138,212 +138,126 @@ class ImageProcessor:
     def _on_layer_changed(self, event = None) -> None:
         
         for func_name in self.funcguis:
-            
             funcgui: widgets.FunctionGui = getattr(self, func_name)
-            
             if hasattr(funcgui, "Image"):
-            
                 funcgui.Image.reset_choices()
                 funcgui.Image.value = sv.get_top_im_layer(self.viewer)
-                
             if hasattr(funcgui, "Mask"):
-            
                 funcgui.Mask.reset_choices()
                 funcgui.Mask.value = sv.get_top_im_layer(self.viewer)
-                
         self.operation_count += 1
         
     def _on_layer_added(self, event) -> None:
         
         layer = event.value
-        
         if isinstance(layer, napari.layers.Image):
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
                 if hasattr(funcgui, "Image"):
-                
                     funcgui.Image.reset_choices()
                     funcgui.Image.value = layer
-                    
                 if hasattr(funcgui, "Image_1"):
-                
                     funcgui.Image_1.reset_choices()
                     funcgui.Image_1.value = layer
-                    
                 if hasattr(funcgui, "Image_2"):
-                
                     funcgui.Image_2.reset_choices()
                     funcgui.Image_2.value = layer
-                    
                 if hasattr(funcgui, "Mask"):
-                
                     funcgui.Mask.reset_choices()
                     funcgui.Mask.value = layer
-                    
                 if hasattr(funcgui, "Mask_1"):
-                
                     funcgui.Mask_1.reset_choices()
                     funcgui.Mask_1.value = layer
-                    
                 if hasattr(funcgui, "Mask_2"):
-                
                     funcgui.Mask_2.reset_choices()
                     funcgui.Mask_2.value = layer
-                    
         elif isinstance(layer, napari.layers.Shapes):
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
                 if hasattr(funcgui, "Shapes"):
-                
                     funcgui.Shapes.reset_choices()
                     funcgui.Shapes.value = layer
-                    
         elif isinstance(layer, napari.layers.Labels):
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                    
                 if hasattr(funcgui, "Labels"):
-                    
                     funcgui.Labels.reset_choices()
                     funcgui.Labels.value = layer
-                    
                 if hasattr(funcgui, "Paint"):
-                
                     funcgui.Paint.reset_choices()
                     funcgui.Paint.value = layer
-                    
         self.operation_count += 1
         
     def _on_layer_removed(self, event) -> None:
         
         layer = event.value
         operations = [x["Name"] for x in self.parameters_log]
-        
         if layer.name in operations:
-            
             self.parameters_log.pop(operations.index(layer.name))
-            
         if isinstance(layer, napari.layers.Image):
-            
             image_layers = [
                 lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Image)]
             last_image = image_layers[-1] if image_layers else None
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
                 if hasattr(funcgui, "Image"):
-                
                     funcgui.Image.reset_choices()
-                    
                     if last_image is not None:
-                        
                         funcgui.Image.value = last_image
-                    
                 if hasattr(funcgui, "Mask"):
-                
                     funcgui.Mask.reset_choices()
-                    
                     if last_image is not None:
-                        
                         funcgui.Mask.value = last_image
-                    
                 if hasattr(funcgui, "Mask_1"):
-                
                     funcgui.Mask_1.reset_choices()
-                    
                     if last_image is not None:
-                        
                         funcgui.Mask_1.value = last_image
-                        
                 if hasattr(funcgui, "Mask_2"):
-                
                     funcgui.Mask_2.reset_choices()
-                    
                     if last_image is not None:
-                        
                         funcgui.Mask_2.value = last_image
-                        
         elif isinstance(layer, napari.layers.Shapes):
-            
             shapes_layers = [
                 lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Shapes)]
             last_shapes = shapes_layers[-1] if shapes_layers else None
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
                 if hasattr(funcgui, "Shapes"):
-                
                     funcgui.Shapes.reset_choices()
-                    
                     if last_shapes is not None:
-                        
                         funcgui.Shapes.value = last_shapes
-        
         elif isinstance(layer, napari.layers.Labels):
-            
             labels_layers = [
                 lyr for lyr in self.viewer.layers if isinstance(lyr, napari.layers.Labels)]
             last_labels = labels_layers[-1] if labels_layers else None
-            
             for func_name in self.funcguis:
-                
                 funcgui: widgets.FunctionGui = getattr(self, func_name)
-                
                 if hasattr(funcgui, "Labels"):
-                    
                     funcgui.Labels.reset_choices()
-                    
                     if last_labels is not None:
-                        
                         funcgui.Labels.value = last_labels
-                        
                 if hasattr(funcgui, "Paint"):
-                    
                     funcgui.Paint.reset_choices()
-                    
                     if last_labels is not None:
-                        
                         funcgui.Paint.value = last_labels
                     
     def _update_intensity_range(self, event = None) -> None:
         
         if self.manual_threshold_widget.Image.value == None:
-            
             return
-        
         if np.issubdtype(
                 self.manual_threshold_widget.Image.value.data.dtype,
                 np.integer):
-            
             if self.manual_threshold_widget.Image.value.data.dtype == np.int64:
-                
                 return
-            
             info = np.iinfo(
                 self.manual_threshold_widget.Image.value.data.dtype)
-            
         elif np.issubdtype(
                 self.manual_threshold_widget.Image.value.data.dtype,
                 np.floating):
-            
             return
-            
         else:
-            
             return
-            
         self.manual_threshold_widget.Range.min = info.min
         self.manual_threshold_widget.Range.max = info.max
         self.manual_threshold_widget.Range.value = (info.min, info.max)
@@ -351,26 +265,17 @@ class ImageProcessor:
     def _live_threshold(self, event = None) -> None:
         
         if not self.manual_threshold_widget.Preview.value:
-            
             return
-        
         im_layer = self.manual_threshold_widget.Image.value
-        
         if im_layer == None:
-            
             return
-        
         min_value, max_value = self.manual_threshold_widget.Range.value
         threshold_mask: np.ndarray = thresh.gui_threshold(
             im_layer.data,
             (min_value, max_value))
-        
         if hasattr(self, "_live_mask_layer") and self._live_mask_layer in self.viewer.layers:
-            
             self._live_mask_layer.data = threshold_mask
-            
         else:
-            
             self._live_mask_layer = self.viewer.add_labels(
                 threshold_mask,
                 name = "Live Threshold",
@@ -379,15 +284,10 @@ class ImageProcessor:
     def _on_live_toggled(self, event = None) -> None:
         
         if not self.manual_threshold_widget.Preview.value:
-            
             if hasattr(self, "_live_mask_layer") and self._live_mask_layer in self.viewer.layers:
-                
                 self.viewer.layers.remove(self._live_mask_layer)
-            
                 self._live_mask_layer = None
-            
         else:
-            
             self._live_threshold()
                 
     
@@ -428,7 +328,6 @@ class ImageProcessor:
             Save_Name: str = "Name") -> None:
         
         if Image.data.ndim == 3 and not Image.rgb:
-            
             rw.write_stack(
                 Image.data,
                 str(Save_Folder),
@@ -437,7 +336,6 @@ class ImageProcessor:
                 multi_page = Multi_Page)
         
         elif Image.data.ndim == 4:
-            
             rw.write_stack(
                 Image.data,
                 str(Save_Folder),
@@ -446,7 +344,6 @@ class ImageProcessor:
                 multi_page = Multi_Page)
         
         else:
-            
             rw.write_im(
                 Image.data,
                 str(Save_Folder),
@@ -482,7 +379,6 @@ class ImageProcessor:
             Save_Name: str = "Name") -> None:
         
         if Labels.data.ndim == 3:
-            
             rw.write_stack(
                 Labels.data,
                 str(Save_Folder),
@@ -491,7 +387,6 @@ class ImageProcessor:
                 multi_page = Multi_Page)
 
         else:
-            
             rw.write_im(
                 Labels.data,
                 str(Save_Folder),
@@ -511,18 +406,15 @@ class ImageProcessor:
             self.operation_count)
         
         if Add_as_Parameter:
-            
             topmost_visible_layer: napari.layers.Layer = sv.get_topmost_visible_layer(
                 self.viewer)
             
             if topmost_visible_layer:
-                
                 opacity: float = topmost_visible_layer.opacity
                 blending: str = topmost_visible_layer.blending
                 name: str = topmost_visible_layer.name
                 
             else:
-                
                 opacity: float = 0
                 blending: str = "translucent"
                 name: None = None
@@ -547,13 +439,11 @@ class ImageProcessor:
                 "Dimensions": self.viewer.dims.ndisplay}
             
             if parameters_append["Layer Type"] == "labels":
-                
                 parameters_append["ISO Gradient Mode"] = topmost_visible_layer.iso_gradient_mode
                 parameters_append["Rendering"] = topmost_visible_layer.rendering
                 parameters_append["Colormap Used"] = topmost_visible_layer.colormap.name
                 
             elif parameters_append["Layer Type"] == "image":
-                
                 parameters_append["Contrast Min"] = topmost_visible_layer.contrast_limits[0]
                 parameters_append["Contrast Max"] = topmost_visible_layer.contrast_limits[1]
                 parameters_append["Gamma"] = topmost_visible_layer.gamma
@@ -622,33 +512,23 @@ class ImageProcessor:
             Conserve_RAM: bool = False) -> None:
         
         if X_Bounds:
-            
             x_bounds = [X_Min, X_Max]
-            
         else:
-            
             x_bounds = None
             
         if Y_Bounds:
-            
             y_bounds = [Y_Min, Y_Max]
-            
         else:
-            
             y_bounds = None
             
         if Z_Bounds:
-            
             z_bounds = [Z_Min, Z_Max]
-            
         else:
-            
             z_bounds = None
             
         bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
         
         if Method == "Trim":
-            
             param_layer_name: str = get_param_layer_name(
                 "Trimmed",
                 self.operation_count)
@@ -668,7 +548,6 @@ class ImageProcessor:
                  "Conserve RAM": Conserve_RAM})
             
             if Conserve_RAM:
-                
                 Image.data = cc.trim(
                     Image.data,
                     bounds_dict = bounds_dict,
@@ -678,7 +557,6 @@ class ImageProcessor:
                 self._on_layer_changed()
             
             else:
-                
                 self.viewer.add_image(
                     cc.trim(
                         Image.data,
@@ -687,21 +565,15 @@ class ImageProcessor:
                     name = param_layer_name)
                 
         elif Method == "Pad":
-            
             if not Specify_Color:
-                
                 color_spec: float | int = util.convert_color_to_intensity(
                     Image.data,
                     Padded_Color)
             
             else:
-                
                 if Image.data.dtype in util.int_dtypes:
-                    
                     color_spec: int = round(Color_Value)
-                    
                 else:
-                    
                     color_spec = Color_Value
             
             param_layer_name: str = get_param_layer_name(
@@ -724,7 +596,6 @@ class ImageProcessor:
                  "Conserve RAM": Conserve_RAM})
             
             if Conserve_RAM:
-                
                 Image.data = cc.pad(
                     Image.data,
                     bounds_dict = bounds_dict,
@@ -735,7 +606,6 @@ class ImageProcessor:
                 self._on_layer_changed()
             
             else:
-                
                 self.viewer.add_image(
                     cc.pad(
                         Image.data,
@@ -757,19 +627,14 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Specify_Color:
-            
             color_spec: float | int = util.convert_color_to_intensity(
                 Image.data,
                 Masked_Color)
         
         else:
-            
             if Image.data.dtype in util.int_dtypes:
-                
                 color_spec: int = round(Color_Value)
-                
             else:
-                
                 color_spec = Color_Value
                 
         param_layer_name = get_param_layer_name(
@@ -785,7 +650,6 @@ class ImageProcessor:
              "Conserve RAM": Conserve_RAM})
         
         if Conserve_RAM:
-            
             Image.data = cc.crop(
                 Image.data,
                 Mask.data,
@@ -795,7 +659,6 @@ class ImageProcessor:
             self._on_layer_changed()
         
         else:
-            
             self.viewer.add_image(
                 cc.crop(
                     Image.data,
@@ -864,7 +727,6 @@ class ImageProcessor:
             self.operation_count)
         
         if Add_as_Parameter:
-            
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
@@ -922,7 +784,6 @@ class ImageProcessor:
              "Angle": Angle})
         
         if Clockwise:
-            
             self.viewer.add_image(
                 trans.rotate(
                     Image.data,
@@ -932,7 +793,6 @@ class ImageProcessor:
                 name = param_layer_name)
         
         else:
-            
             self.viewer.add_image(
                 trans.rotate(
                     Image.data,
@@ -983,23 +843,14 @@ class ImageProcessor:
              "Z Dim": Z_Dim})
         
         if X_Dim == 0:
-            
             X_Dim: int = util.get_ax_str_dim(Image.data, "x")
-            
         if Y_Dim == 0:
-            
             Y_Dim: int = util.get_ax_str_dim(Image.data, "y")
-            
         if Z_Dim == 0:
-            
             Z_Dim: int | None = util.get_ax_str_dim(Image.data, "z")
-            
         if Z_Dim:
-            
             dims: tuple = (Z_Dim, Y_Dim, X_Dim)
-            
         else:
-            
             dims: tuple = (Y_Dim, X_Dim)
             
         self.viewer.add_image(
@@ -1046,19 +897,14 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Specify_Color:
-            
             color_spec: float | int = util.convert_color_to_intensity(
                 Image.data,
                 Masked_Color)
         
         else:
-            
             if Image.data.dtype in util.int_dtypes:
-                
                 color_spec: int = round(Color_Value)
-                
             else:
-                
                 color_spec = Color_Value
                 
         param_layer_name: str = get_param_layer_name("Masked", self.operation_count)
@@ -1105,9 +951,7 @@ class ImageProcessor:
         param_layer_name: str = get_param_layer_name("Mask", self.mask_count)
         
         if util.is_3d_rgb(Image.data)["3D"]:
-            
             if Specify_Slice_Range:
-            
                 self.viewer.add_image(
                     cc.get_mask(
                         Image.data,
@@ -1117,7 +961,6 @@ class ImageProcessor:
                     name = param_layer_name)
                 
             else:
-                
                 self.viewer.add_image(
                     cc.get_mask(
                         Image.data,
@@ -1126,7 +969,6 @@ class ImageProcessor:
                     name = param_layer_name)
             
         else:
-            
             self.viewer.add_image(
                 cc.get_mask(
                     Image.data,
@@ -1141,11 +983,8 @@ class ImageProcessor:
             Image: napari.layers.Image) -> None:
         
         if util.is_3d_rgb(Image.data)["RGB"]:
-            
             sv.create_label_layer(pixels.rgb_2_gray(Image.data), self.viewer)
-        
         else:
-        
             sv.create_label_layer(Image.data, self.viewer)
     
     @magicgui(
@@ -1227,16 +1066,13 @@ class ImageProcessor:
              "Max": Max})
         
         if Bounds:
-            
             self.viewer.add_image(
                 pixels.convert_im_type(
                     Image.data,
                     Type.lower(),
                     norm = Auto_Normalize),
                 name = param_layer_name)
-        
         else:
-            
             self.viewer.add_image(
                 pixels.convert_im_type(
                     Image.data,
@@ -1274,19 +1110,12 @@ class ImageProcessor:
              "Output Max": Output_Max})
         
         if Input_Range:
-            
             in_range: tuple = (Input_Min, Input_Max)
-            
         else:
-            
             in_range: str = "image"
-            
         if Output_Range:
-            
             out_range: tuple = (Output_Min, Output_Max)
-            
         else:
-            
             out_range: str = "dtype"
         
         self.viewer.add_image(
@@ -1312,34 +1141,25 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
             mask_name: str = Mask.name
-            
         else:
-            
             mask_array: None = None
             mask_name: None = None
         
         if Bounds_as_Percentages:
-            
             bounds = quant.get_percent_intensities(
                 Image.data,
                 (Min_Bound, Max_Bound),
                 mask_array = mask_array)
-            
         else:
-            
             bounds = (Min_Bound, Max_Bound)
         
         if Parameterize_Percentages and Bounds_as_Percentages:
-            
             param_min: float = Min_Bound
             param_max: float = Max_Bound
             param_bounds_as_percentages: bool = True
-            
         else:
-            
             param_min: float = min(bounds)
             param_max: float = max(bounds)
             param_bounds_as_percentages: bool = False
@@ -1380,12 +1200,9 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
@@ -1507,7 +1324,6 @@ class ImageProcessor:
              "CVal": Constant_Value})
         
         if Window_Size == 0:
-            
             Window_Size = None
         
         self.viewer.add_image(
@@ -1658,7 +1474,6 @@ class ImageProcessor:
              "Square Axis": Square_Axis})
         
         if Method == "FFT":
-            
             self.viewer.add_image(
                 fourier.fft_ring_removal(
                     Image.data,
@@ -1670,7 +1485,6 @@ class ImageProcessor:
                 name = param_layer_name)
             
         elif Method == "Wavelet":
-            
             self.viewer.add_image(
                 fourier.wavelet_ring_removal(
                     Image.data,
@@ -1784,11 +1598,8 @@ class ImageProcessor:
              "Axis": Axis})
         
         if Sigma == 0:
-            
             Sigma = None
-            
         if Wavelet_Levels == 0:
-            
             Wavelet_Levels = None
         
         self.viewer.add_image(
@@ -1850,27 +1661,20 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
             
         if Connectivity > Image.data.ndim:
-            
             Connectivity = 2
-            
         elif Connectivity > 2 and Along_Axis:
-            
             Connectivity = 2
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
         if Method == "Connectivity":
-                
             param_layer_name = get_param_layer_name(
                 "Label Segmentation",
                 self.operation_count)
@@ -1885,7 +1689,6 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
                  "Unique Masks": Unique_Batch_Masks})
-            
             self.viewer.add_labels(
                 thresh.label(
                     Image.data,
@@ -1899,7 +1702,6 @@ class ImageProcessor:
                 opacity = 1)
                 
         elif Method == "Watershed":
-            
             param_layer_name = get_param_layer_name(
                 "Watershed",
                 self.operation_count)
@@ -1915,7 +1717,6 @@ class ImageProcessor:
                  "Apply Mask": Apply_Mask,
                  "Mask Used": Mask.name,
                  "Unique Masks": Unique_Batch_Masks})
-            
             self.viewer.add_labels(
                 detect.watershed(
                     Image.data,
@@ -1949,12 +1750,9 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
@@ -1992,12 +1790,9 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
@@ -2016,7 +1811,6 @@ class ImageProcessor:
              "Unique Masks": Unique_Batch_Masks})
         
         if Savoula_Sigma_Range == 0:
-            
             Savoula_Sigma_Range = None
         
         self.viewer.add_image(
@@ -2258,11 +2052,8 @@ class ImageProcessor:
             Axis: str = "Z") -> None:
         
         if Connectivity > Image.data.ndim:
-            
             Connectivity = 2
-            
         elif Along_Axis and Connectivity > 2:
-            
             Connectivity = 2
             
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)            
@@ -2304,12 +2095,9 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
@@ -2355,12 +2143,9 @@ class ImageProcessor:
             Unique_Batch_Masks: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
@@ -2432,15 +2217,12 @@ class ImageProcessor:
             Constant_Value: float = 0) -> None:
         
         if Slice_Wise:
-            
             Filter_Axis = util.convert_ax_str_to_int(
                 Image.data,
                 Image.rgb,
                 Filter_Axis,
                 Slice_Axis)
-        
         else:
-            
             Filter_Axis = util.convert_ax_str_to_int(
                 Image.data,
                 Image.rgb,
@@ -2452,7 +2234,6 @@ class ImageProcessor:
             Slice_Axis)
         
         if not Filter_Axis or Filter_Axis == -1:
-            
             Filter_Along_Axis = False
             
         param_layer_name = get_param_layer_name(
@@ -2473,11 +2254,8 @@ class ImageProcessor:
              "Constant Value": Constant_Value,})
         
         if not Slice_Wise:
-            
             Slice_Axis: None = None
-        
         if not Filter_Along_Axis:
-            
             Filter_Axis: None = None
         
         self.viewer.add_image(
@@ -2518,11 +2296,8 @@ class ImageProcessor:
             Return_Mode: str = "Peaks") -> None:
         
         if Return_Mode == "Peaks":
-            
             Return_Mode: str = "peaks array"
-            
         elif Return_Mode == "Orientations":
-            
             Return_Mode: str = "orients array"
         
         param_layer_name = get_param_layer_name(
@@ -2600,7 +2375,6 @@ class ImageProcessor:
              "Constant Value": Constant_Value})
         
         if Gamma == 0:
-            
             Gamma: None = None
         
         self.viewer.add_image(
@@ -2651,7 +2425,6 @@ class ImageProcessor:
              "Log Scale": Log_Scale})
         
         if Threshold_Rel == 0:
-            
             Threshold_Rel: None = None
             
         self.viewer.add_image(
@@ -2678,11 +2451,8 @@ class ImageProcessor:
         Method: str = "Lee (2D/3D)") -> None:
         
         if Method == "Lee (2D/3D)":
-            
             Method: str = "lee"
-            
         elif Method == "Zhang (2D)":
-            
             Method: str = "zhang"
         
         param_layer_name: str = get_param_layer_name(
@@ -2713,17 +2483,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
             mask_name = Mask.name
-            
         else:
-            
             mask_array = None
             mask_name = None
             
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Calculate Statistics",
                 self.operation_count)
@@ -2748,11 +2514,8 @@ class ImageProcessor:
             Mask: napari.layers.Image = None) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
-            
         else:
-            
             mask_array = None
         
         _ = quant.get_percent_intensities(
@@ -2777,17 +2540,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
             mask_name = Mask.name
-            
         else:
-            
             mask_array = None
             mask_name = None
             
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Calculate Bulk Value",
                 self.operation_count)
@@ -2805,7 +2564,6 @@ class ImageProcessor:
                  "Unique Masks": Unique_Batch_Masks})
         
         if Quantity_Measured == "Volume":
-            
             _ = quant.get_volume(
                 Image.data,
                 mask_array = mask_array,
@@ -2816,7 +2574,6 @@ class ImageProcessor:
                 normalize = Normalize)
             
         elif Quantity_Measured == "Area":
-            
             _ = quant.get_area(
                 Image.data,
                 mask_array = mask_array,
@@ -2827,7 +2584,6 @@ class ImageProcessor:
                 normalize = Normalize)  
             
         elif Quantity_Measured == "Length":
-            
             _ = quant.get_length(
                 Image.data,
                 mask_array = mask_array,
@@ -2851,17 +2607,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
             mask_name = Mask.name
-            
         else:
-            
             mask_array = None
             mask_name = None
             
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Calculate Surface Value",
                 self.operation_count)
@@ -2899,17 +2651,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if Apply_Mask:
-            
             mask_array: np.ndarray = Mask.data
             mask_name = Mask.name
-            
         else:
-            
             mask_array = None
             mask_name = None
             
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Calculate Surface Value",
                 self.operation_count)
@@ -2937,18 +2685,19 @@ class ImageProcessor:
         call_button = "Calculate Fractal Dimension")
     def calc_fractal_dimension_widget(self,
             Image: napari.layers.Image,
+            Dimension_Scale: float = 10,
             Add_as_Parameter: bool = False) -> None:
         
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Calculate Fractal Dimension",
                 self.operation_count)
             self.parameters_log.append(
                 {"Name": param_layer_name,
-                 "Acting On": Image.name})
+                 "Acting On": Image.name,
+                 "Dimension Scale": Dimension_Scale})
         
-        _ = quant.get_fractal_dimension(Image.data)
+        _ = quant.get_fractal_dimension(Image.data, Dimension_Scale)
 
     #################
     # Plots Widgets #
@@ -2973,17 +2722,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Histogram Plot",
                 self.operation_count)
@@ -3002,27 +2747,17 @@ class ImageProcessor:
                  "Unique Masks": Unique_Batch_Masks})
             
         if Num_Bins == 0:
-            
             Num_Bins: None = None
-            
         if X_Max == 0:
-            
             x_lims = None
-            
         else:
-            
             x_lims = (X_Min, X_Max)
-            
         if Y_Max == 0:
-            
             y_lims = None
-            
         else:
-            
             y_lims = (0, Y_Max)
             
         fig, hist_ax = plt.subplots(layout = "constrained")
-        
         hist_ax: plt.Axes = plots.histogram_axis(
             Image.data,
             hist_ax,
@@ -3035,7 +2770,6 @@ class ImageProcessor:
             nbins = Num_Bins)
             
         if Add_CDF:
-                
             cdf_ax: plt.Axes = hist_ax.twinx()
             cdf_ax = plots.cdf_axis(
                 Image.data, cdf_ax,
@@ -3053,15 +2787,11 @@ class ImageProcessor:
             Shapes: napari.layers.Shapes) -> None:
         
         if util.is_3d_rgb(Image.data)["3D"]:
-            
             im_array = Image.data[self.viewer.dims.current_step[0]]
-            
         else:
-            
             im_array = np.copy(Image.data)
             
         _ = plots.gui_line_scan(im_array, Shapes)
-            
         plt.show(block = False)
         
     @magicgui(
@@ -3074,17 +2804,13 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
         
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Gray Level Plot",
                 self.operation_count)
@@ -3096,7 +2822,6 @@ class ImageProcessor:
                  "Unique Masks": Unique_Batch_Masks})
             
         _ = plots.gray_level(Image.data, mask_array = mask_array)
-            
         plt.show(block = False)
     
     @magicgui(
@@ -3131,27 +2856,19 @@ class ImageProcessor:
             Save_Name: str = "Name") -> None:
         
         if Type == "Volume":
-            
             Type = "Vol"
-            
         elif Type == "Domain Size":
-            
             Type = "Psd"
-            
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
             
         Axis: int = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
         
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Axis Distribution Plot",
                 self.operation_count)
@@ -3179,30 +2896,20 @@ class ImageProcessor:
                  "Export Data": Export_Data})
             
         if X_Max == 0:
-            
             x_lims = None
-            
         else:
-            
             x_lims = (X_Min, X_Max)
-            
         if Y_Max == 0:
-            
             y_lims = None
-            
         else:
-            
             y_lims = (0, Y_Max)
             
         mode: str = "phase distrib"
         distrib_mode: str = Type.lower()
             
         if Time_Series:
-            
             mode: str = "time series"
-            
         if not Time_Series:
-            
             Time_Units = None
             Time_Scale = None
             
@@ -3225,11 +2932,9 @@ class ImageProcessor:
             xlims = x_lims,
             ylims = y_lims,
             return_df = True)
-            
         plt.show(block = False)
         
         if Export_Data:
-            
             line_df.to_csv(
                 f"{str(Save_Folder)}/{Save_Name}.csv",
                 header = "column names",
@@ -3268,49 +2973,29 @@ class ImageProcessor:
             Save_Name: str = "Name") -> None:
         
         if Type == "Volume":
-            
             Type: str = "vol"
-            
         elif Type == "Area":
-            
             Type: str = "area"
-            
         elif Type == "Diameter":
-            
             Type: str = "diam"
-            
         elif Type == "Radius":
-            
             Type: str = "rad"
-            
         if Diameter_Radius_Mode == "Volume":
-            
             diam_rad_mode: str = "vol"
-            
         elif Diameter_Radius_Mode == "Area":
-            
             diam_rad_mode: str = "area"
-        
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
-            
         if Alternate_X_Label:
-            
             x_label: str = X_Label
-            
         else:
-            
             x_label: None = None
         
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Domain Size Distribution Plot", 
                 self.operation_count)
@@ -3337,27 +3022,16 @@ class ImageProcessor:
                  "Export Data": Export_Data})
             
         if X_Max == 0:
-            
             x_lims: None = None
-            
         else:
-            
             x_lims: tuple = (X_Min, X_Max)
-            
         if Y_Max == 0:
-            
             y_lims: None = None
-            
         else:
-            
             y_lims: tuple = (0, Y_Max)
-            
         if Num_Bins == 0:
-            
             Num_Bins: None = None
-            
         if Max_Bound == 0:
-            
             Max_Bound: None = None
             
         _, psd_df, hist_stats_df = plots.size_distribution(
@@ -3376,16 +3050,13 @@ class ImageProcessor:
             nbins = Num_Bins,
             max_bound = Max_Bound,
             return_df = True)
-            
         plt.show(block = False)
         
         if Export_Data:
-            
             psd_df.to_csv(
                 f"{str(Save_Folder)}/{Save_Name}.csv",
                 header = "column names",
                 index = False)
-            
             hist_stats_df.to_csv(
                 f"{str(Save_Folder)}/{Save_Name}_stats.csv",
                 header = "column names",
@@ -3419,17 +3090,12 @@ class ImageProcessor:
             Add_as_Parameter: bool = False) -> None:
         
         if not Apply_Mask:
-            
             mask_name = None
             mask_array = None
-            
         else:
-            
             mask_name = Mask.name
             mask_array = Mask.data
-            
         if not Alternate_Colorbar_Label:
-            
             Colorbar_Label = None
         
         Axis = util.convert_ax_str_to_int(Image.data, Image.rgb, Axis)
@@ -3438,7 +3104,6 @@ class ImageProcessor:
             self.operation_count)
         
         if Add_as_Parameter:
-            
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
@@ -3459,15 +3124,11 @@ class ImageProcessor:
                  "Return Array": Return_Array})
             
         if Define_Limits:
-            
             clim = (Min_Value, Max_Value)
-            
         else:
-            
             clim = None
             
         if Return_Array:
-            
             _, heat_array = plots.heat_map(
                 Image.data,
                 mode = Method.lower(),
@@ -3483,7 +3144,6 @@ class ImageProcessor:
             self.viewer.add_image(heat_array, name = param_layer_name)
             
         else:
-            
             _ = plots.heat_map(
                 Image.data,
                 mode = Method.lower(),
@@ -3499,7 +3159,8 @@ class ImageProcessor:
         plt.show(block = False)
         
     @magicgui(
-        call_button = "Plot Fractal Distribution")
+        Save_Folder = {"mode": "d"},
+        call_button = "Plot Fractal Dimension")
     def fractal_distribution_widget(self,
             Image: napari.layers.Image,
             Lower_Bound: float = 0,
@@ -3520,22 +3181,16 @@ class ImageProcessor:
             bounds: None = None
         else:
             bounds: tuple = (Lower_Bound, Upper_Bound)
-            
-        if Units == "um":
-            Units = "\u00b5m"
-            
         if X_Min == 0:
             xlims: None = None
         else:
             xlims: tuple = (X_Min, X_Max)
-            
         if Y_Max == 0:
             ylims: None = None
         else:
             ylims: tuple = (Y_Min, Y_Max)
             
         if Add_as_Parameter:
-            
             param_layer_name = get_param_layer_name(
                 "Fractal Distribution",
                 self.operation_count)
@@ -3552,16 +3207,23 @@ class ImageProcessor:
                  "Y Min": Y_Min,
                  "Y Max": Y_Max,
                  "Export Data": Export_Data})
-        # Needs data export, bounds need to be modified by pixel size, batch
-        _ = plots.fractal_dimension_plot(
+        
+        _, fd_df = plots.fractal_dimension_plot(
             Image.data,
             pixel_size = Pixel_Scale,
             units = Units,
             bounds = bounds,
             nbins = Num_Bins,
             xlims = xlims,
-            ylims = ylims)
+            ylims = ylims,
+            return_df = True)
         plt.show(block = False)
+        
+        if Export_Data:
+            fd_df.to_csv(
+                f"{str(Save_Folder)}/{Save_Name}.csv",
+                header = "column names",
+                index = False)
     
     
     #####################
@@ -3620,17 +3282,12 @@ class ImageProcessor:
              "Colorbar Label": Colorbar_Label})
         
         if Gradient:
-            
             lab_array: np.ndarray = thresh.create_axial_labels(
                 Image.data,
                 Gradient_Axis)
-            
             if Define_Limits:
-                
                 lab_limits: tuple = (Min_Value, Max_Value)
-                
             else:
-                
                 lab_limits: tuple = ((np.unique(lab_array)[0] * Pixel_Scale),
                                      (np.unique(lab_array)[-1] * Pixel_Scale))
             
@@ -3649,7 +3306,6 @@ class ImageProcessor:
             plt.show(block = False)
             
         else:
-            
             self.viewer.add_labels(
                 Image.data,
                 opacity = 1,
@@ -3669,8 +3325,7 @@ def get_funcguis(
     
     return {name: obj for name,
             obj in magic_class.__dict__.items() if isinstance(
-                obj, widgets.FunctionGui)
-            }
+                obj, widgets.FunctionGui)}
 
 def box_container(
         container: widgets.Container) -> widgets.Container:
@@ -3705,8 +3360,7 @@ def collapsible_container(
         """
         text-align: left;
         font-weight: bold;
-        """)
-                                
+        """)              
     container.visible = True
     
     def toggle() -> None:
@@ -3716,7 +3370,6 @@ def collapsible_container(
         header.text = f"{arrow} {title}"
         
     header.clicked.connect(toggle)
-    
     return widgets.Container(widgets = [header, container], labels = False)
 
 def modify_funcgui(
@@ -3724,6 +3377,10 @@ def modify_funcgui(
         title: str) -> widgets.Container:
     
     return collapsible_container(box_container(funcgui), title)
+
+def cmasher_please() -> None:
+    
+    cmr.get_cmap_list()
 
 
 # Main        
@@ -4068,7 +3725,6 @@ def main() -> napari.viewer.Viewer:
         tabs,
         name = "Image Processing Tools " + version_str)
     napari.run()
-    
     return viewer
     
 if __name__ == "__main__":

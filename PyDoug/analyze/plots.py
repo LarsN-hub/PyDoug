@@ -1864,7 +1864,7 @@ def fractal_dimension_axis(
         bounds: tuple = None,
         nbins: int = 10,
         xlims: tuple = None,
-        ylims: tuple = None) -> plt.Axes:
+        ylims: tuple = None) -> plt.Axes | pd.DataFrame:
     
     if isinstance(data, np.ndarray):
         
@@ -1892,11 +1892,10 @@ def fractal_dimension_axis(
     fd_ax.set_ylabel("Fractal Dimension", fontsize = label_fontsize)
     fd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     fd_ax.set_xscale("log")
-    #fd_ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
     fd_ax.set_xlim(xlims)
     fd_ax.set_ylim(ylims)
     
-    return fd_ax
+    return fd_ax, data_df
 
 def fractal_dimension_plot(
         data: np.ndarray | pd.DataFrame, *,
@@ -1905,10 +1904,11 @@ def fractal_dimension_plot(
         bounds: tuple = None,
         nbins: int = 10,
         xlims: tuple = None,
-        ylims: tuple = None) -> plt.Figure:
+        ylims: tuple = None,
+        return_df: bool = False) -> plt.Figure:
     
     fig, fd_ax = plt.subplots(layout = "constrained")
-    fd_ax = fractal_dimension_axis(
+    fd_ax, fd_df = fractal_dimension_axis(
         data, fd_ax,
         pixel_size = pixel_size,
         units = units,
@@ -1917,7 +1917,10 @@ def fractal_dimension_plot(
         xlims = xlims,
         ylims = ylims)
     
-    return fig
+    if return_df:
+        return fig, fd_df
+    else:
+        return fig
 
 def multi_plot(
         data_list: list[np.ndarray, pd.DataFrame],

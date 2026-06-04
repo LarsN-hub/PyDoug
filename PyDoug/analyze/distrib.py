@@ -722,11 +722,10 @@ def get_fractal_distrib(
         nbins: int = 10) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
         
     if bounds:
-        
+        bounds = (bounds[0] / pixel_size, bounds[1] / pixel_size)
         nbins: np.ndarray = np.logspace(
             math.log10(bounds[0]),
             math.log10(bounds[1]),

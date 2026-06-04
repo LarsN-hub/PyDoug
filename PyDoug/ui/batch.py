@@ -83,7 +83,8 @@ def apply_parameters(
     quantity_index: int = 0
     surf_index: int = 0
     cont_index: int = 0
-    frac_index: int = 0
+    frac_index1: int = 0
+    frac_index2: int = 0
     hist_index: int = 0
     gray_index: int = 0
     axis_dist_index: int = 0
@@ -1627,28 +1628,28 @@ def apply_parameters(
         elif parameter["Name"].find("Calculate Fractal Dimension") == 0:
             
             print("\nCalculating fractal dimension...")
-            fractal_dim: np.float64 = quant.get_fractal_dimension(im_array)
+            fractal_dim: np.float64 = quant.get_fractal_dimension(
+                im_array, float(parameter["Dimension Scale"]))
             fractal_df: pd.DataFrame = pd.DataFrame(
-                {"Fractal Dimension": np.array([fractal_dim])})
-            save_path: str = save_dir + f"/Fractal_Dimension_{frac_index}.csv"
+                {"Fractal Dimension": np.array([fractal_dim]),
+                 "Dimension Scale": np.array([float(parameter["Dimension Scale"])])})
+            save_path: str = save_dir + f"/Fractal_Dimension_{frac_index1}.csv"
             fractal_df.insert(0, "File Name", file_name)
             
             if not os.path.isfile(save_path):
-                
                 fractal_df.to_csv(
                     save_path,
                     header = "column_names",
                     index = False)
                 
             else:
-                
                 fractal_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
                 
-            frac_index += 1
+            frac_index1 += 1
             
         
         ###################
@@ -1960,12 +1961,10 @@ def apply_parameters(
             plt.close(fig)
             
             if parameter["Export Data"].lower() == "true":
-                
                 psd_df.to_csv(
                     f"{save_dir}/{file_name}_size_distribution_{psd_index}.csv",
                     header = "column names",
                     index = False)
-                
                 hist_stats_df.to_csv(
                     f"{save_dir}/{file_name}_size_distribution_stats_{psd_index}.csv",
                     header = "column names",
@@ -2038,6 +2037,44 @@ def apply_parameters(
             rw.write_plot(fig, f"{file_name}_heat_map_{heat_index}", save_dir)
             plt.close(fig)
             heat_index += 1
+            
+        elif parameter["Name"].find("Fractal Distribution") == 0:
+            
+            if float(parameter["Lower Bound"]) == 0 or float(parameter["Upper Bound"]) == 0: 
+                bounds: None = None
+            else:
+                bounds: tuple = (float(parameter["Lower Bound"]), float(parameter["Upper Bound"]))
+            if float(parameter["X Min"]) == 0:
+                xlims: None = None
+            else:
+                xlims: tuple = (float(parameter["X Min"]), float(parameter["X Max"]))
+            if float(parameter["Y Max"]) == 0:
+                ylims: None = None
+            else:
+                ylims: tuple = (float(parameter["Y Min"]), float(parameter["Y Max"]))
+                
+            fig, fd_df = plots.fractal_dimension_plot(
+                im_array,
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"],
+                bounds = bounds,
+                nbins = int(parameter["Num Bins"]),
+                xlims = xlims,
+                ylims = ylims,
+                return_df = True)
+            rw.write_plot(
+                fig,
+                f"{file_name}_fractal_dimension_plot_{frac_index2}",
+                save_dir)
+            plt.close(fig)
+            
+            if parameter["Export Data"].lower() == "true":
+                fd_df.to_csv(
+                    f"{save_dir}/{file_name}_fractal_dimension_plot_{frac_index2}.csv",
+                    header = "column names",
+                    index = False)
+                
+            frac_index2 += 1
             
             
         ########################

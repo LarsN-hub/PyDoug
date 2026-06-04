@@ -762,11 +762,22 @@ def get_surface_contact(
     return contact_df
 
 def get_fractal_dimension(
-        im_array: np.ndarray) -> np.float64:
+        im_array: np.ndarray,
+        dimension_scale: float = 10) -> np.float64:
     
-    fractal_distrib: metrics.Results = metrics.boxcount(im_array, 2)
+    if dimension_scale < 1:
+        dimension_scale = 1
+    fractal_distrib: metrics.Results = metrics.boxcount(
+        im_array,
+        np.logspace(
+            math.log10(dimension_scale), math.log10(dimension_scale * 10), 2)
+    )
     print_str: str = "Fractal Dim."
-    print(f"\n{print_str:<16} {fractal_distrib.slope[0]:.2f}")
+    if im_array.ndim == 3:
+        print_str2: str = "voxel"
+    else:
+        print_str2: str = "pixel"
+    print(f"\n{print_str:<16} {fractal_distrib.slope[0]:.2f} @ {dimension_scale}x {print_str2} size")
     return fractal_distrib.slope[0]
 
 # Main
