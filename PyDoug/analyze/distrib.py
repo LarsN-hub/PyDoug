@@ -8,7 +8,6 @@ Module for multi-value measurements of images
 import pandas as pd, numpy as np, math
 
 from skimage import exposure
-from porespy import metrics
 
 from PyDoug.analyze import quant
 from PyDoug.proc import thresh, pixels, trans, cropclip as cc
@@ -715,35 +714,43 @@ def get_heat_map(
         return heat_array * pixel_size
     
 def get_fractal_distrib(
-        im_array: np.ndarray,
+        im_array: np.ndarray, *,
+        method: str = "bulk",
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
-        nbins: int = 10) -> pd.DataFrame:
+        nbins: int = 10,
+        rescale_factor: float = 2) -> pd.DataFrame:
     
     if units == "um":
         units = "\u00b5m"
         
-    if bounds:
-        bounds = (bounds[0] / pixel_size, bounds[1] / pixel_size)
-        nbins: np.ndarray = np.logspace(
-            math.log10(bounds[0]),
-            math.log10(bounds[1]),
-            num = nbins)
-    
-    fractal_distrib: metrics.Results = metrics.boxcount(im_array, nbins)
-    fractal_df: pd.DataFrame = pd.DataFrame(
+    if not bounds:
+        bounds: tuple = (pixel_size, pixel_size * 10)
+    if bounds[0] < pixel_size:
+        bounds: tuple = (pixel_size, pixel_size * 10)
+    pixel_sizes: np.array = np.logspace(
+        math.log10(bounds[0]),
+        math.log10(bounds[1]),
+        nbins)
+    fractal_dims: np.ndarray = np.zeros(len(pixel_sizes), np.float64)
+    for index, current_size in enumerate(pixel_sizes):
+        res_array: np.ndarray = trans.rescale(
+            im_array,
+            pixel_size / current_size)
+        fractal_dims[index] = quant.estimate_fractal_dimension(
+            res_array,
+            method = method,
+            rescale_factor = current_size / pixel_size,
+            print_results = False)
+    fd_df: pd.DataFrame = pd.DataFrame(
         np.concat(
-            (np.expand_dims(np.array(fractal_distrib.size), 1),
-            np.expand_dims(np.array(fractal_distrib.slope), 1)),
-            axis = 1
-        ),
-        columns = ["Pixel Size", "Fractal Dimension"]
-    )
-    fractal_df["Pixel Size"] *= pixel_size
-    fractal_df.attrs["units"] = units
-    
-    return fractal_df
+            (np.expand_dims(pixel_sizes, 1),
+             np.expand_dims(fractal_dims, 1)),
+            1),
+        columns = ["Pixel Size", "Fractal Dimension"])
+    fd_df.attrs["units"] = units
+    return fd_df
 
 
 # Main

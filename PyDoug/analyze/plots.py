@@ -5,10 +5,7 @@ Module for generating plots to analyze images
 
 # Imports
 
-import pandas as pd
-import numpy as np
-import napari
-import math
+import pandas as pd, numpy as np, napari, math
 
 from matplotlib import colorbar as cbar, pyplot as plt, transforms as tr, ticker
 from typing import Callable
@@ -77,6 +74,25 @@ def get_color_list(
             color_list.append(tuple(color_base + (index * color_inc)))
             
     return color_list
+
+def generate_log_ticks(ax: plt.Axes, ax_lims: tuple):
+    
+    oom_1: int = util.find_order_of_mag(ax_lims[0])
+    oom_2: int = util.find_order_of_mag(ax_lims[1])
+    if oom_2 - oom_1 < 2:
+        alt_start: int = math.floor(ax_lims[0] / (10 ** oom_1))
+        alt_end: int = math.ceil(ax_lims[1] / (10 ** oom_1)) + 1
+        if alt_start % 2 != 0:
+            alt_start -= 1
+        ticks: np.ndarray = np.arange(alt_start, alt_end, 2)
+        if ticks[0] == 0:
+            ticks = ticks[1:]
+        if ticks[0] == 2:
+            ticks = np.concat((np.array([1]), ticks))
+        ticks = ticks * (10 ** oom_1)
+        return ticks
+    else:
+        return ax.get_xticks()
 
 def remove_edges(
         data_df: pd.DataFrame) -> pd.DataFrame:
@@ -1859,24 +1875,29 @@ def heat_map(
 def fractal_dimension_axis(
         data: np.ndarray | pd.DataFrame,
         input_ax: plt.Axes, *,
+        method: str = "bulk",
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
         nbins: int = 10,
+        rescale_factor: float = 2,
         xlims: tuple = None,
         ylims: tuple = None) -> plt.Axes | pd.DataFrame:
     
     if isinstance(data, np.ndarray):
-        
         data_df: pd.DataFrame = distrib.get_fractal_distrib(
-            data, pixel_size, units, bounds, nbins)
+            data,
+            method = method,
+            pixel_size = pixel_size,
+            units = units,
+            bounds = bounds,
+            nbins = nbins,
+            rescale_factor = rescale_factor)
         if data.ndim == 3:
             x_title: str = "Voxel Size"
         else:
             x_title: str = "Pixel Size"
-        
     else:
-        
         data_df: pd.DataFrame = data.copy()
         x_title: str = "Pixel Size"
         
@@ -1892,31 +1913,38 @@ def fractal_dimension_axis(
     fd_ax.set_ylabel("Fractal Dimension", fontsize = label_fontsize)
     fd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
     fd_ax.set_xscale("log")
+    fd_ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
     fd_ax.set_xlim(xlims)
+    if not xlims:
+        xlims: tuple = fd_ax.get_xlim()
+    #fd_ax.set_xticks(generate_log_ticks(fd_ax, xlims))
     fd_ax.set_ylim(ylims)
-    
     return fd_ax, data_df
 
 def fractal_dimension_plot(
         data: np.ndarray | pd.DataFrame, *,
+        method = "bulk",
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
         nbins: int = 10,
+        rescale_factor: float = 2,
         xlims: tuple = None,
         ylims: tuple = None,
         return_df: bool = False) -> plt.Figure:
     
     fig, fd_ax = plt.subplots(layout = "constrained")
     fd_ax, fd_df = fractal_dimension_axis(
-        data, fd_ax,
+        data,
+        fd_ax,
+        method = method,
         pixel_size = pixel_size,
         units = units,
         bounds = bounds,
         nbins = nbins,
+        rescale_factor = rescale_factor,
         xlims = xlims,
         ylims = ylims)
-    
     if return_df:
         return fig, fd_df
     else:

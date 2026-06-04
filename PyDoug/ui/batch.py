@@ -26,35 +26,22 @@ def check_used_later(
         parameters_log: list[dict]) -> bool:
     
     if parameter_name == "Start":
-        
         encountered_current_parameter = True
-        
     else:
-        
         encountered_current_parameter: bool = False
-    
     encountered_later: bool = False
     
     for parameter in parameters_log:
-        
         if not encountered_current_parameter:
-            
             if parameter["Name"] == parameter_name:
-                
                 encountered_current_parameter = True
-        
+                
         else:
-            
             if "Acting On" in list(parameter.keys()):
-                
                 if parameter["Acting On"] == parameter_name:
-                
                     encountered_later = True
-                
             if "Mask Used" in list(parameter.keys()):
-                
                 if parameter["Mask Used"] == parameter_name:
-                    
                     encountered_later = True
         
     return encountered_later
@@ -64,11 +51,8 @@ def check_in_parameters_dict(
         parameters_dict: dict) -> bool:
     
     if parameter_name in list(parameters_dict.keys()):
-        
         return True
-    
     else:
-        
         return False
 
 def apply_parameters(
@@ -93,36 +77,26 @@ def apply_parameters(
     cmaps: dict = {}
     
     for parameter_index, parameter in enumerate(parameters_log):
-        
         if check_in_parameters_dict(
                 parameter["Name"],
                 parameters_dict):
-            
             continue
         
         if parameter_index == 0:
-            
             parameters_dict["Start"] = im_array
             parameter["Acting On"] = "Start"
             prev_name: str = parameter["Name"]
             last_image_name: str = "Start"
-            
         else:
-            
             if "Acting On" not in list(parameter.keys()):
-                
                 parameter["Acting On"] = prev_name
-                
             prev_name: str = parameter["Name"]
             
         if check_used_later(
                 parameter["Acting On"],
                 parameters_log):
-            
             im_array = parameters_dict[parameter["Acting On"]]
-            
         else:
-            
             im_array = parameters_dict.pop(parameter["Acting On"])
         
         
@@ -131,25 +105,20 @@ def apply_parameters(
         ##################
         
         if parameter["Name"].find("Screenshot") == 0:
-            
             viewer: napari.viewer.Viewer = sv.create_viewer()
             viewer.window._qt_window.showFullScreen()
             viewer.dims.ndisplay = int(parameter["Dimensions"])
             
             if parameter["Layer Type"] == "labels":
-                
                 layer: napari.layers.Labels = viewer.add_labels(
                     parameters_dict[
                         parameter["Acting On"]])
                 layer.iso_gradient_mode = parameter["ISO Gradient Mode"]
                 layer.rendering = parameter["Rendering"]
-                
                 if parameter["Colormap Used"] != "label_colormap":
-                    
                     layer.colormap = cmaps[parameter["Acting On"]]
             
             elif parameter["Layer Type"] == "image":
-                
                 layer: napari.layers.Image = viewer.add_image(
                     parameters_dict[
                         parameter["Acting On"]])
@@ -166,7 +135,6 @@ def apply_parameters(
                 layer.iso_threshold = float(parameter["ISO Threshold"])
             
             else:
-                
                 layer: napari.layers.Layer = sv.create_layer_type(
                     viewer,
                     parameter["Layer Type"],
@@ -203,45 +171,28 @@ def apply_parameters(
         #########################
         
         elif parameter["Name"].find("Trimmed") == 0:
-            
             print("\nTrimming...")
-            
             if parameter["X Bounds"].lower() == "true":
-                
                 x_bounds: list = [
                     int(parameter["X Min"]),
                     int(parameter["X Max"])]
-                
             else:
-                
                 x_bounds: None = None
-                
             if parameter["Y Bounds"].lower() == "true":
-                
                 y_bounds: list = [
                     int(parameter["Y Min"]),
                     int(parameter["Y Max"])]
-                
             else:
-                
                 y_bounds: None = None
-                
             if parameter["Z Bounds"].lower() == "true":
-                
                 z_bounds: list = [
                     int(parameter["Z Min"]),
                     int(parameter["Z Max"])]
-                
             else:
-                
                 z_bounds: None = None
-                
             if parameter["Bounds as Slices"].lower() == "true":
-                
                 bounds_as_slices: bool = True
-                
             else:
-                
                 bounds_as_slices: bool = False
                 
             bounds_dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
@@ -254,53 +205,32 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Padded") == 0:
-            
             print("\nPadding...")
-            
             if parameter["X Bounds"].lower() == "true":
-                
                 x_bounds: list = [
                     int(parameter["X Min"]),
                     int(parameter["X Max"])]
-                
             else:
-                
                 x_bounds: None = None
-                
             if parameter["Y Bounds"].lower() == "true":
-                
                 y_bounds: list = [
                     int(parameter["Y Min"]),
                     int(parameter["Y Max"])]
-                
             else:
-                
                 y_bounds: None = None
-                
             if parameter["Z Bounds"].lower() == "true":
-                
                 z_bounds: list = [
                     int(parameter["Z Min"]),
                     int(parameter["Z Max"])]
-                
             else:
-                
                 z_bounds: None = None
-                
             if parameter["Bounds as Slices"].lower() == "true":
-                
                 bounds_as_slices: bool = True
-                
             else:
-                
                 bounds_as_slices: bool = False
-                
             if np.issubdtype(im_array.dtype, np.floating):
-                
                 padded_color: float = float(parameter["Padded Color"])
-                
             else:
-                
                 padded_color: int = int(parameter["Padded Color"])
                 
             bounds_dict: dict = {"X": x_bounds, "Y": y_bounds, "Z": z_bounds}
@@ -314,15 +244,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Cropped") == 0:
-            
             print("\nCropping...")
-            
             if np.issubdtype(im_array.dtype, np.floating):
-                
                 mask_color: float = float(parameter["Masked Color"])
-                
             else:
-                
                 mask_color: int = int(parameter["Masked Color"])
             
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
@@ -335,7 +260,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Extend") == 0:
-            
             print("\nExtending...")
             im_array = cc.project_mask(
                 im_array,
@@ -349,9 +273,7 @@ def apply_parameters(
         ########################
         
         elif parameter["Name"].find("Resliced") == 0:
-            
             print("\nReslicing...")
-            
             im_array = trans.reslice(
                 im_array,
                 parameter["Orientation"])
@@ -359,77 +281,50 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Rotated") == 0:
-            
             print("\nRotating...")
-            
             if parameter["Resize"].lower() == "true":
-                
                 resize: bool = True
-                
             else:
-                
                 resize: bool = False
-            
             if parameter["Clockwise"].lower() == "true":
-                
                 im_array = trans.rotate(
                     im_array, float(
                         parameter["Angle"]),
                     "CW",
                     resize = resize)
-                
             else:
-                
                 im_array = trans.rotate(
                     im_array,
                     float(
                         parameter["Angle"]),
                     resize = resize)
-            
+                
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Mirrored") == 0:
-            
             print("\nMirroring...")
             im_array = trans.mirror(im_array, int(parameter["Direction"]))
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Resized") == 0:
-            
             print("\nResizing...")
-            
             if int(parameter["X Dim"]) == 0:
-                
                 x_dim: int = util.get_ax_str_dim(im_array, "x")
-                
             else:
-                
                 x_dim: int = int(parameter["X Dim"])
-                
             if int(parameter["Y Dim"]) == 0:
-                
                 y_dim: int = util.get_ax_str_dim(im_array, "y")
-                
             else:
-                
                 y_dim: int = int(parameter["Y Dim"])
-                
             if int(parameter["Z Dim"]) == 0:
-                
                 z_dim: int = util.get_ax_str_dim(im_array, "z")
-                
             else:
-                
                 z_dim: int = int(parameter["Z Dim"])
-                
             if util.is_3d_rgb["3D"]:
-                
                 dims: tuple = (z_dim, y_dim, x_dim)
-                
             else:
-                
                 dims: tuple = (y_dim, x_dim)
                 
             im_array = trans.resize(im_array, dims)
@@ -437,7 +332,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Rescaled") == 0:
-            
             print("\nRescaling...")
             im_array = trans.rescale(im_array, float(parameter["Scale"]))
             parameters_dict[parameter["Name"]] = im_array
@@ -449,15 +343,10 @@ def apply_parameters(
         ######################
         
         elif parameter["Name"].find("Masked") == 0:
-            
             print("\nMasking...")
-            
             if np.issubdtype(im_array.dtype, np.floating):
-                
                 mask_color: float = float(parameter["Masked Color"])
-                
             else:
-                
                 mask_color: int = int(parameter["Masked Color"])
                 
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
@@ -471,7 +360,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Mask Logic") == 0:
-            
             print("\nLogic operation...")
             mask_array: np.ndarray = parameters_dict[parameter["Mask Used"]]
             im_array = cc.mask_logic(
@@ -487,19 +375,12 @@ def apply_parameters(
         ##########################
         
         elif parameter["Name"].find("Converted") == 0:
-            
             print("\nConverting type...")
-            
             if parameter["Auto Normalize"].lower() == "true":
-                
                 auto_normalize: bool = True
-                
             else:
-                
                 auto_normalize: bool = False
-                
             if parameter["Bounds"].lower() == "true":
-                
                 im_array = pixels.convert_im_type(
                     im_array,
                     parameter["Type"],
@@ -507,9 +388,7 @@ def apply_parameters(
                     float_bounds = (
                         float(parameter["Min"]),
                         float(parameter["Max"])))
-                
             else:
-                
                 im_array = pixels.convert_im_type(
                     im_array,
                     parameter["Type"],
@@ -519,27 +398,18 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Normalized") == 0:
-            
             print("\nNormalizing...")
-            
             if parameter["Input Range"].lower() == "true":
-                
                 in_range: tuple = (
                     float(parameter["Input Min"]),
                     float(parameter["Input Max"]))
-                
             else:
-                
                 in_range: str = "image"
-                
             if parameter["Output Range"].lower() == "true":
-                
                 out_range: tuple = (
                     float(parameter["Output Min"]),
                     float(parameter["Output Max"]))
-                
             else:
-                
                 out_range: str = "dtype"
                 
             im_array = pixels.normalize(
@@ -550,32 +420,19 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Saturated") == 0:
-            
             print("\nSaturating...")
-            
             if parameter["Auto Normalize"].lower() == "true":
-                
                 auto_normalize: bool = True
-                
             else:
-                
                 auto_normalize: bool = False
-                
             if parameter["Bounds as Percentages"].lower() == "true":
-                
                 bounds_as_percentages: bool = True
-                
             else:
-                
                 bounds_as_percentages: bool = False
-                
             if bounds_as_percentages and parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             im_array = pixels.saturate(
@@ -590,24 +447,15 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Equalized") == 0:
-            
             print("\nEqualizing...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = pixels.equalize_histogram(
@@ -620,7 +468,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Re-assigned") == 0:
-            
             print("\nRe-assigning...")
             im_array[im_array == float(parameter["Input Intensity"])] = float(
                 parameter["Output Intensity"])
@@ -628,14 +475,12 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Grayscale") == 0:
-            
             print("\nConverting to grayscale...")
             im_array = pixels.rgb_2_gray(im_array)
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Inverted") == 0:
-            
             print("\nInverting...")
             im_array = pixels.invert(im_array)
             parameters_dict[parameter["Name"]] = im_array
@@ -647,15 +492,10 @@ def apply_parameters(
         ########################
         
         elif parameter["Name"].find("Bilateral") == 0:
-            
             print("\nBilateral filter...")
-            
             if int(parameter["Window Size"]) == 0:
-                
                 win_size: None = None
-                
             else:
-                
                 win_size: int = int(parameter["Window Size"])
             
             im_array = denoising.bilateral(
@@ -671,15 +511,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Gaussian") == 0:
-            
             print("\nGaussian blur...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = denoising.gaussian(
@@ -694,15 +529,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Non-Local Means") == 0:
-            
             print("\nNon-local means filter...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = denoising.non_local_means(
@@ -717,7 +547,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Removed Background") == 0:
-            
             print("\nRemoving background...")
             im_array = denoising.remove_background(
                 im_array,
@@ -726,19 +555,13 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Ring Removal") == 0:
-            
             print("\nRemoving rings...")
-            
             if parameter["Sorting"].lower() == "true":
-                
                 sorting: bool = True
-                
             else:
-                
                 sorting: bool = False
                 
             if parameter["Method"] == "FFT":
-                
                 im_array = fourier.fft_ring_removal(
                     im_array,
                     cutoff_freq = int(parameter["FFT Freq Cutoff"]),
@@ -748,7 +571,6 @@ def apply_parameters(
                     square_axis = int(parameter["Square Axis"]))
             
             elif parameter["Method"] == "Wavelet":
-                
                 im_array = fourier.wavelet_ring_removal(
                     im_array,
                     level = int(parameter["Wavelet Level"]),
@@ -761,23 +583,14 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("TV Bregman") == 0:
-            
             print("\nTV Bregman filter...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
-                
             if parameter["Isotropic"].lower() == "true":
-                
                 isotropic: bool = True
-                
             else:
-                
                 isotropic: bool = False
                 
             im_array = denoising.tv_bregman(
@@ -792,15 +605,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("TV Chambolle") == 0:
-            
             print("\nTV Chambolle filter...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = denoising.tv_chambolle(
@@ -814,39 +622,22 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Wavelet") == 0:
-            
             print("\nWavelet filter...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
-                
             if parameter["Rescale Sigma"].lower() == "true":
-                
                 rescale_sigma: bool = True
-                
             else:
-                
                 rescale_sigma: bool = False
-                
             if float(parameter["Sigma"]) == 0:
-                
                 sigma: None = None
-                
             else:
-                
                 sigma: float = float(parameter["Sigma"])
-                
             if int(parameter["Wavelet Levels"]) == 0:
-                
                 wavelet_levels: None = None
-                
             else:
-                
                 wavelet_levels: int = int(parameter["Wavelet Levels"])
                 
             im_array = denoising.wavelet(
@@ -868,7 +659,6 @@ def apply_parameters(
         ###########################
         
         elif parameter["Name"].find("Manual Threshold") == 0:
-            
             print("\nManual thresholding...")
             im_array = thresh.gui_threshold(
                 im_array,
@@ -878,16 +668,11 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Histogram Threshold") == 0:
-            
             print("\nHistogram thresholding...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             im_array = thresh.hist(
@@ -899,24 +684,15 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Local Threshold") == 0:
-            
             print("\nLocal thresholding...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if float(parameter["Sigma Range"]) == 0:
-                
                 r: None = None
-                
             else:
-                
                 r: float = float(parameter["Sigma Range"])
                 
             im_array = thresh.local(
@@ -931,23 +707,14 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Label Segmentation") == 0:
-            
             print("\nConnectivity labeling...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array = parameters_dict[parameter["Mask Used"]]
-                
             else:
-                
                 mask_array = None
-                
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = thresh.label(
@@ -962,23 +729,14 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Watershed") == 0:
-            
             print("\nWatershed labeling...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array = parameters_dict[parameter["Mask Used"]]
-                
             else:
-                
                 mask_array = None
-                
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
             
             im_array = detect.watershed(
@@ -995,7 +753,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Random Walk") == 0:
-            
             print("\nRandom walk thresholding...")
             im_array = detect.random_walk(
                 im_array,
@@ -1007,7 +764,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Morph Snakes") == 0:
-            
             print("\nMorphological snakes thresholding...")
             im_array = detect.morph_snakes(
                 im_array,
@@ -1026,15 +782,10 @@ def apply_parameters(
         #########################
         
         elif parameter["Name"].find("Dilation") == 0:
-            
             print("\nDilating...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = morph.dilation(
@@ -1045,15 +796,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Erosion") == 0:
-            
             print("\nEroding...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = morph.erosion(
@@ -1064,15 +810,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Closing") == 0:
-            
             print("\nClosing...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
             
             im_array = morph.closing(
@@ -1084,15 +825,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Opening") == 0:
-            
             print("\nOpening...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
             
             im_array = morph.opening(
@@ -1104,15 +840,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Top Hat") == 0:
-            
             print("\nTop hat...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
             
             im_array = morph.tophat(
@@ -1130,15 +861,10 @@ def apply_parameters(
         #####################
         
         elif parameter["Name"].find("FFT") == 0:
-            
             print("\nComputing FFT...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = fourier.ft(im_array, along_axis)
@@ -1146,15 +872,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Remove Objects") == 0:
-            
             print("\nRemoving objects...")
-            
             if parameter["Along Axis"].lower() == "true":
-                
                 along_axis: bool = True
-                
             else:
-                
                 along_axis: bool = False
                 
             im_array = morph.remove_objects(
@@ -1170,32 +891,19 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Distance Transform") == 0:
-            
             print("\nComputing distance transform...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if parameter["Round Values"].lower() == "true":
-                
                 round_values: bool = True
-                
             else:
-                
                 round_values: bool = False
-                
             if parameter["Mask Before DT"].lower() == "true":
-                
                 mask_before_dt: bool = True
-                
             else:
-                
                 mask_before_dt: bool = False
                 
             im_array = morph.distance_transform(
@@ -1208,48 +916,27 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Max Inscribed Spheres") == 0:
-            
             print("\nComputing max inscribed spheres...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-            
             if parameter["Smooth"].lower() == "true":
-                
                 smooth: bool = True
-                
             else:
-                
                 smooth: bool = False
-                
             if parameter["ImJ Approx"].lower() == "true":
-                
                 imj_approx: bool = True
-                
             else:
-                
                 imj_approx: bool = False
-                
             if parameter["Mask Before DT"].lower() == "true":
-                
                 mask_before_dt: bool = True
-                
             else:
-                
                 mask_before_dt: bool = False
-                
             if parameter["Return Diameter"].lower() == "true":
-                
                 return_diameter: bool = True
-                
             else:
-                
                 return_diameter: bool = False
                 
             im_array = morph.max_inscribed_spheres(
@@ -1271,23 +958,14 @@ def apply_parameters(
         ######################
         
         elif parameter["Name"].find("Edge Detection") == 0:
-            
             print("\nDetecting edges...")
-            
             if parameter["Slice Wise"].lower() == "true":
-                
                 slice_axis: int = int(parameter["Slice Axis"])
-                
             else:
-                
                 slice_axis: None = None
-                
             if parameter["Filter Along Axis"].lower() == "true":
-                
                 apply_axis: int = int(parameter["Apply Axis"])
-            
             else:
-                
                 apply_axis: None = None
                 
             im_array = detect.edge(
@@ -1305,15 +983,10 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
         
         elif parameter["Name"].find("Corner Detection") == 0:
-            
             print("\nDetecting corners...")
-            
             if parameter["Correct Anomalies"].lower() == "true":
-                
                 correct_anomalies: bool = True
-                
             else:
-                
                 correct_anomalies: bool = False
             
             im_array = detect.corners(
@@ -1331,23 +1004,14 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Ridge Detection") == 0:
-            
             print("\nDetecting ridges...")
-            
             if parameter["Black Ridges"].lower() == "true":
-                
                 black_ridges: bool = True
-                
             else:
-                
                 black_ridges: bool = False
-                
             if float(parameter["Gamma"]) == 0:
-                
                 gamma: None = None
-                
             else:
-                
                 gamma: float = float(parameter["Gamma"])
                 
             im_array = detect.ridges(
@@ -1367,31 +1031,18 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Blob Detection") == 0:
-            
             print("\nDetecting blobs...")
-            
             if float(parameter["Threshold_Rel"]) == 0:
-                
                 threshold_rel: None = None
-                
             else:
-                
                 threshold_rel: float = float(parameter["Threshold_Rel"])
-                
             if parameter["Exclude Border"].lower() == "true":
-                
                 exclude_border: bool = True
-                
             else:
-                
                 exclude_border: bool = False
-                
             if parameter["Log Scale"].lower() == "true":
-                
                 log_scale: bool = True
-                
             else:
-                
                 log_scale: bool = False
                 
             im_array = detect.blobs(
@@ -1410,7 +1061,6 @@ def apply_parameters(
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Skeleton Detection") == 0:
-            
             print("\nDetecting skeleton...")
             im_array = detect.skeleton(
                 im_array,
@@ -1424,16 +1074,11 @@ def apply_parameters(
         ##########################
         
         elif parameter["Name"].find("Calculate Statistics") == 0:
-            
             print("\nCalculating statistics...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             stats_df: pd.DataFrame = quant.global_statistics(
@@ -1443,51 +1088,34 @@ def apply_parameters(
             save_path: str = save_dir + f"/Stats_{stats_index}.csv"
             
             if not os.path.isfile(save_path):
-                
                 stats_df.to_csv(
                     save_path,
                     header = "column_names",
                     index = False)
-                
             else:
-                
                 stats_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
-                
             stats_index += 1
         
         elif parameter["Name"].find("Calculate Bulk Value") == 0:
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if parameter["Include Background"].lower() == "true":
-                
                 include_background: bool = True
-                
             else:
-                
                 include_background: bool = False
-                
             if parameter["Normalize"].lower() == "true":
-                
                 auto_normalize: bool = True
-            
             else:
-                
                 auto_normalize: bool = False
                 
             if parameter["Quantity Measured"] == "Volume":
-                
                 print("\nMeasuring volume...")
                 quantity_df: pd.DataFrame = quant.get_volume(
                     im_array,
@@ -1499,7 +1127,6 @@ def apply_parameters(
                     normalize = auto_normalize)
             
             elif parameter["Quantity Measured"] == "Area":
-                
                 print("\nMeasuring area...")
                 quantity_df: pd.DataFrame = quant.get_area(
                     im_array,
@@ -1511,7 +1138,6 @@ def apply_parameters(
                     normalize = auto_normalize)
                 
             elif parameter["Quantity Measured"] == "Length":
-                
                 print("\nMeasuring length...")
                 quantity_df: pd.DataFrame = quant.get_length(
                     im_array,
@@ -1527,33 +1153,24 @@ def apply_parameters(
             save_path: str = save_dir + f"/Bulk_Value_{quantity_index}.csv"
             
             if not os.path.isfile(save_path):
-                
                 quantity_df.to_csv(
                     save_path,
                     header = "column_names",
                     index = False)
-                
             else:
-                
                 quantity_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
-                
             quantity_index += 1
         
         elif parameter["Name"].find("Calculate Surface Value") == 0:
-            
             print("\nCalculating surface perimeter/area...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             surf_df: pd.DataFrame = quant.get_surface_contact(
@@ -1567,33 +1184,24 @@ def apply_parameters(
             surf_df["Units"] = surf_df.attrs["units"]
             
             if not os.path.isfile(save_path):
-                
                 surf_df.to_csv(
                     save_path,
                     header = "column_names",
                     index = False)
-                
             else:
-                
                 surf_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
-                
             surf_index += 1
         
         elif parameter["Name"].find("Calculate Contact Value") == 0:
-            
             print("\nCalculating contact value...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             cont_df: pd.DataFrame = quant.get_surface_contact(
@@ -1609,30 +1217,27 @@ def apply_parameters(
             cont_df["Units"] = cont_df.attrs["units"]
             
             if not os.path.isfile(save_path):
-                
                 cont_df.to_csv(
                     save_path,
                     header = "column_names",
                     index = False)
-                
             else:
-                
                 cont_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
-                
             cont_index += 1
         
         elif parameter["Name"].find("Calculate Fractal Dimension") == 0:
-            
             print("\nCalculating fractal dimension...")
-            fractal_dim: np.float64 = quant.get_fractal_dimension(
-                im_array, float(parameter["Dimension Scale"]))
+            fractal_dim: np.float64 = quant.estimate_fractal_dimension(
+                im_array,
+                method = parameter["Method"].lower(),
+                rescale_factor = float(parameter["Rescale Factor"]))
             fractal_df: pd.DataFrame = pd.DataFrame(
                 {"Fractal Dimension": np.array([fractal_dim]),
-                 "Dimension Scale": np.array([float(parameter["Dimension Scale"])])})
+                 "Rescale Factor": np.array([float(parameter["Rescale Factor"])])})
             save_path: str = save_dir + f"/Fractal_Dimension_{frac_index1}.csv"
             fractal_df.insert(0, "File Name", file_name)
             
@@ -1641,14 +1246,12 @@ def apply_parameters(
                     save_path,
                     header = "column_names",
                     index = False)
-                
             else:
                 fractal_df.to_csv(
                     save_path,
                     mode = "a",
                     header = False,
                     index = False)
-                
             frac_index1 += 1
             
         
@@ -1657,58 +1260,33 @@ def apply_parameters(
         ###################
         
         elif parameter["Name"].find("Histogram Plot") == 0:
-            
             print("\nGenerating histogram...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if float(parameter["X Max"]) == 0:
-                
                 x_lims: None = None
-                
             else:
-                
                 x_lims: tuple = (
                     float(parameter["X Min"]),
                     float(parameter["X Max"]))
-                
             if float(parameter["Y Max"]) == 0:
-                
                 y_lims: None = None
-                
             else:
-                
                 y_lims: tuple = (0, float(parameter["Y Max"]))
-                
             if parameter["Remove Edges"].lower() == "true":
-                
                 ignore_edges: bool = True
-                
             else:
-                
                 ignore_edges: bool = False
-                
             if parameter["Normalize"].lower() == "true":
-                
                 normalize: bool = True
-                
             else:
-                
                 normalize: bool = False
-                
             if int(parameter["Num Bins"]) == 0:
-                
                 nbins: None = None
-                
             else:
-                
                 nbins: int = int(parameter["Num Bins"])
                 
             fig, hist_ax = plt.subplots(layout = "constrained")
@@ -1724,7 +1302,6 @@ def apply_parameters(
                 nbins = nbins)
             
             if parameter["Add CDF"].lower() == "true":
-                
                 cdf_ax: plt.Axes = hist_ax.twinx()
                 cdf_ax = plots.cdf_axis(
                     im_array,
@@ -1745,16 +1322,11 @@ def apply_parameters(
             hist_index += 1
         
         elif parameter["Name"].find("Gray Level Plot") == 0:
-            
             print("\nGenerating gray levels plot...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
                 
             fig = plots.gray_level(im_array, mask_array = mask_array)
@@ -1766,71 +1338,42 @@ def apply_parameters(
             gray_index += 1
         
         elif parameter["Name"].find("Axis Distribution Plot") == 0:
-            
             print("\nGenerating axial distribution...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if float(parameter["X Max"]) == 0:
-                
                 x_lims: None = None
-                
             else:
-                
                 x_lims: tuple = (
                     float(parameter["X Min"]),
                     float(parameter["X Max"]))
-                
             if float(parameter["Y Max"]) == 0:
-                
                 y_lims: None = None
-                
             else:
-                
                 y_lims: tuple = (0, float(parameter["Y Max"]))
-                
             if parameter["Remove Edges"].lower() == "true":
-                
                 ignore_edges: bool = True
-                
             else:
-                
                 ignore_edges: bool = False
-                
             if parameter["Normalize"].lower() == "true":
-                
                 normalize: bool = True
-                
             else:
-                
                 normalize: bool = False
-                
             if parameter["Include Background"].lower() == "true":
-                
                 include_background: bool = True
-                
             else:
-                
                 include_background: bool = False
-                
             mode: str = "phase distrib"
             distrib_mode: str = parameter["Type"]
                 
             if parameter["Time Series"].lower() == "true":
-                
                 mode: str = "time series"
                 temporal_scale = parameter["Time Scale"]
                 temporal_units = parameter["Time Units"]
-                    
             else:
-                
                 temporal_scale = None
                 temporal_units = None
             
@@ -1859,83 +1402,48 @@ def apply_parameters(
             plt.close(fig)
             
             if parameter["Export Data"].lower() == "true":
-                
                 line_df.to_csv(
                     f"{save_dir}/{file_name}_axial_distribution_{axis_dist_index}.csv",
                     header = "column names",
                     index = False)
-                
             axis_dist_index += 1
         
         elif parameter["Name"].find("Domain Size Distribution Plot") == 0:
-            
             print("\nGenerating domain size distribution...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-                
             if float(parameter["X Max"]) == 0:
-                
                 x_lims: None = None
-                
             else:
-                
                 x_lims: tuple = (
                     float(parameter["X Min"]),
                     float(parameter["X Max"]))
-                
             if float(parameter["Y Max"]) == 0:
-                
                 y_lims: None = None
-                
             else:
-                
                 y_lims: tuple = (0, float(parameter["Y Max"]))
-                
             if parameter["Remove Edges"].lower() == "true":
-                
                 ignore_edges: bool = True
-                
             else:
-                
                 ignore_edges: bool = False
-                
             if parameter["Normalize"].lower() == "true":
-                
                 normalize: bool = True
-                
             else:
-                
                 normalize: bool = False
-                
             if int(parameter["Num Bins"]) == 0:
-                
                 nbins: None = None
-                
             else:
-                
                 nbins: int = int(parameter["Num Bins"])
-                
             if float(parameter["Max Bound"]) == 0:
-                
                 max_bound: None = None
-                
             else:
-                
                 max_bound: float = float(parameter["Max Bound"])
-                
             if parameter["Alternate X Label"].lower() == "true":
-                
                 x_label: str = parameter["X Label"]
-                
             else:
-                
                 x_label: None = None
             
             fig, psd_df, hist_stats_df = plots.size_distribution(
@@ -1969,42 +1477,27 @@ def apply_parameters(
                     f"{save_dir}/{file_name}_size_distribution_stats_{psd_index}.csv",
                     header = "column names",
                     index = False)
-            
             psd_index += 1
         
         elif parameter["Name"].find("Heat Map") == 0:
-            
             print("\nGenerating heat map...")
-            
             if parameter["Apply Mask"].lower() == "true":
-                
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
-                
             else:
-                
                 mask_array: None = None
-            
             if parameter["Alternate Colorbar Label"].lower() == "true":
-                
                 colorbar_label: str = parameter["Colorbar Label"]
-                
             else:
-                
                 colorbar_label: None = None
-                
             if parameter["Define Limits"].lower() == "true":
-                
                 clim: tuple = (
                     float(parameter["Min Value"]),
                     float(parameter["Max Value"]))
-                
             else:
-                
                 clim: None = None
                 
             if parameter["Return Array"].lower() == "true":
-                
                 fig, im_array = plots.heat_map(
                     im_array,
                     mode = parameter["Method"],
@@ -2021,7 +1514,6 @@ def apply_parameters(
                 last_image_name: str = parameter["Name"]
             
             else:
-                
                 fig = plots.heat_map(
                     im_array,
                     mode = parameter["Method"],
@@ -2039,7 +1531,6 @@ def apply_parameters(
             heat_index += 1
             
         elif parameter["Name"].find("Fractal Distribution") == 0:
-            
             if float(parameter["Lower Bound"]) == 0 or float(parameter["Upper Bound"]) == 0: 
                 bounds: None = None
             else:
@@ -2059,6 +1550,7 @@ def apply_parameters(
                 units = parameter["Units"],
                 bounds = bounds,
                 nbins = int(parameter["Num Bins"]),
+                rescale_factor = float(parameter["Rescale Factor"]),
                 xlims = xlims,
                 ylims = ylims,
                 return_df = True)
@@ -2073,7 +1565,6 @@ def apply_parameters(
                     f"{save_dir}/{file_name}_fractal_dimension_plot_{frac_index2}.csv",
                     header = "column names",
                     index = False)
-                
             frac_index2 += 1
             
             
@@ -2082,34 +1573,25 @@ def apply_parameters(
         ########################
         
         elif parameter["Name"].find("Labels to Image") == 0:
-            
             print("\nConverting labels to image...")
             im_array = pixels.labels_2_rgb(im_array)
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
         elif parameter["Name"].find("Image to Labels") == 0:
-            
             print("\nConverting image to labels...")
-            
             if parameter["Gradient"].lower() == "true":
-                
                 im_array = thresh.create_axial_labels(
                     im_array,
                     int(parameter["Gradient Axis"]))
-                
                 if parameter["Define Limits"].lower() == "true":
-                    
                     lab_limits: tuple = (
                         float(parameter["Min Value"]),
                         float(parameter["Max Value"]))
-                    
                 else:
-                    
                     lab_limits: tuple = (
                         (np.unique(im_array)[0] * float(parameter["Pixel Scale"])),
                         (np.unique(im_array)[-1] * float(parameter["Pixel Scale"])))
-                    
                 cmap, cbar = util.get_colormap(
                     im_array,
                     lab_limits = lab_limits, 
@@ -2117,9 +1599,7 @@ def apply_parameters(
                     cbar_scale = float(parameter["Pixel Scale"]),
                     cbar_units = parameter["Units"],
                     cbar_label = parameter["Colorbar Label"])
-                
             else:
-                
                 cmap: None = None
                 
             cmaps[parameter["Name"]] = cmap
@@ -2138,12 +1618,9 @@ def main(im_format: str = "Stacks",
          copy_parameters: bool = True) -> None:
     
     if stack_format == "Sequence":
-        
         title: str = "Select image folder(s)"
         directories: bool = True
-        
     else:
-        
         title: str = "Select image file(s)"
         directories: bool = False
     
@@ -2158,7 +1635,6 @@ def main(im_format: str = "Stacks",
     batch_start: float = timer()
     
     if copy_parameters:
-        
         os.mkdir(save_dir + "/Parameters")
         shutil.copytree(
             parameters_path,
@@ -2166,26 +1642,19 @@ def main(im_format: str = "Stacks",
             dirs_exist_ok = True)
         
     for index, im_path in enumerate(im_list, 1):
-        
         cur_start: float = timer()
         print(f"\nImporting dataset {index} of {len(im_list)}...")
         
         if rw.get_ext(im_path) == "directory":
-            
             file_name: str = im_path[
                 (im_path.rfind("/") + 1):]
-            
         else:
-            
             file_name: str = im_path[
                 (im_path.rfind("/") + 1):im_path.rfind(".")]
         
         if im_format == "Stacks":
-            
             im_array: np.ndarray = rw.read_stack(im_path)
-        
         elif im_format == "Singles":
-            
             im_array: np.ndarray = rw.read_im(im_path)
         
         save_name: str = f"{file_name}_PyDoug"
@@ -2196,17 +1665,13 @@ def main(im_format: str = "Stacks",
             save_dir)
         
         if export_images:
-        
             if im_format == "Stacks":
-                
                 rw.write_stack(
                     im_array,
                     save_dir,
                     save_name,
                     multi_page = export_multi_page)
-            
             elif im_format == "Singles":
-                
                 rw.write_im(im_array, save_dir, save_name)
                 
         cur_end: float = timer()
@@ -2217,5 +1682,4 @@ def main(im_format: str = "Stacks",
     
 
 if __name__ == "__main__":
-    
     main()

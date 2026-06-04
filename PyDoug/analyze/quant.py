@@ -12,7 +12,7 @@ from porespy import metrics
 from typing import Callable
 
 from PyDoug.analyze import distrib
-from PyDoug.proc import cropclip as cc, util, denoising
+from PyDoug.proc import cropclip as cc, util, denoising, trans, thresh
 
 
 # Functions
@@ -414,10 +414,10 @@ def get_volume(
         units: str = "pix",
         include_background: bool = False,
         background: float | int = 0,
-        normalize: bool = False) -> pd.DataFrame:
+        normalize: bool = False,
+        print_results: bool = True) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     count_array = __vol_area_precondition(
@@ -426,36 +426,26 @@ def get_volume(
         include_background = include_background,
         background = background,
         normalize = normalize)
-    
     if not normalize:
-        
         count_array[1:, :] = count_array[1:, :] * (scale ** 3)
-        
     vol_df: pd.DataFrame = pd.DataFrame(
         count_array[1:, :],
         columns = count_array[0, :])
     
     if not normalize:
-        
         vol_df.attrs = {"units": f"{units}\u00b3"}
-        
     else:
-        
         vol_df.attrs = {"units": "dimensionless"}
     
-    if normalize:
-        
-        for col in vol_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {vol_df[col][0]}")
-    
-    else:
-    
-        for col in vol_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {vol_df[col][0]} {vol_df.attrs["units"]}")
+    if print_results:
+        if normalize:
+            for col in vol_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {vol_df[col][0]}")
+        else:
+            for col in vol_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {vol_df[col][0]} {vol_df.attrs["units"]}")
     
     return vol_df
 
@@ -466,10 +456,10 @@ def get_area(
         units: str = "pix",
         include_background: bool = False,
         background: float | int = 0,
-        normalize: bool = False) -> pd.DataFrame:
+        normalize: bool = False,
+        print_results: bool = False) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     count_array = __vol_area_precondition(
@@ -478,36 +468,25 @@ def get_area(
         include_background = include_background,
         background = background,
         normalize = normalize)
-    
     if not normalize:
-        
         count_array[1:, :] = count_array[1:, :] * (scale ** 2)
-        
     area_df: pd.DataFrame = pd.DataFrame(
         count_array[1:, :],
         columns = count_array[0, :])
-    
     if not normalize:
-        
         area_df.attrs = {"units": f"{units}\u00b2"}
-        
     else:
-        
         area_df.attrs = {"units": "dimensionless"}
     
-    if normalize:
-        
-        for col in area_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {area_df[col][0]}")
-    
-    else:
-    
-        for col in area_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
+    if print_results:
+        if normalize:
+            for col in area_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {area_df[col][0]}")
+        else:
+            for col in area_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {area_df[col][0]} {area_df.attrs["units"]}")
     
     return area_df
 
@@ -518,10 +497,10 @@ def get_length(
         units: str = "pix",
         include_background: bool = False,
         background: float | int = 0,
-        normalize: bool = False) -> pd.DataFrame:
+        normalize: bool = False,
+        print_results: bool = False) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     count_array = __vol_area_precondition(
@@ -530,36 +509,25 @@ def get_length(
         include_background = include_background,
         background = background,
         normalize = normalize)
-    
     if not normalize:
-        
         count_array[1:, :] = count_array[1:, :] * scale
-        
     length_df: pd.DataFrame = pd.DataFrame(
         count_array[1:, :],
         columns = count_array[0, :])
-    
     if not normalize:
-        
         length_df.attrs = {"units": f"{units}"}
-        
     else:
-        
         length_df.attrs = {"units": "dimensionless"}
     
-    if normalize:
-        
-        for col in length_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {length_df[col][0]}")
-    
-    else:
-    
-        for col in length_df:
-            
-            current_str: str = str(col) + ":"
-            print(f"\n{current_str:<16} {length_df[col][0]} {length_df.attrs["units"]}")
+    if print_results:
+        if normalize:
+            for col in length_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {length_df[col][0]}")
+        else:
+            for col in length_df:
+                current_str: str = str(col) + ":"
+                print(f"\n{current_str:<16} {length_df[col][0]} {length_df.attrs["units"]}")
     
     return length_df
 
@@ -570,35 +538,25 @@ def get_contact(
         return_mode: str = "count") -> int:
     
     if phase_ints == None:
-        
         max_array: np.ndarray = im_array == np.max(im_array)
         min_array: np.ndarray = im_array != np.max(im_array)
-        
     elif not isinstance(phase_ints, tuple):
-        
         max_array: np.ndarray = im_array == phase_ints
         min_array: np.ndarray = im_array != phase_ints
-        
     else:
-        
         max_array: np.ndarray = im_array == max(phase_ints)
         min_array: np.ndarray = im_array == min(phase_ints)
         
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
-        
         max_array[np.logical_not(mask_array)] = False
         min_array[np.logical_not(mask_array)] = False
         
     if return_mode == "array":
-        
         contact_array: np.ndarray = np.zeros(im_array.shape, "uint8")
     
     if im_array.ndim == 3:
-        
         zer_insert: np.ndarray = np.zeros(
             (1, im_array.shape[1], im_array.shape[2]), np.bool)
         one_insert: np.ndarray = np.zeros(
@@ -642,7 +600,6 @@ def get_contact(
             max_array & offset_min_two_end)
         
         if return_mode == "array":
-            
             contact_array[max_array & offset_min_zer_beg] = 255
             contact_array[max_array & offset_min_zer_end] = 255
             contact_array[max_array & offset_min_one_beg] = 255
@@ -651,7 +608,6 @@ def get_contact(
             contact_array[max_array & offset_min_two_end] = 255
     
     elif im_array.ndim == 2:
-        
         zer_insert: np.ndarray = np.zeros(
             (1, im_array.shape[1]), np.bool)
         one_insert: np.ndarray = np.zeros(
@@ -682,18 +638,14 @@ def get_contact(
             max_array & offset_min_one_end)
         
         if return_mode == "array":
-            
             contact_array[max_array & offset_min_zer_beg] = 255
             contact_array[max_array & offset_min_zer_end] = 255
             contact_array[max_array & offset_min_one_beg] = 255
             contact_array[max_array & offset_min_one_end] = 255
         
     if return_mode == "count":
-        
         return contact_count
-    
     elif return_mode == "array":
-        
         return contact_array
 
 def get_surface_contact(
@@ -701,10 +653,10 @@ def get_surface_contact(
         pixel_size: float = 1.0,
         units: str = "pix",
         correct_overestimation: bool = True,
-        mask_array: np.ndarray = None) -> pd.DataFrame:
+        mask_array: np.ndarray = None,
+        print_results: bool = True) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     contact_counts: int = get_contact(
@@ -719,71 +671,88 @@ def get_surface_contact(
             contact_counts *= (math.pi / 4)
     
     if phase_ints == None:
-        
         phase_ints = (np.max(im_array))
-        
     elif not isinstance(phase_ints, tuple):
-        
         phase_ints = (phase_ints)
     
     if util.is_3d_rgb(im_array)["3D"]:
-        
         if not isinstance(phase_ints, tuple):
-            
             column_header: str = "Surface Area"
-            
         else:
-            
             column_header: str = "Contact Area"
-        
         contact_df: pd.DataFrame = pd.DataFrame(
             {"Gray Value": [str(phase_ints)],
              column_header: [contact_counts * (pixel_size ** 2)]})
         contact_df.attrs = {"units": f"{units}\u00b2"}
-    
     else:
-        
         if not isinstance(phase_ints, tuple):
-            
             column_header: str = "Surface Perimeter"
-            
         else:
-            
             column_header: str = "Contact Perimeter"
-        
         contact_df: pd.DataFrame = pd.DataFrame(
             {"Gray Value": [str(phase_ints)], 
              column_header: [contact_counts * pixel_size]})
         contact_df.attrs = {"units": units}
         
-    print_str: str = str(contact_df.loc[0]["Gray Value"]) + ":"
-    print(f"\n{print_str:<16} {contact_df.loc[0][column_header]} {contact_df.attrs["units"]}")
+    if print_results:
+        print_str: str = str(contact_df.loc[0]["Gray Value"]) + ":"
+        print(f"\n{print_str:<16} {contact_df.loc[0][column_header]} {contact_df.attrs["units"]}")
     
     return contact_df
 
-def get_fractal_dimension(
-        im_array: np.ndarray,
-        dimension_scale: float = 10) -> np.float64:
+def estimate_fractal_dimension(
+        im_array: np.ndarray, *,
+        method: str = "bulk",
+        rescale_factor: float = 2,
+        print_results: bool = True) -> np.float64:
     
-    if dimension_scale < 1:
-        dimension_scale = 1
-    fractal_distrib: metrics.Results = metrics.boxcount(
-        im_array,
-        np.logspace(
-            math.log10(dimension_scale), math.log10(dimension_scale * 10), 2)
-    )
-    print_str: str = "Fractal Dim."
+    print_str: str = "Fractal Dim.:"
     if im_array.ndim == 3:
         print_str2: str = "voxel"
     else:
         print_str2: str = "pixel"
-    print(f"\n{print_str:<16} {fractal_distrib.slope[0]:.2f} @ {dimension_scale}x {print_str2} size")
-    return fractal_distrib.slope[0]
+    if rescale_factor < 2:
+        rescale_factor = 2
+    
+    # Using D = log[N1/N2] / log[r] (Hausdorff dimension)
+    # D = fractal dim, N = no. of counted units, r = rescale factor between states
+    res_array: np.ndarray = trans.rescale(np.bool(im_array), 1 / rescale_factor)
+    if method == "bulk":
+        if im_array.ndim == 2:
+            L1_df: pd.DataFrame = get_area(
+                np.bool(im_array),
+                print_results = False)
+            L2_df: pd.DataFrame = get_area(
+                res_array,
+                print_results = False)
+        else:
+            L1_df: pd.DataFrame = get_volume(
+                np.bool(im_array),
+                print_results = False)
+            L2_df: pd.DataFrame = get_volume(
+                res_array,
+                print_results = False)
+        L1: float = L1_df[L1_df.columns[0]][0]
+        L2: float = L2_df[L2_df.columns[0]][0]
+    elif method == "surface":
+        L1_df: pd.DataFrame = get_surface_contact(
+            np.bool(im_array),
+            print_results = False)
+        L2_df: pd.DataFrame = get_surface_contact(
+            res_array,
+            print_results = False)
+        L1: float = L1_df[L1_df.columns[1]][0]
+        L2: float = L2_df[L2_df.columns[1]][0]
+    D: float = math.log10(L1 / L2) / math.log10(rescale_factor)
+    
+    if print_results:
+        print(f"\n{print_str:<16} {D:.2f} @ {rescale_factor}x {print_str2} size")
+    return D
+
 
 # Main
 
 def main() -> None:
-    
     pass
 
 if __name__ == "__main__":

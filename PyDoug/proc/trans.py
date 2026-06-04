@@ -118,16 +118,23 @@ def rescale(im_array: np.ndarray, scale: float) -> np.ndarray:
     
         if 1 > scale > 0:
             
-            return pixels.convert_im_type(transform.rescale(im_array, scale,
-                                                            anti_aliasing = True,
-                                                            channel_axis = channel_axis),
-                                          im_array.dtype)
+            if im_array.dtype != "bool":
+                return pixels.convert_im_type(
+                    transform.rescale(
+                        im_array, scale, anti_aliasing = True, channel_axis = channel_axis),
+                    im_array.dtype)
+            else:
+                return pixels.convert_im_type(
+                    transform.rescale(
+                        im_array, scale, channel_axis = channel_axis),
+                    im_array.dtype)
         
         elif scale > 1:
             
-            return pixels.convert_im_type(transform.rescale(im_array, scale,
-                                                            channel_axis = channel_axis),
-                                          im_array.dtype)
+            return pixels.convert_im_type(
+                transform.rescale(
+                    im_array, scale, channel_axis = channel_axis),
+                im_array.dtype)
         
 def resize(im_array: np.ndarray, out_shape: tuple) -> np.ndarray:
     

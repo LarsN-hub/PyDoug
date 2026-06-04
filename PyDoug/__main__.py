@@ -2682,10 +2682,12 @@ class ImageProcessor:
             correct_overestimation = Correct_Overestimation)
     
     @magicgui(
+        Method = {"choices": ["Bulk", "Surface"]},
         call_button = "Calculate Fractal Dimension")
     def calc_fractal_dimension_widget(self,
             Image: napari.layers.Image,
-            Dimension_Scale: float = 10,
+            Method: str = "Bulk",
+            Rescale_Factor: float = 2,
             Add_as_Parameter: bool = False) -> None:
         
         if Add_as_Parameter:
@@ -2695,9 +2697,13 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
-                 "Dimension Scale": Dimension_Scale})
+                 "Method": Method.lower(),
+                 "Rescale Factor": Rescale_Factor})
         
-        _ = quant.get_fractal_dimension(Image.data, Dimension_Scale)
+        _ = quant.estimate_fractal_dimension(
+            Image.data,
+            method = Method.lower(),
+            rescale_factor = Rescale_Factor)
 
     #################
     # Plots Widgets #
@@ -3159,15 +3165,18 @@ class ImageProcessor:
         plt.show(block = False)
         
     @magicgui(
+        Method = {"choices": ["Bulk", "Surface"]},
         Save_Folder = {"mode": "d"},
         call_button = "Plot Fractal Dimension")
     def fractal_distribution_widget(self,
             Image: napari.layers.Image,
+            Method: str = "Bulk",
             Lower_Bound: float = 0,
             Upper_Bound: float = 0,
             Num_Bins: int = 10,
             Pixel_Scale: float = 1,
             Units: str = "pixels",
+            Rescale_Factor: float = 2,
             X_Min: float = 0,
             X_Max: float = 0,
             Y_Min: float = 0,
@@ -3197,11 +3206,13 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
+                 "Method": Method.lower(),
                  "Lower Bound": Lower_Bound,
                  "Upper Bound": Upper_Bound,
                  "Num Bins": Num_Bins,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
+                 "Rescale Factor": Rescale_Factor,
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Min": Y_Min,
@@ -3210,10 +3221,12 @@ class ImageProcessor:
         
         _, fd_df = plots.fractal_dimension_plot(
             Image.data,
+            method = Method.lower(),
             pixel_size = Pixel_Scale,
             units = Units,
             bounds = bounds,
             nbins = Num_Bins,
+            rescale_factor = Rescale_Factor,
             xlims = xlims,
             ylims = ylims,
             return_df = True)
@@ -3728,5 +3741,4 @@ def main() -> napari.viewer.Viewer:
     return viewer
     
 if __name__ == "__main__":
-    
     main()
