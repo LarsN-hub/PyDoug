@@ -702,7 +702,7 @@ def get_surface_contact(
 
 def estimate_fractal_dimension(
         im_array: np.ndarray, *,
-        method: str = "bulk",
+        metric: str = "bulk",
         rescale_factor: float = 2,
         print_results: bool = True) -> np.float64:
     
@@ -717,7 +717,7 @@ def estimate_fractal_dimension(
     # Using D = log[N1/N2] / log[r] (Hausdorff dimension)
     # D = fractal dim, N = no. of counted units, r = rescale factor between states
     res_array: np.ndarray = trans.rescale(np.bool(im_array), 1 / rescale_factor)
-    if method == "bulk":
+    if metric == "bulk":
         if im_array.ndim == 2:
             L1_df: pd.DataFrame = get_area(
                 np.bool(im_array),
@@ -734,7 +734,7 @@ def estimate_fractal_dimension(
                 print_results = False)
         L1: float = L1_df[L1_df.columns[0]][0]
         L2: float = L2_df[L2_df.columns[0]][0]
-    elif method == "surface":
+    elif metric == "surface":
         L1_df: pd.DataFrame = get_surface_contact(
             np.bool(im_array),
             print_results = False)

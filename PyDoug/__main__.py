@@ -102,15 +102,15 @@ class ImageProcessor:
         self.heat_map_widget.Max_Value.native.setDecimals(3)
         self.heat_map_widget.Max_Value.step = 0.001
         self.heat_map_widget.Max_Value.value = 0
-        self.fractal_distribution_widget.Pixel_Scale.native.setDecimals(3)
-        self.fractal_distribution_widget.Pixel_Scale.step = 0.001
-        self.fractal_distribution_widget.Pixel_Scale.value = 1
-        self.fractal_distribution_widget.Lower_Bound.native.setDecimals(3)
-        self.fractal_distribution_widget.Lower_Bound.step = 0.001
-        self.fractal_distribution_widget.Lower_Bound.value = 0
-        self.fractal_distribution_widget.Upper_Bound.native.setDecimals(3)
-        self.fractal_distribution_widget.Upper_Bound.step = 0.001
-        self.fractal_distribution_widget.Upper_Bound.value = 0
+        self.resolution_dependence_widget.Pixel_Scale.native.setDecimals(3)
+        self.resolution_dependence_widget.Pixel_Scale.step = 0.001
+        self.resolution_dependence_widget.Pixel_Scale.value = 1
+        self.resolution_dependence_widget.Lower_Bound.native.setDecimals(3)
+        self.resolution_dependence_widget.Lower_Bound.step = 0.001
+        self.resolution_dependence_widget.Lower_Bound.value = 0
+        self.resolution_dependence_widget.Upper_Bound.native.setDecimals(3)
+        self.resolution_dependence_widget.Upper_Bound.step = 0.001
+        self.resolution_dependence_widget.Upper_Bound.value = 0
         self.image_2_labels_widget.Min_Value.native.setDecimals(3)
         self.image_2_labels_widget.Min_Value.step = 0.001
         self.image_2_labels_widget.Min_Value.value = 0
@@ -2682,11 +2682,11 @@ class ImageProcessor:
             correct_overestimation = Correct_Overestimation)
     
     @magicgui(
-        Method = {"choices": ["Bulk", "Surface"]},
+        Metric = {"choices": ["Bulk", "Surface"]},
         call_button = "Calculate Fractal Dimension")
     def calc_fractal_dimension_widget(self,
             Image: napari.layers.Image,
-            Method: str = "Bulk",
+            Metric: str = "Bulk",
             Rescale_Factor: float = 2,
             Add_as_Parameter: bool = False) -> None:
         
@@ -2697,12 +2697,12 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
-                 "Method": Method.lower(),
+                 "Metric": Metric.lower(),
                  "Rescale Factor": Rescale_Factor})
         
         _ = quant.estimate_fractal_dimension(
             Image.data,
-            method = Method.lower(),
+            metric = Metric.lower(),
             rescale_factor = Rescale_Factor)
 
     #################
@@ -3165,15 +3165,16 @@ class ImageProcessor:
         plt.show(block = False)
         
     @magicgui(
-        Method = {"choices": ["Bulk", "Surface"]},
+        Metric = {"choices": ["Bulk", "Surface"]},
         Save_Folder = {"mode": "d"},
-        call_button = "Plot Fractal Dimension")
-    def fractal_distribution_widget(self,
+        call_button = "Plot Resolution Dependence")
+    def resolution_dependence_widget(self,
             Image: napari.layers.Image,
-            Method: str = "Bulk",
+            Metric: str = "Bulk",
+            Estimate_Fractal: bool = False,
             Lower_Bound: float = 0,
             Upper_Bound: float = 0,
-            Num_Bins: int = 10,
+            Num_Points: int = 10,
             Pixel_Scale: float = 1,
             Units: str = "pixels",
             Rescale_Factor: float = 2,
@@ -3201,15 +3202,16 @@ class ImageProcessor:
             
         if Add_as_Parameter:
             param_layer_name = get_param_layer_name(
-                "Fractal Distribution",
+                "Resolution Dependence",
                 self.operation_count)
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
-                 "Method": Method.lower(),
+                 "Metric": Metric.lower(),
+                 "Estimate Fractal": Estimate_Fractal,
                  "Lower Bound": Lower_Bound,
                  "Upper Bound": Upper_Bound,
-                 "Num Bins": Num_Bins,
+                 "Num Points": Num_Points,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
                  "Rescale Factor": Rescale_Factor,
@@ -3219,13 +3221,14 @@ class ImageProcessor:
                  "Y Max": Y_Max,
                  "Export Data": Export_Data})
         
-        _, fd_df = plots.fractal_dimension_plot(
+        _, res_dep_df = plots.resolution_dependence_plot(
             Image.data,
-            method = Method.lower(),
+            metric = Metric.lower(),
+            estimate_fractal = Estimate_Fractal,
             pixel_size = Pixel_Scale,
             units = Units,
             bounds = bounds,
-            nbins = Num_Bins,
+            num_points = Num_Points,
             rescale_factor = Rescale_Factor,
             xlims = xlims,
             ylims = ylims,
@@ -3233,7 +3236,7 @@ class ImageProcessor:
         plt.show(block = False)
         
         if Export_Data:
-            fd_df.to_csv(
+            res_dep_df.to_csv(
                 f"{str(Save_Folder)}/{Save_Name}.csv",
                 header = "column names",
                 index = False)
@@ -3702,8 +3705,8 @@ def main() -> napari.viewer.Viewer:
         ui.psd_widget, "Domain Size Distribution")
     mod_heat_map: widgets.Container = modify_funcgui(
         ui.heat_map_widget, "Heat Maps")
-    mod_fractal_distribution: widgets.Container = modify_funcgui(
-        ui.fractal_distribution_widget, "Fractal Dimension")
+    mod_resolution_dependence: widgets.Container = modify_funcgui(
+        ui.resolution_dependence_widget, "Resolution Dependence")
     plots_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [
             mod_histogram,
@@ -3712,7 +3715,7 @@ def main() -> napari.viewer.Viewer:
             mod_axis_distribution,
             mod_psd,
             mod_heat_map,
-            mod_fractal_distribution],
+            mod_resolution_dependence],
         labels = False)
     tabs.addTab(plots_container.native, "Plots")
     

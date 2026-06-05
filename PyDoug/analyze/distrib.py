@@ -713,13 +713,14 @@ def get_heat_map(
                 
         return heat_array * pixel_size
     
-def get_fractal_distrib(
+def get_resolution_dependence(
         im_array: np.ndarray, *,
-        method: str = "bulk",
+        metric: str = "bulk",
+        estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
-        nbins: int = 10,
+        num_points: int = 10,
         rescale_factor: float = 2) -> pd.DataFrame:
     
     if units == "um":
@@ -732,25 +733,52 @@ def get_fractal_distrib(
     pixel_sizes: np.array = np.logspace(
         math.log10(bounds[0]),
         math.log10(bounds[1]),
-        nbins)
-    fractal_dims: np.ndarray = np.zeros(len(pixel_sizes), np.float64)
+        num_points)
+    return_values: np.ndarray = np.zeros(len(pixel_sizes), np.float64)
+    
     for index, current_size in enumerate(pixel_sizes):
         res_array: np.ndarray = trans.rescale(
-            im_array,
+            np.bool(im_array),
             pixel_size / current_size)
-        fractal_dims[index] = quant.estimate_fractal_dimension(
-            res_array,
-            method = method,
-            rescale_factor = current_size / pixel_size,
-            print_results = False)
-    fd_df: pd.DataFrame = pd.DataFrame(
+        
+        if estimate_fractal:
+            return_values[index] = quant.estimate_fractal_dimension(
+                res_array,
+                metric = metric,
+                rescale_factor = current_size / pixel_size,
+                print_results = False)
+            
+        else:
+            if metric == "bulk":
+                if im_array.ndim == 2:
+                    bulk_df: pd.DataFrame = quant.get_area(
+                        res_array,
+                        scale = current_size,
+                        units = units,
+                        print_results = False)
+                else:
+                    bulk_df: pd.DataFrame = quant.get_volume(
+                        res_array,
+                        scale = current_size,
+                        units = units,
+                        print_results = False)
+                return_values[index] = bulk_df[bulk_df.columns[0]][0]
+            elif metric == "surface":
+                surf_df: pd.DataFrame = quant.get_surface_contact(
+                    res_array,
+                    pixel_size = current_size,
+                    units = units,
+                    print_results = False)
+                return_values[index] = surf_df[surf_df.columns[1]][0]
+                
+    out_df: pd.DataFrame = pd.DataFrame(
         np.concat(
             (np.expand_dims(pixel_sizes, 1),
-             np.expand_dims(fractal_dims, 1)),
+             np.expand_dims(return_values, 1)),
             1),
-        columns = ["Pixel Size", "Fractal Dimension"])
-    fd_df.attrs["units"] = units
-    return fd_df
+        columns = ["Pixel Size", "Measured Value"])
+    out_df.attrs["units"] = units
+    return out_df
 
 
 # Main

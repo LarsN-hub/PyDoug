@@ -67,8 +67,8 @@ def apply_parameters(
     quantity_index: int = 0
     surf_index: int = 0
     cont_index: int = 0
-    frac_index1: int = 0
-    frac_index2: int = 0
+    frac_index: int = 0
+    res_index: int = 0
     hist_index: int = 0
     gray_index: int = 0
     axis_dist_index: int = 0
@@ -1233,12 +1233,12 @@ def apply_parameters(
             print("\nCalculating fractal dimension...")
             fractal_dim: np.float64 = quant.estimate_fractal_dimension(
                 im_array,
-                method = parameter["Method"].lower(),
+                metric = parameter["Metric"].lower(),
                 rescale_factor = float(parameter["Rescale Factor"]))
             fractal_df: pd.DataFrame = pd.DataFrame(
                 {"Fractal Dimension": np.array([fractal_dim]),
                  "Rescale Factor": np.array([float(parameter["Rescale Factor"])])})
-            save_path: str = save_dir + f"/Fractal_Dimension_{frac_index1}.csv"
+            save_path: str = save_dir + f"/Fractal_Dimension_{frac_index}.csv"
             fractal_df.insert(0, "File Name", file_name)
             
             if not os.path.isfile(save_path):
@@ -1252,7 +1252,7 @@ def apply_parameters(
                     mode = "a",
                     header = False,
                     index = False)
-            frac_index1 += 1
+            frac_index += 1
             
         
         ###################
@@ -1530,7 +1530,11 @@ def apply_parameters(
             plt.close(fig)
             heat_index += 1
             
-        elif parameter["Name"].find("Fractal Distribution") == 0:
+        elif parameter["Name"].find("Resolution Dependence") == 0:
+            if parameter["Estimate Fractal"].lower() == "true":
+                estimate_fractal: bool = True
+            else:
+                estimate_fractal: bool = False
             if float(parameter["Lower Bound"]) == 0 or float(parameter["Upper Bound"]) == 0: 
                 bounds: None = None
             else:
@@ -1544,28 +1548,30 @@ def apply_parameters(
             else:
                 ylims: tuple = (float(parameter["Y Min"]), float(parameter["Y Max"]))
                 
-            fig, fd_df = plots.fractal_dimension_plot(
+            fig, res_dep_df = plots.resolution_dependence_plot(
                 im_array,
+                metric = parameter["Metric"].lower(),
+                estimate_fractal = estimate_fractal,
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
                 bounds = bounds,
-                nbins = int(parameter["Num Bins"]),
+                num_points = int(parameter["Num Points"]),
                 rescale_factor = float(parameter["Rescale Factor"]),
                 xlims = xlims,
                 ylims = ylims,
                 return_df = True)
             rw.write_plot(
                 fig,
-                f"{file_name}_fractal_dimension_plot_{frac_index2}",
+                f"{file_name}_resolution_dependence_plot_{res_index}",
                 save_dir)
             plt.close(fig)
             
             if parameter["Export Data"].lower() == "true":
-                fd_df.to_csv(
-                    f"{save_dir}/{file_name}_fractal_dimension_plot_{frac_index2}.csv",
+                res_dep_df.to_csv(
+                    f"{save_dir}/{file_name}_resolution_dependence_plot_{res_index}.csv",
                     header = "column names",
                     index = False)
-            frac_index2 += 1
+            res_index += 1
             
             
         ########################

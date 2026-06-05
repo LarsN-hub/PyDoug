@@ -902,7 +902,7 @@ A widget for calculating the contact area (3D) or perimeter (2D) between two seg
 
 A widget for calculating the fractal dimension of a segmented dataset.
 - "Image" drop-down: images in the layer list. Select the image to calculate the fractal dimension.
-- "Method" drop-down: select whether to calculate the fractal dimension based on the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
+- "Metric" drop-down: select whether to calculate the fractal dimension based on the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
 - "Rescale Factor" float: input the factor to increase the pixel/voxel size by to calculate the fractal dimension (must be greater or equal to 2).
 - "Add as Parameter" checkbox: check to add the fractal dimension calculation step to the parameters log.
 - "Calculate Fractal Dimension" button: click to perform the fractal dimension calculation operation.
@@ -1023,27 +1023,27 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 - "Add as Parameter" checkbox: check to add the heat map generation step to the parameters log.
 - "Plot Heat Map" button: click to generate the heat map.
 
-**Fractal Dimension**
+**Resolution Dependence**
 
-A widget to plot the fractal distribution as a function of the pixel/voxel size.
-More info: https://porespy.org/autoapi/porespy/metrics/boxcount.html#porespy.metrics.boxcount
-- "Image" drop-down: images in the layer list. Select the image to plot the fractal dimension.
-- "Method" drop-down: select whether to calculate the fractal dimension based on the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
-- "Lower Bound" float: input the lower bound pixel size to calculate the fractal dimension in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
-- "Upper Bound" float: input the upper bound pixel size to calculate the fractal dimension in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
-- "Num Bins" integer: input the number of locations on the log scale from the lower to upper bound to calculate the fractal dimension at.
+A widget to plot the pixel/voxel size dependence of measured values.
+- "Image" drop-down: images in the layer list. Select the image to plot the resolution dependence.
+- "Metric" drop-down: select whether to calculate the resolution dependence of the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
+- "Estimate Fractal" checkbox: check to instead plot the estimated fractal dimension for the chosen metric.
+- "Lower Bound" float: input the lower bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
+- "Upper Bound" float: input the upper bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
+- "Num Points" integer: input the number of locations on the log scale from the lower to upper bound to calculate the resolution dependence.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the pixel scale units.
-- "Rescale Factor" float: input the factor to increase the pixel/voxel size by to calculate the fractal dimension (must be greater or equal to 2).
+- "Rescale Factor" float: if "Estimate Fractal" is checked, input the factor to increase the pixel/voxel size by to calculate the fractal dimension (must be greater or equal to 2).
 - "X Min" float: input the lower X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "X Max" float: input the upper X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "Y Min" float: input the lower Y bound to show on the plot.
 - "Y Max" float: input the upper Y bound to show on the plot. Leave as 0 to accept defaults for both bounds.
-- "Add as Parameter" checkbox: check to add the fractal dimension plotting step to the parameters log.
-- "Export Data" checkbox: check to export the fractal dimension data as a csv file upon generating the plot.
+- "Add as Parameter" checkbox: check to add the resolution dependence plotting step to the parameters log.
+- "Export Data" checkbox: check to export the resolution dependence data as a csv file upon generating the plot.
 - "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
 - "Save Name" string: if "Export Data" is checked, type in a name for the exported data file.
-- "Plot Fractal Dimension" button: click to plot the fractal dimension.
+- "Plot Resolution Dependence" button: click to plot the resolution dependence.
 
 Visualize Tab
 -------------

@@ -1872,81 +1872,98 @@ def heat_map(
     
         return fig
     
-def fractal_dimension_axis(
+def resolution_dependence_axis(
         data: np.ndarray | pd.DataFrame,
         input_ax: plt.Axes, *,
-        method: str = "bulk",
+        metric: str = "bulk",
+        estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
-        nbins: int = 10,
+        num_points: int = 10,
         rescale_factor: float = 2,
         xlims: tuple = None,
         ylims: tuple = None) -> plt.Axes | pd.DataFrame:
     
     if isinstance(data, np.ndarray):
-        data_df: pd.DataFrame = distrib.get_fractal_distrib(
+        data_df: pd.DataFrame = distrib.get_resolution_dependence(
             data,
-            method = method,
+            metric = metric,
+            estimate_fractal = estimate_fractal,
             pixel_size = pixel_size,
             units = units,
             bounds = bounds,
-            nbins = nbins,
+            num_points = num_points,
             rescale_factor = rescale_factor)
         if data.ndim == 3:
             x_title: str = "Voxel Size"
+            if metric == "bulk":
+                y_label: str = f"Volume ({units}\u00b3)"
+            elif metric == "surface":
+                y_label: str = f"Surface Area ({units}\u00b2)"
         else:
             x_title: str = "Pixel Size"
+            if metric == "bulk":
+                y_label: str = f"Area ({units}\u00b2)"
+            elif metric == "surface":
+                y_label: str = f"Surface Perimeter ({units})"
     else:
         data_df: pd.DataFrame = data.copy()
         x_title: str = "Pixel Size"
+        y_label: str = "Measured Quantity"
         
     x_units: str = data_df.attrs["units"]
     x_label: str = f"{x_title} ({x_units})"
-    fd_ax: plt.Axes = input_ax
-    fd_ax.plot(
+    if estimate_fractal:
+        y_label: str = "Fractal Dimension"
+    res_dep_ax: plt.Axes = input_ax
+    res_dep_ax.scatter(
         data_df["Pixel Size"],
-        data_df["Fractal Dimension"],
-        color = np.array([0.121, 0.465, 0.703]),
-        linewidth = 2)
-    fd_ax.set_xlabel(x_label, fontsize = label_fontsize)
-    fd_ax.set_ylabel("Fractal Dimension", fontsize = label_fontsize)
-    fd_ax.tick_params(axis = "both", labelsize = tick_fontsize)
-    fd_ax.set_xscale("log")
-    fd_ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
-    fd_ax.set_xlim(xlims)
+        data_df["Measured Value"],
+        facecolors = "w",
+        edgecolor = np.array([0.1, 0.2, 0.75]),
+        linewidth = 1.5,
+        s = 75)
+    res_dep_ax.set_xlabel(x_label, fontsize = label_fontsize)
+    res_dep_ax.set_ylabel(y_label, fontsize = label_fontsize)
+    res_dep_ax.tick_params(axis = "both", labelsize = tick_fontsize)
+    res_dep_ax.set_xscale("log")
+    res_dep_ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+    res_dep_ax.set_xlim(xlims)
     if not xlims:
-        xlims: tuple = fd_ax.get_xlim()
-    #fd_ax.set_xticks(generate_log_ticks(fd_ax, xlims))
-    fd_ax.set_ylim(ylims)
-    return fd_ax, data_df
+        xlims: tuple = res_dep_ax.get_xlim()
+    #res_dep_ax.set_xticks(generate_log_ticks(res_dep_ax, xlims))
+    res_dep_ax.set_ylim(ylims)
+    return res_dep_ax, data_df
 
-def fractal_dimension_plot(
+def resolution_dependence_plot(
         data: np.ndarray | pd.DataFrame, *,
-        method = "bulk",
+        metric = "bulk",
+        estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
-        nbins: int = 10,
+        num_points: int = 10,
         rescale_factor: float = 2,
         xlims: tuple = None,
         ylims: tuple = None,
         return_df: bool = False) -> plt.Figure:
     
-    fig, fd_ax = plt.subplots(layout = "constrained")
-    fd_ax, fd_df = fractal_dimension_axis(
+    fig, res_dep_ax = plt.subplots(layout = "constrained")
+    res_dep_ax, res_dep_df = resolution_dependence_axis(
         data,
-        fd_ax,
-        method = method,
+        res_dep_ax,
+        metric = metric,
+        estimate_fractal = estimate_fractal,
         pixel_size = pixel_size,
         units = units,
         bounds = bounds,
-        nbins = nbins,
+        num_points = num_points,
         rescale_factor = rescale_factor,
         xlims = xlims,
         ylims = ylims)
     if return_df:
-        return fig, fd_df
+        return fig, res_dep_df
     else:
         return fig
 
