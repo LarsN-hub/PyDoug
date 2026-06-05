@@ -10,7 +10,7 @@ import pandas as pd, numpy as np, math
 from skimage import exposure
 
 from PyDoug.analyze import quant
-from PyDoug.proc import thresh, pixels, trans, cropclip as cc
+from PyDoug.proc import thresh, pixels, trans, cropclip as cc, util
 
 
 # Functions
@@ -716,12 +716,15 @@ def get_heat_map(
 def get_resolution_dependence(
         im_array: np.ndarray, *,
         metric: str = "bulk",
+        vol_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
         num_points: int = 10,
-        rescale_factor: float = 2) -> pd.DataFrame:
+        logspace_points: bool = True,
+        correct_overestimation: bool = True,
+        mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if units == "um":
         units = "\u00b5m"
@@ -730,46 +733,87 @@ def get_resolution_dependence(
         bounds: tuple = (pixel_size, pixel_size * 10)
     if bounds[0] < pixel_size:
         bounds: tuple = (pixel_size, pixel_size * 10)
-    pixel_sizes: np.array = np.logspace(
-        math.log10(bounds[0]),
-        math.log10(bounds[1]),
-        num_points)
-    return_values: np.ndarray = np.zeros(len(pixel_sizes), np.float64)
+    if logspace_points:
+        pixel_sizes: np.array = np.logspace(
+            math.log10(bounds[0]),
+            math.log10(bounds[1]),
+            num_points)
+    else:
+        pixel_sizes: np.array = np.linspace(
+            bounds[0], bounds[1], num_points)
     
-    for index, current_size in enumerate(pixel_sizes):
-        res_array: np.ndarray = trans.rescale(
-            np.bool(im_array),
-            pixel_size / current_size)
-        
-        if estimate_fractal:
-            return_values[index] = quant.estimate_fractal_dimension(
-                res_array,
-                metric = metric,
-                rescale_factor = current_size / pixel_size,
-                print_results = False)
-            
-        else:
+    if estimate_fractal:
+        pixel_sizes: np.ndarray = np.repeat(pixel_sizes, 2)[1:-1]
+        return_values: np.ndarray = np.zeros(
+            len(pixel_sizes), np.float64)
+        for index, current_size in enumerate(pixel_sizes):
+            if index % 2 == 0:
+                next_size: np.float64 = pixel_sizes[index + 1]
+                res_array: np.ndarray = trans.rescale(
+                    np.bool(im_array),
+                    pixel_size / current_size)
+                if np.any(mask_array):
+                    eval_mask_array = trans.rescale(
+                        np.bool(mask_array),
+                        pixel_size / current_size)
+                else:
+                    eval_mask_array = None
+                return_values[index] = quant.estimate_fractal_dimension(
+                    res_array,
+                    metric = metric,
+                    rescale_factor = next_size / current_size,
+                    print_results = False,
+                    mask_array = eval_mask_array)
+            else:
+                return_values[index] = return_values[index - 1]
+    
+    else:
+        return_values: np.ndarray = np.zeros(len(pixel_sizes), np.float64)
+        for index, current_size in enumerate(pixel_sizes):
+            res_array: np.ndarray = trans.rescale(
+                np.bool(im_array),
+                pixel_size / current_size)
+            if np.any(mask_array):
+                eval_mask_array = trans.rescale(
+                    np.bool(mask_array),
+                    pixel_size / current_size)
+            else:
+                eval_mask_array = None
             if metric == "bulk":
-                if im_array.ndim == 2:
+                if not util.is_3d_rgb(im_array)["3D"]:
                     bulk_df: pd.DataFrame = quant.get_area(
                         res_array,
                         scale = current_size,
                         units = units,
-                        print_results = False)
+                        print_results = False,
+                        mask_array = eval_mask_array)
                 else:
                     bulk_df: pd.DataFrame = quant.get_volume(
                         res_array,
                         scale = current_size,
                         units = units,
-                        print_results = False)
+                        print_results = False,
+                        mask_array = eval_mask_array)
                 return_values[index] = bulk_df[bulk_df.columns[0]][0]
             elif metric == "surface":
                 surf_df: pd.DataFrame = quant.get_surface_contact(
                     res_array,
                     pixel_size = current_size,
                     units = units,
-                    print_results = False)
+                    correct_overestimation = correct_overestimation,
+                    print_results = False,
+                    mask_array = eval_mask_array)
                 return_values[index] = surf_df[surf_df.columns[1]][0]
+            elif metric == "specific surface":
+                spec_df: pd.DataFrame = quant.get_specific_surface(
+                    res_array,
+                    vol_method = vol_method.lower(),
+                    pixel_size = current_size,
+                    units = units,
+                    correct_overestimation = correct_overestimation,
+                    print_results = False,
+                    mask_array = eval_mask_array)
+                return_values[index] = spec_df["Specific Surface Value"][0]
                 
     out_df: pd.DataFrame = pd.DataFrame(
         np.concat(

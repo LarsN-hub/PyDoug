@@ -68,6 +68,7 @@ def apply_parameters(
     surf_index: int = 0
     cont_index: int = 0
     frac_index: int = 0
+    spec_index: int = 0
     res_index: int = 0
     hist_index: int = 0
     gray_index: int = 0
@@ -1083,7 +1084,8 @@ def apply_parameters(
                 
             stats_df: pd.DataFrame = quant.global_statistics(
                 im_array,
-                mask_array = mask_array)
+                mask_array = mask_array,
+                print_results = False)
             stats_df.insert(0, "File Name", file_name)
             save_path: str = save_dir + f"/Stats_{stats_index}.csv"
             
@@ -1124,7 +1126,8 @@ def apply_parameters(
                     units = parameter["Units"],
                     include_background = include_background,
                     background = float(parameter["Background"]),
-                    normalize = auto_normalize)
+                    normalize = auto_normalize,
+                    print_results = False)
             
             elif parameter["Quantity Measured"] == "Area":
                 print("\nMeasuring area...")
@@ -1135,7 +1138,8 @@ def apply_parameters(
                     units = parameter["Units"],
                     include_background = include_background,
                     background = float(parameter["Background"]),
-                    normalize = auto_normalize)
+                    normalize = auto_normalize,
+                    print_results = False)
                 
             elif parameter["Quantity Measured"] == "Length":
                 print("\nMeasuring length...")
@@ -1146,7 +1150,8 @@ def apply_parameters(
                     units = parameter["Units"],
                     include_background = include_background,
                     background = float(parameter["Background"]),
-                    normalize = auto_normalize)
+                    normalize = auto_normalize,
+                    print_results = False)
                 
             quantity_df.insert(0, "File Name", file_name)
             quantity_df["Units"] = quantity_df.attrs["units"]
@@ -1167,6 +1172,10 @@ def apply_parameters(
         
         elif parameter["Name"].find("Calculate Surface Value") == 0:
             print("\nCalculating surface perimeter/area...")
+            if parameter["Correct Overestimation"].lower() == "true":
+                correct_overestimation: bool = True
+            else:
+                correct_overestimation: bool = False
             if parameter["Apply Mask"].lower() == "true":
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
@@ -1178,7 +1187,9 @@ def apply_parameters(
                 float(parameter["Phase Intensity"]),
                 mask_array = mask_array,
                 pixel_size = float(parameter["Pixel Size"]),
-                units = parameter["Units"])
+                units = parameter["Units"],
+                correct_overestimation = correct_overestimation,
+                print_results = False)
             save_path: str = save_dir + f"/Surface_Value_{surf_index}.csv"
             surf_df.insert(0, "File Name", file_name)
             surf_df["Units"] = surf_df.attrs["units"]
@@ -1198,6 +1209,10 @@ def apply_parameters(
         
         elif parameter["Name"].find("Calculate Contact Value") == 0:
             print("\nCalculating contact value...")
+            if parameter["Correct Overestimation"].lower() == "true":
+                correct_overestimation: bool = True
+            else:
+                correct_overestimation: bool = False
             if parameter["Apply Mask"].lower() == "true":
                 mask_array: np.ndarray = parameters_dict[
                     parameter["Mask Used"]]
@@ -1211,7 +1226,9 @@ def apply_parameters(
                     float(parameter["Phase 2 Intensity"])),
                 mask_array = mask_array,
                 pixel_size = float(parameter["Pixel Size"]),
-                units = parameter["Units"])
+                units = parameter["Units"],
+                correct_overestimation = correct_overestimation,
+                print_results = False)
             save_path: str = save_dir + f"/Contact_Value_{cont_index}.csv"
             cont_df.insert(0, "File Name", file_name)
             cont_df["Units"] = cont_df.attrs["units"]
@@ -1228,13 +1245,57 @@ def apply_parameters(
                     header = False,
                     index = False)
             cont_index += 1
+            
+        elif parameter["Name"].find("Calculate Specific Surface") == 0:
+            print("\nCalculating specific surface...")
+            if parameter["Correct Overestimation"].lower() == "true":
+                correct_overestimation: bool = True
+            else:
+                correct_overestimation: bool = False
+            if parameter["Apply Mask"].lower() == "true":
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+            else:
+                mask_array: None = None
+            
+            spec_df: pd.DataFrame = quant.get_specific_surface(
+                im_array,
+                pixel_size = float(parameter["Pixel Size"]),
+                units = parameter["Units"],
+                vol_method = parameter["Volume Method"].lower(),
+                correct_overestimation = correct_overestimation,
+                print_results = False,
+                mask_array = mask_array)
+            save_path: str = save_dir + f"/Specific_Surface_{spec_index}.csv"
+            spec_df.insert(0, "File Name", file_name)
+            
+            if not os.path.isfile(save_path):
+                spec_df.to_csv(
+                    save_path,
+                    header = "column_names",
+                    index = False)
+            else:
+                spec_df.to_csv(
+                    save_path,
+                    mode = "a",
+                    header = False,
+                    index = False)
+            spec_index += 1
         
         elif parameter["Name"].find("Calculate Fractal Dimension") == 0:
             print("\nCalculating fractal dimension...")
+            if parameter["Apply Mask"].lower() == "true":
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+            else:
+                mask_array: None = None
+                
             fractal_dim: np.float64 = quant.estimate_fractal_dimension(
                 im_array,
                 metric = parameter["Metric"].lower(),
-                rescale_factor = float(parameter["Rescale Factor"]))
+                rescale_factor = float(parameter["Rescale Factor"]),
+                print_results = False,
+                mask_array = mask_array)
             fractal_df: pd.DataFrame = pd.DataFrame(
                 {"Fractal Dimension": np.array([fractal_dim]),
                  "Rescale Factor": np.array([float(parameter["Rescale Factor"])])})
@@ -1531,14 +1592,23 @@ def apply_parameters(
             heat_index += 1
             
         elif parameter["Name"].find("Resolution Dependence") == 0:
+            print("\nPlotting resolution dependence...")
             if parameter["Estimate Fractal"].lower() == "true":
                 estimate_fractal: bool = True
             else:
                 estimate_fractal: bool = False
+            if parameter["Logspace Points"].lower() == "true":
+                logspace_points: bool = True
+            else:
+                logspace_points: bool = False
             if float(parameter["Lower Bound"]) == 0 or float(parameter["Upper Bound"]) == 0: 
                 bounds: None = None
             else:
                 bounds: tuple = (float(parameter["Lower Bound"]), float(parameter["Upper Bound"]))
+            if parameter["Correct Overestimation"].lower() == "true":
+                correct_overestimation: bool = True
+            else:
+                correct_overestimation: bool = False
             if float(parameter["X Min"]) == 0:
                 xlims: None = None
             else:
@@ -1547,19 +1617,27 @@ def apply_parameters(
                 ylims: None = None
             else:
                 ylims: tuple = (float(parameter["Y Min"]), float(parameter["Y Max"]))
+            if parameter["Apply Mask"].lower() == "true":
+                mask_array: np.ndarray = parameters_dict[
+                    parameter["Mask Used"]]
+            else:
+                mask_array: None = None
                 
             fig, res_dep_df = plots.resolution_dependence_plot(
                 im_array,
                 metric = parameter["Metric"].lower(),
+                vol_method = parameter["Vol Method"].lower(),
                 estimate_fractal = estimate_fractal,
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
                 bounds = bounds,
                 num_points = int(parameter["Num Points"]),
-                rescale_factor = float(parameter["Rescale Factor"]),
+                logspace_points = logspace_points,
+                corret_overestimation = correct_overestimation,
                 xlims = xlims,
                 ylims = ylims,
-                return_df = True)
+                return_df = True,
+                mask_array = mask_array)
             rw.write_plot(
                 fig,
                 f"{file_name}_resolution_dependence_plot_{res_index}",

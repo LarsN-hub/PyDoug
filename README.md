@@ -873,7 +873,6 @@ A widget for calculating the total volume (3D), area (2D) or length (2D or 3D, o
 
 A widget for calculating the surface area (3D) or perimeter (2D) of a segmented phase in an image or image stack.
 - "Image" drop-down: images in the layer list. Select the image to calculate the surface value.
-- "Phase Intensity" float: input the intensity of the phase for surface value calculation.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units for the pixel scale.
 - "Correct Overestimation" checkbox: leave check to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
@@ -904,6 +903,9 @@ A widget for calculating the fractal dimension of a segmented dataset.
 - "Image" drop-down: images in the layer list. Select the image to calculate the fractal dimension.
 - "Metric" drop-down: select whether to calculate the fractal dimension based on the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
 - "Rescale Factor" float: input the factor to increase the pixel/voxel size by to calculate the fractal dimension (must be greater or equal to 2).
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Add as Parameter" checkbox: check to add the fractal dimension calculation step to the parameters log.
 - "Calculate Fractal Dimension" button: click to perform the fractal dimension calculation operation.
 
@@ -1031,15 +1033,17 @@ A widget to plot the pixel/voxel size dependence of measured values.
 - "Estimate Fractal" checkbox: check to instead plot the estimated fractal dimension for the chosen metric.
 - "Lower Bound" float: input the lower bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
 - "Upper Bound" float: input the upper bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
-- "Num Points" integer: input the number of locations on the log scale from the lower to upper bound to calculate the resolution dependence.
+- "Num Points" integer: input the number of locations on the log scale from the lower to upper bound to calculate the resolution dependence (note the number of bins for fractal dimension will be this value minus one).
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the pixel scale units.
-- "Rescale Factor" float: if "Estimate Fractal" is checked, input the factor to increase the pixel/voxel size by to calculate the fractal dimension (must be greater or equal to 2).
 - "X Min" float: input the lower X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "X Max" float: input the upper X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "Y Min" float: input the lower Y bound to show on the plot.
 - "Y Max" float: input the upper Y bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "Add as Parameter" checkbox: check to add the resolution dependence plotting step to the parameters log.
+- "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
+- "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
+- "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
 - "Export Data" checkbox: check to export the resolution dependence data as a csv file upon generating the plot.
 - "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
 - "Save Name" string: if "Export Data" is checked, type in a name for the exported data file.

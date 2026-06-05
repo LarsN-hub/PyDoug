@@ -3,7 +3,7 @@ v0.10.0-beta
 - Moved Misc Calculations widget to Calculations tab, all other previous Analysis tab widgets remain in Plots tab
 - Separated Misc Calculations widget into Stats, Percent Intensities, Volume/Area, Surface Area/Perimeter, and Contact Area/Perimeter Widgets
 - Added overestimation correction to Surface Value and Contact Value calculation tab widgets
-- Added Fractal Dimension calculation widget to Calculations tab
+- Added Fractal Dimension and Specific Surface Value calculation widgets to Calculations tab
 - Added Resolution Dependence distribution plot to Plots tab
 - Added Filters tab
 - Moved FFT and Remove Objects widgets to Filters tab

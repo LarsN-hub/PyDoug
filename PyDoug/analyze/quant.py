@@ -8,11 +8,10 @@ Module for single-value measurements of images
 import pandas as pd, numpy as np, math
 
 from skimage import feature
-from porespy import metrics
 from typing import Callable
 
 from PyDoug.analyze import distrib
-from PyDoug.proc import cropclip as cc, util, denoising, trans, thresh
+from PyDoug.proc import cropclip as cc, util, denoising, trans
 
 
 # Functions
@@ -556,7 +555,7 @@ def get_contact(
     if return_mode == "array":
         contact_array: np.ndarray = np.zeros(im_array.shape, "uint8")
     
-    if im_array.ndim == 3:
+    if util.is_3d_rgb(im_array)["3D"]:
         zer_insert: np.ndarray = np.zeros(
             (1, im_array.shape[1], im_array.shape[2]), np.bool)
         one_insert: np.ndarray = np.zeros(
@@ -607,7 +606,7 @@ def get_contact(
             contact_array[max_array & offset_min_two_beg] = 255
             contact_array[max_array & offset_min_two_end] = 255
     
-    elif im_array.ndim == 2:
+    elif not util.is_3d_rgb(im_array)["3D"]:
         zer_insert: np.ndarray = np.zeros(
             (1, im_array.shape[1]), np.bool)
         one_insert: np.ndarray = np.zeros(
@@ -704,21 +703,24 @@ def estimate_fractal_dimension(
         im_array: np.ndarray, *,
         metric: str = "bulk",
         rescale_factor: float = 2,
-        print_results: bool = True) -> np.float64:
+        print_results: bool = True,
+        mask_array: np.ndarray = None) -> np.float64:
     
-    print_str: str = "Fractal Dim.:"
-    if im_array.ndim == 3:
-        print_str2: str = "voxel"
-    else:
-        print_str2: str = "pixel"
     if rescale_factor < 2:
         rescale_factor = 2
     
     # Using D = log[N1/N2] / log[r] (Hausdorff dimension)
     # D = fractal dim, N = no. of counted units, r = rescale factor between states
     res_array: np.ndarray = trans.rescale(np.bool(im_array), 1 / rescale_factor)
+    if np.any(mask_array):
+        eval_mask_array = trans.rescale(np.bool(mask_array), 1 / rescale_factor)
+        if eval_mask_array.ndim < res_array.ndim:
+            eval_mask_array = cc.project_mask(eval_mask_array, res_array.shape[0])
+        res_array[np.logical_not(np.bool(eval_mask_array))] = False
+    else:
+        eval_mask_array = None
     if metric == "bulk":
-        if im_array.ndim == 2:
+        if not util.is_3d_rgb(im_array)["3D"]:
             L1_df: pd.DataFrame = get_area(
                 np.bool(im_array),
                 print_results = False)
@@ -734,7 +736,7 @@ def estimate_fractal_dimension(
                 print_results = False)
         L1: float = L1_df[L1_df.columns[0]][0]
         L2: float = L2_df[L2_df.columns[0]][0]
-    elif metric == "surface":
+    elif metric == "surface" or metric == "specific surface":
         L1_df: pd.DataFrame = get_surface_contact(
             np.bool(im_array),
             print_results = False)
@@ -746,8 +748,71 @@ def estimate_fractal_dimension(
     D: float = math.log10(L1 / L2) / math.log10(rescale_factor)
     
     if print_results:
-        print(f"\n{print_str:<16} {D:.2f} @ {rescale_factor}x {print_str2} size")
+        print(f"\n{"Fractal Dim.:":<16} {D:.2f} @ {rescale_factor}x rescale factor")
     return D
+
+def get_specific_surface(
+        im_array: np.ndarray, *,
+        pixel_size: float = 1.0,
+        units: str = "pix",
+        vol_method: str = "phase",
+        correct_overestimation: bool = True,
+        print_results: bool = True,
+        mask_array: np.ndarray = None) -> None:
+    
+    if units == "um":
+        units = "\u00b5m"
+    if util.is_3d_rgb(im_array)["3D"]:
+        print_str: str = "Sp. Surf. Area"
+    else:
+        print_str: str = "Sp. Perimeter"
+    
+    surf_df: pd.DataFrame = get_surface_contact(
+        np.bool(im_array),
+        pixel_size = pixel_size,
+        units = units,
+        correct_overestimation = correct_overestimation,
+        print_results = False,
+        mask_array = mask_array)
+    surf_value: float = surf_df[surf_df.columns[1]][0]
+    
+    if vol_method.lower() == "phase":
+        if not util.is_3d_rgb(im_array)["3D"]:
+            bulk_df: pd.DataFrame = get_area(
+                np.bool(im_array),
+                scale = pixel_size,
+                units = units,
+                print_results = False,
+                mask_array = mask_array)
+        else:
+            bulk_df: pd.DataFrame = get_volume(
+                np.bool(im_array),
+                scale = pixel_size,
+                units = units,
+                print_results = False,
+                mask_array = mask_array)
+        bulk_value: float = bulk_df[bulk_df.columns[0]][0]
+    elif vol_method.lower() == "fov":
+        if not util.is_3d_rgb(im_array)["3D"]:
+            if np.any(mask_array):
+                bulk_value: float = np.count_nonzero(mask_array) * (pixel_size ** 2)
+            else:
+                bulk_value: float = im_array.shape[0] * im_array.shape[1] * (pixel_size ** 2)
+        else:
+            if np.any(mask_array):
+                if mask_array.ndim < im_array.ndim:
+                    mask_array = cc.project_mask(mask_array, im_array.shape[0])
+                bulk_value: float = np.count_nonzero(mask_array) * (pixel_size ** 3)
+            else:
+                bulk_value: float = im_array.shape[0] * im_array.shape[1] * im_array.shape[2] * (pixel_size ** 3)
+    sp_surface: float = surf_value / bulk_value
+    sp_surface_df: pd.DataFrame = pd.DataFrame(
+        np.array([[sp_surface]]), columns = ["Specific Surface Value"])
+    sp_surface_df.attrs["units"] = f"1/{units}"
+    
+    if print_results:
+        print(f"\n{print_str:<16} {sp_surface} 1/{units}")
+    return sp_surface_df
 
 
 # Main

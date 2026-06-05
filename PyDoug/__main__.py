@@ -87,6 +87,9 @@ class ImageProcessor:
         self.calc_contact_value_widget.Pixel_Scale.native.setDecimals(3)
         self.calc_contact_value_widget.Pixel_Scale.step = 0.001
         self.calc_contact_value_widget.Pixel_Scale.value = 1
+        self.calc_specific_surface_widget.Pixel_Scale.native.setDecimals(3)
+        self.calc_specific_surface_widget.Pixel_Scale.step = 0.001
+        self.calc_specific_surface_widget.Pixel_Scale.value = 1
         self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
         self.axis_distribution_widget.Pixel_Scale.step = 0.001
         self.axis_distribution_widget.Pixel_Scale.value = 1
@@ -2597,7 +2600,6 @@ class ImageProcessor:
         call_button = "Calculate Surface Value")
     def calc_surface_value_widget(self,
             Image: napari.layers.Image,
-            Phase_Intensity: float = 255,
             Pixel_Scale: float = 1.0,
             Units: str = "pixels",
             Correct_Overestimation: bool = True,
@@ -2620,7 +2622,6 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
-                 "Phase Intensity": Phase_Intensity,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
                  "Correct Overestimation": Correct_Overestimation,
@@ -2630,11 +2631,54 @@ class ImageProcessor:
             
         _ = quant.get_surface_contact(
             Image.data,
-            Phase_Intensity,
             mask_array = mask_array,
             pixel_size = Pixel_Scale,
             units = Units,
             correct_overestimation = Correct_Overestimation)
+        
+    @magicgui(
+        Volume_Method = {"choices": ["FOV", "Phase"]},
+        call_button = "Calculate Specific Surface")
+    def calc_specific_surface_widget(self,
+            Image: napari.layers.Image,
+            Volume_Method: str = "Phase",
+            Pixel_Scale: float = 1.0,
+            Units: str = "pixels",
+            Correct_Overestimation: bool = True,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
+            Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+        else:
+            mask_array = None
+            mask_name = None
+        
+        if Add_as_Parameter:
+            param_layer_name = get_param_layer_name(
+                "Calculate Specific Surface",
+                self.operation_count)
+            self.parameters_log.append(
+                {"Name": param_layer_name,
+                 "Acting On": Image.name,
+                 "Volume Method": Volume_Method.lower(),
+                 "Pixel Size": Pixel_Scale,
+                 "Units": Units,
+                 "Correct Overestimation": Correct_Overestimation,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
+        
+        _ = quant.get_specific_surface(
+                Image.data,
+                pixel_size = Pixel_Scale,
+                units = Units,
+                vol_method = Volume_Method.lower(),
+                correct_overestimation = Correct_Overestimation,
+                mask_array = mask_array)
         
     @magicgui(
         call_button = "Calculate Contact Value")
@@ -2686,9 +2730,19 @@ class ImageProcessor:
         call_button = "Calculate Fractal Dimension")
     def calc_fractal_dimension_widget(self,
             Image: napari.layers.Image,
-            Metric: str = "Bulk",
+            Metric: str = "Surface",
             Rescale_Factor: float = 2,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
             Add_as_Parameter: bool = False) -> None:
+        
+        if Apply_Mask:
+            mask_array: np.ndarray = Mask.data
+            mask_name = Mask.name
+        else:
+            mask_array = None
+            mask_name = None
         
         if Add_as_Parameter:
             param_layer_name = get_param_layer_name(
@@ -2698,12 +2752,16 @@ class ImageProcessor:
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
                  "Metric": Metric.lower(),
-                 "Rescale Factor": Rescale_Factor})
+                 "Rescale Factor": Rescale_Factor,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks})
         
         _ = quant.estimate_fractal_dimension(
             Image.data,
             metric = Metric.lower(),
-            rescale_factor = Rescale_Factor)
+            rescale_factor = Rescale_Factor,
+            mask_array = mask_array)
 
     #################
     # Plots Widgets #
@@ -3165,28 +3223,46 @@ class ImageProcessor:
         plt.show(block = False)
         
     @magicgui(
-        Metric = {"choices": ["Bulk", "Surface"]},
+        Metric = {"choices": ["Bulk", "Surface", "Specific Surface"]},
+        Spec_Surf_Vol_Method = {"choices": ["FOV", "Phase"]},
+        Lower_Bound = {"max": 1000000000},
+        Upper_Bound = {"max": 1000000000},
+        X_Max = {"max": 1000000000},
+        X_Min = {"max": 1000000000},
+        Y_Max = {"max": 1000000000},
+        Y_Min = {"max": 1000000000},
         Save_Folder = {"mode": "d"},
         call_button = "Plot Resolution Dependence")
     def resolution_dependence_widget(self,
             Image: napari.layers.Image,
-            Metric: str = "Bulk",
+            Metric: str = "Surface",
+            Spec_Surf_Vol_Method: str = "Phase",
             Estimate_Fractal: bool = False,
             Lower_Bound: float = 0,
             Upper_Bound: float = 0,
             Num_Points: int = 10,
+            Logspace_Points: bool = True,
             Pixel_Scale: float = 1,
             Units: str = "pixels",
-            Rescale_Factor: float = 2,
+            Correct_Overestimation: bool = True,
             X_Min: float = 0,
             X_Max: float = 0,
             Y_Min: float = 0,
             Y_Max: float = 0,
+            Apply_Mask: bool = False,
+            Mask: napari.layers.Image = None,
+            Unique_Batch_Masks: bool = False,
             Add_as_Parameter: bool = False,
             Export_Data: bool = False,
             Save_Folder: pathlib.Path = pathlib.Path("~"),
             Save_Name: str = "Name") -> None:
         
+        if not Apply_Mask:
+            mask_name = None
+            mask_array = None
+        else:
+            mask_name = Mask.name
+            mask_array = Mask.data
         if Lower_Bound == 0 or Upper_Bound == 0: 
             bounds: None = None
         else:
@@ -3208,31 +3284,39 @@ class ImageProcessor:
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
                  "Metric": Metric.lower(),
+                 "Vol Method": Spec_Surf_Vol_Method.lower(),
                  "Estimate Fractal": Estimate_Fractal,
                  "Lower Bound": Lower_Bound,
                  "Upper Bound": Upper_Bound,
                  "Num Points": Num_Points,
+                 "Logspace Points": Logspace_Points,
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
-                 "Rescale Factor": Rescale_Factor,
+                 "Correct Overestimation": Correct_Overestimation,
                  "X Min": X_Min,
                  "X Max": X_Max,
                  "Y Min": Y_Min,
                  "Y Max": Y_Max,
+                 "Apply Mask": Apply_Mask,
+                 "Mask Used": mask_name,
+                 "Unique Masks": Unique_Batch_Masks,
                  "Export Data": Export_Data})
         
         _, res_dep_df = plots.resolution_dependence_plot(
             Image.data,
             metric = Metric.lower(),
+            vol_method = Spec_Surf_Vol_Method.lower(),
             estimate_fractal = Estimate_Fractal,
             pixel_size = Pixel_Scale,
             units = Units,
             bounds = bounds,
             num_points = Num_Points,
-            rescale_factor = Rescale_Factor,
+            logspace_points = Logspace_Points,
+            correct_overestimation = Correct_Overestimation,
             xlims = xlims,
             ylims = ylims,
-            return_df = True)
+            return_df = True,
+            mask_array = mask_array)
         plt.show(block = False)
         
         if Export_Data:
@@ -3677,6 +3761,8 @@ def main() -> napari.viewer.Viewer:
         ui.calc_surface_value_widget, "Calculate Surface Value")
     mod_calc_contact_value: widgets.Container = modify_funcgui(
         ui.calc_contact_value_widget, "Calculate Contact Value")
+    mod_calc_specific_surface: widgets.Container = modify_funcgui(
+        ui.calc_specific_surface_widget, "Calculate Specific Surface Value")
     mod_calc_fractal_dimension: widgets.Container = modify_funcgui(
         ui.calc_fractal_dimension_widget, "Calculate Fractal Dimension")
     calculations_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
@@ -3686,6 +3772,7 @@ def main() -> napari.viewer.Viewer:
             mod_calc_bulk_value,
             mod_calc_surface_value,
             mod_calc_contact_value,
+            mod_calc_specific_surface,
             mod_calc_fractal_dimension],
         labels = False)
     tabs.addTab(calculations_container.native, "Calculations")

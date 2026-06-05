@@ -12,7 +12,7 @@ from typing import Callable
 
 from PyDoug.analyze import distrib, quant
 from PyDoug.ui import sliceview as sv
-from PyDoug.proc import util
+from PyDoug.proc import util, cropclip as cc
 
 
 # Globals
@@ -1876,37 +1876,47 @@ def resolution_dependence_axis(
         data: np.ndarray | pd.DataFrame,
         input_ax: plt.Axes, *,
         metric: str = "bulk",
+        vol_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
         num_points: int = 10,
-        rescale_factor: float = 2,
+        logspace_points: bool = True,
+        correct_overestimation: bool = True,
         xlims: tuple = None,
-        ylims: tuple = None) -> plt.Axes | pd.DataFrame:
+        ylims: tuple = None,
+        mask_array: np.ndarray = None) -> plt.Axes | pd.DataFrame:
     
     if isinstance(data, np.ndarray):
         data_df: pd.DataFrame = distrib.get_resolution_dependence(
             data,
             metric = metric,
+            vol_method = vol_method,
             estimate_fractal = estimate_fractal,
             pixel_size = pixel_size,
             units = units,
             bounds = bounds,
             num_points = num_points,
-            rescale_factor = rescale_factor)
-        if data.ndim == 3:
+            logspace_points = logspace_points,
+            correct_overestimation = correct_overestimation,
+            mask_array = mask_array)
+        if util.is_3d_rgb(data)["3D"]:
             x_title: str = "Voxel Size"
             if metric == "bulk":
                 y_label: str = f"Volume ({units}\u00b3)"
             elif metric == "surface":
                 y_label: str = f"Surface Area ({units}\u00b2)"
+            elif metric == "specific surface":
+                y_label: str = f"Specific Surface Area (1/{units})"
         else:
             x_title: str = "Pixel Size"
             if metric == "bulk":
                 y_label: str = f"Area ({units}\u00b2)"
             elif metric == "surface":
                 y_label: str = f"Surface Perimeter ({units})"
+            elif metric == "specific surface":
+                y_label: str = f"Specific Perimeter (1/{units})"
     else:
         data_df: pd.DataFrame = data.copy()
         x_title: str = "Pixel Size"
@@ -1917,13 +1927,20 @@ def resolution_dependence_axis(
     if estimate_fractal:
         y_label: str = "Fractal Dimension"
     res_dep_ax: plt.Axes = input_ax
-    res_dep_ax.scatter(
-        data_df["Pixel Size"],
-        data_df["Measured Value"],
-        facecolors = "w",
-        edgecolor = np.array([0.1, 0.2, 0.75]),
-        linewidth = 1.5,
-        s = 75)
+    if estimate_fractal:
+        res_dep_ax.plot(
+            data_df["Pixel Size"],
+            data_df["Measured Value"],
+            color = np.array([0.121, 0.465, 0.703]),
+            linewidth = 2)
+    else:
+        res_dep_ax.scatter(
+            data_df["Pixel Size"],
+            data_df["Measured Value"],
+            facecolors = "w",
+            edgecolor = np.array([0.121, 0.465, 0.703]),
+            linewidth = 1.5,
+            s = 75)
     res_dep_ax.set_xlabel(x_label, fontsize = label_fontsize)
     res_dep_ax.set_ylabel(y_label, fontsize = label_fontsize)
     res_dep_ax.tick_params(axis = "both", labelsize = tick_fontsize)
@@ -1938,30 +1955,40 @@ def resolution_dependence_axis(
 
 def resolution_dependence_plot(
         data: np.ndarray | pd.DataFrame, *,
-        metric = "bulk",
+        metric: str = "bulk",
+        vol_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
         num_points: int = 10,
-        rescale_factor: float = 2,
+        logspace_points: bool = True,
+        correct_overestimation: bool = True,
         xlims: tuple = None,
         ylims: tuple = None,
+        mask_array: np.ndarray = None,
         return_df: bool = False) -> plt.Figure:
+    
+    if np.any(mask_array) and isinstance(data, np.ndarray):
+        if mask_array.ndim < data.ndim:
+            mask_array = cc.project_mask(np.bool(mask_array), data.shape[0])
     
     fig, res_dep_ax = plt.subplots(layout = "constrained")
     res_dep_ax, res_dep_df = resolution_dependence_axis(
         data,
         res_dep_ax,
         metric = metric,
+        vol_method = vol_method,
         estimate_fractal = estimate_fractal,
         pixel_size = pixel_size,
         units = units,
         bounds = bounds,
         num_points = num_points,
-        rescale_factor = rescale_factor,
+        logspace_points = logspace_points,
+        correct_overestimation = correct_overestimation,
         xlims = xlims,
-        ylims = ylims)
+        ylims = ylims,
+        mask_array = np.copy(mask_array))
     if return_df:
         return fig, res_dep_df
     else:
