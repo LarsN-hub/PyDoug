@@ -1348,6 +1348,7 @@ def size_distribution_ax(
         background: float | int = 0,
         nbins: int = 100,
         max_bound: float | None = None,
+        calc_sphericity: bool = False,
         return_df: bool = False) -> plt.Axes:
     
     if isinstance(data, np.ndarray):
@@ -1363,7 +1364,8 @@ def size_distribution_ax(
             background = background,
             normalize = normalize,
             nbins = nbins,
-            max_bound = max_bound)
+            max_bound = max_bound,
+            calc_sphericity = calc_sphericity)
     
     else:
         
@@ -1416,6 +1418,7 @@ def size_distribution(
         background: float | int = 0,
         nbins: int = 100,
         max_bound: float | None = None,
+        calc_sphericity: bool = False,
         return_df: bool = False) -> plt.Figure:
     
     fig, psd_ax = plt.subplots(layout = "constrained")
@@ -1435,6 +1438,7 @@ def size_distribution(
         background = background,
         nbins = nbins,
         max_bound = max_bound,
+        calc_sphericity = calc_sphericity,
         return_df = True)
     
     if return_df:
@@ -1876,7 +1880,7 @@ def resolution_dependence_axis(
         data: np.ndarray | pd.DataFrame,
         input_ax: plt.Axes, *,
         metric: str = "bulk",
-        vol_method: str = "phase",
+        bulk_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
@@ -1892,7 +1896,7 @@ def resolution_dependence_axis(
         data_df: pd.DataFrame = distrib.get_resolution_dependence(
             data,
             metric = metric,
-            vol_method = vol_method,
+            bulk_method = bulk_method,
             estimate_fractal = estimate_fractal,
             pixel_size = pixel_size,
             units = units,
@@ -1956,7 +1960,7 @@ def resolution_dependence_axis(
 def resolution_dependence_plot(
         data: np.ndarray | pd.DataFrame, *,
         metric: str = "bulk",
-        vol_method: str = "phase",
+        bulk_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
@@ -1978,7 +1982,7 @@ def resolution_dependence_plot(
         data,
         res_dep_ax,
         metric = metric,
-        vol_method = vol_method,
+        bulk_method = bulk_method,
         estimate_fractal = estimate_fractal,
         pixel_size = pixel_size,
         units = units,

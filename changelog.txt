@@ -8,6 +8,8 @@ v0.10.0-beta
 - Added Filters tab
 - Moved FFT and Remove Objects widgets to Filters tab
 - Added distance transform and max inscribed spheres widgets to Filters tab
+- Added inverse reassignment option to Reassign widget in Pixel Values tab
+- Fixed bug when using Reassignment widget with integer format data types
 
 v0.9.2-beta
 - Fixed error with importing some labeled images

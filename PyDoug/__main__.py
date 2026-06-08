@@ -905,7 +905,7 @@ class ImageProcessor:
                 Masked_Color)
         
         else:
-            if Image.data.dtype in util.int_dtypes:
+            if np.issubdtype(Image.data.dtype, np.integer):
                 color_spec: int = round(Color_Value)
             else:
                 color_spec = Color_Value
@@ -1240,6 +1240,7 @@ class ImageProcessor:
     def reassign_widget(self,
             Image: napari.layers.Image,
             Input_Intensity: float = 0,
+            All_Except_Input: bool = False,
             Output_Intensity: float = 0) -> None:
         
         param_layer_name = get_param_layer_name(
@@ -1249,9 +1250,13 @@ class ImageProcessor:
             {"Name": param_layer_name,
              "Acting On": Image.name,
              "Input Intensity": Input_Intensity,
+             "All Except Input": All_Except_Input,
              "Output Intensity": Output_Intensity})
         new_array: np.ndarray = np.copy(Image.data)
-        new_array[new_array == Input_Intensity] = Output_Intensity
+        if All_Except_Input:
+            new_array[new_array != Input_Intensity] = Output_Intensity
+        else:
+            new_array[new_array == Input_Intensity] = Output_Intensity
         self.viewer.add_image(new_array, name = param_layer_name)
         
     @magicgui(
@@ -3236,7 +3241,7 @@ class ImageProcessor:
     def resolution_dependence_widget(self,
             Image: napari.layers.Image,
             Metric: str = "Surface",
-            Spec_Surf_Vol_Method: str = "Phase",
+            Spec_Surf_Bulk_Method: str = "Phase",
             Estimate_Fractal: bool = False,
             Lower_Bound: float = 0,
             Upper_Bound: float = 0,
@@ -3252,10 +3257,10 @@ class ImageProcessor:
             Apply_Mask: bool = False,
             Mask: napari.layers.Image = None,
             Unique_Batch_Masks: bool = False,
-            Add_as_Parameter: bool = False,
             Export_Data: bool = False,
             Save_Folder: pathlib.Path = pathlib.Path("~"),
-            Save_Name: str = "Name") -> None:
+            Save_Name: str = "Name",
+            Add_as_Parameter: bool = False) -> None:
         
         if not Apply_Mask:
             mask_name = None
@@ -3284,7 +3289,7 @@ class ImageProcessor:
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
                  "Metric": Metric.lower(),
-                 "Vol Method": Spec_Surf_Vol_Method.lower(),
+                 "Bulk Method": Spec_Surf_Bulk_Method.lower(),
                  "Estimate Fractal": Estimate_Fractal,
                  "Lower Bound": Lower_Bound,
                  "Upper Bound": Upper_Bound,
@@ -3305,7 +3310,7 @@ class ImageProcessor:
         _, res_dep_df = plots.resolution_dependence_plot(
             Image.data,
             metric = Metric.lower(),
-            vol_method = Spec_Surf_Vol_Method.lower(),
+            bulk_method = Spec_Surf_Bulk_Method.lower(),
             estimate_fractal = Estimate_Fractal,
             pixel_size = Pixel_Scale,
             units = Units,

@@ -755,7 +755,7 @@ def get_specific_surface(
         im_array: np.ndarray, *,
         pixel_size: float = 1.0,
         units: str = "pix",
-        vol_method: str = "phase",
+        bulk_method: str = "phase",
         correct_overestimation: bool = True,
         print_results: bool = True,
         mask_array: np.ndarray = None) -> None:
@@ -776,7 +776,7 @@ def get_specific_surface(
         mask_array = mask_array)
     surf_value: float = surf_df[surf_df.columns[1]][0]
     
-    if vol_method.lower() == "phase":
+    if bulk_method.lower() == "phase":
         if not util.is_3d_rgb(im_array)["3D"]:
             bulk_df: pd.DataFrame = get_area(
                 np.bool(im_array),
@@ -792,7 +792,7 @@ def get_specific_surface(
                 print_results = False,
                 mask_array = mask_array)
         bulk_value: float = bulk_df[bulk_df.columns[0]][0]
-    elif vol_method.lower() == "fov":
+    elif bulk_method.lower() == "fov":
         if not util.is_3d_rgb(im_array)["3D"]:
             if np.any(mask_array):
                 bulk_value: float = np.count_nonzero(mask_array) * (pixel_size ** 2)

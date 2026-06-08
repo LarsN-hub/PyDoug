@@ -890,7 +890,7 @@ A widget for calculating the contact area (3D) or perimeter (2D) between two seg
 - "Phase 2 Intensity" float: input the intensity of the second phase for contact value calculation.
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the length units for the pixel scale.
-- "Correct Overestimation" checkbox: leave check to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
+- "Correct Overestimation" checkbox: leave checked to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
@@ -1029,18 +1029,19 @@ A widget to generate a thickness or positional heat map along an axis from a seg
 
 A widget to plot the pixel/voxel size dependence of measured values.
 - "Image" drop-down: images in the layer list. Select the image to plot the resolution dependence.
-- "Metric" drop-down: select whether to calculate the resolution dependence of the bulk (volume for 3D, area for 2D) or surface (surface area for 3D, perimeter for 2D) values.
+- "Metric" drop-down: select whether to calculate the resolution dependence of the bulk (volume for 3D, area for 2D), surface (surface area for 3D, perimeter for 2D), or specific surface (surface area / volume for 3D, perimeter / area for 2D) values.
+- "Spec Surf Bulk Method" drop-down: if "Metric" is "Specific Surface", select the bulk calculation method.
 - "Estimate Fractal" checkbox: check to instead plot the estimated fractal dimension for the chosen metric.
 - "Lower Bound" float: input the lower bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
 - "Upper Bound" float: input the upper bound pixel size to calculate the resolution dependence in the units you enter below in "Units". Leave as 0 to accept defaults for both bounds.
 - "Num Points" integer: input the number of locations on the log scale from the lower to upper bound to calculate the resolution dependence (note the number of bins for fractal dimension will be this value minus one).
 - "Pixel Scale" float: input the unit length per pixel.
 - "Units" string: input the pixel scale units.
+- "Correct Overestimation" checkbox: leave checked to apply a correction factor for the surface area effect in voxelized datasets (more info: https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.1470207).
 - "X Min" float: input the lower X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "X Max" float: input the upper X bound to show on the plot. Leave as 0 to accept defaults for both bounds.
 - "Y Min" float: input the lower Y bound to show on the plot.
 - "Y Max" float: input the upper Y bound to show on the plot. Leave as 0 to accept defaults for both bounds.
-- "Add as Parameter" checkbox: check to add the resolution dependence plotting step to the parameters log.
 - "Apply Mask" checkbox: check to apply a mask during calculation. Masked pixels will not be included in the calculation.
 - "Mask" drop-down: images in the layer list. Select the mask to be applied if "Apply Mask" is checked.
 - "Unique Batch Masks" checkbox: check to use a unique mask for each dataset on this step during batch processing. Leave unchecked to use the mask used for this dataset on all datasets during batch processing.
@@ -1048,6 +1049,7 @@ A widget to plot the pixel/voxel size dependence of measured values.
 - "Save Folder": if "Export Data" is checked, click "Choose directory" to open a directory selector dialog to locate the save folder.
 - "Save Name" string: if "Export Data" is checked, type in a name for the exported data file.
 - "Plot Resolution Dependence" button: click to plot the resolution dependence.
+- "Add as Parameter" checkbox: check to add the resolution dependence plotting step to the parameters log.
 
 Visualize Tab
 -------------

@@ -470,8 +470,12 @@ def apply_parameters(
             
         elif parameter["Name"].find("Re-assigned") == 0:
             print("\nRe-assigning...")
-            im_array[im_array == float(parameter["Input Intensity"])] = float(
-                parameter["Output Intensity"])
+            if parameter["All Except Input"].lower() == "true":
+                im_array[im_array != float(parameter["Input Intensity"])] = float(
+                    parameter["Output Intensity"])
+            else:
+                im_array[im_array == float(parameter["Input Intensity"])] = float(
+                    parameter["Output Intensity"])
             parameters_dict[parameter["Name"]] = im_array
             last_image_name: str = parameter["Name"]
             
@@ -1262,7 +1266,7 @@ def apply_parameters(
                 im_array,
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
-                vol_method = parameter["Volume Method"].lower(),
+                bulk_method = parameter["Bulk Method"].lower(),
                 correct_overestimation = correct_overestimation,
                 print_results = False,
                 mask_array = mask_array)
@@ -1626,14 +1630,14 @@ def apply_parameters(
             fig, res_dep_df = plots.resolution_dependence_plot(
                 im_array,
                 metric = parameter["Metric"].lower(),
-                vol_method = parameter["Vol Method"].lower(),
+                bulk_method = parameter["Bulk Method"].lower(),
                 estimate_fractal = estimate_fractal,
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
                 bounds = bounds,
                 num_points = int(parameter["Num Points"]),
                 logspace_points = logspace_points,
-                corret_overestimation = correct_overestimation,
+                correct_overestimation = correct_overestimation,
                 xlims = xlims,
                 ylims = ylims,
                 return_df = True,

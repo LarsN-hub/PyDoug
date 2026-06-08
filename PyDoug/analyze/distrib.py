@@ -272,23 +272,19 @@ def __get_size_distribution(
         background: float | int = 0,
         normalize: bool = False,
         nbins: int | None = None,
-        max_bound: float | None = None) -> pd.DataFrame:
+        max_bound: float | None = None,
+        calc_sphericity: bool = False) -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
         counts, labels = exposure.histogram(im_array[np.bool(mask_array)])
         counts = np.delete(counts, np.argwhere(counts == 0))
-        
     else:
-        
         counts, labels = exposure.histogram(im_array)
         
     counts = np.astype(
@@ -296,60 +292,36 @@ def __get_size_distribution(
         np.float64)
     
     if mode == "vol":
-            
         counts = counts * (pixel_size ** 3)
-            
     elif mode == "area":
-            
         counts = counts * (pixel_size ** 2)
-            
     elif mode == "diam":
-        
         if diam_rad_mode == "vol":
-            
             counts = np.cbrt((counts * (pixel_size ** 3)) / ((4 / 3) * np.pi)) * 2
-        
         elif diam_rad_mode == "area":
-            
             counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi) * 2
-            
     elif mode == "rad":
-        
         if diam_rad_mode == "vol":
-            
             counts = np.cbrt((counts * (pixel_size ** 3)) / ((4 / 3) * np.pi))
-        
         elif diam_rad_mode == "area":
-        
             counts = np.sqrt((counts * (pixel_size ** 2)) / np.pi)
     
     if len(counts) != 0:
-        
         if nbins:
-            
             if max_bound:
-                
                 counts[counts > max_bound] = max_bound
-            
             size_counts, sizes = exposure.histogram(counts, nbins = nbins)
-            
             if max_bound:
-                
                 size_counts[-1] = 0
-           
         else:
-            
             size_counts, sizes = exposure.histogram(counts)
-        
     else:
-        
         size_counts: np.ndarray = np.array([0, 0])
         sizes: np.ndarray = np.array([1, 2])
         
     size_counts = np.astype(size_counts, np.int64)
     
     if normalize:
-        
         size_counts = size_counts / np.sum(size_counts)
     
     size_df: pd.DataFrame = pd.DataFrame(
@@ -357,15 +329,10 @@ def __get_size_distribution(
         columns = ["Bin Centers", "Counts"])
     
     if mode == "vol":
-        
         size_df.attrs = {"units": f"{units}\u00b3"}
-        
     elif mode == "area":
-        
         size_df.attrs = {"units": f"{units}\u00b2"}
-        
     elif mode == "diam" or mode == "rad":
-        
         size_df.attrs = {"units": units}
         
     return size_df
@@ -382,24 +349,20 @@ def get_size_distribution(
         normalize: bool = False,
         nbins: int | None = None,
         max_bound: float | None = None,
+        calc_sphericity: bool = False,
         positional: bool = False,
         temporal_scale: float | int = None,
         temporal_units: str = "s") -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
     if not positional:
-    
         if im_array.dtype != np.int64:
-            
             lab_array = thresh.label(
                 im_array,
                 connectivity = connectivity,
@@ -414,10 +377,10 @@ def get_size_distribution(
                 background = background,
                 normalize = normalize,
                 nbins = nbins,
-                max_bound = max_bound)
+                max_bound = max_bound,
+                calc_sphericity = calc_sphericity)
             
         else:
-            
             size_df: pd.DataFrame = __get_size_distribution(
                 im_array,
                 mask_array = mask_array,
@@ -428,24 +391,20 @@ def get_size_distribution(
                 background = background,
                 normalize = normalize,
                 nbins = nbins,
-                max_bound = max_bound)
+                max_bound = max_bound,
+                calc_sphericity = calc_sphericity)
             
         return size_df
     
     else:
-        
         if temporal_scale:
-            
             pos_scale = temporal_scale
             pos_units = temporal_units
-            
         else:
-            
             pos_scale = pixel_size
             pos_units = units
             
         if im_array.dtype != np.int64:
-            
             lab_array = thresh.label(
                 im_array,
                 connectivity = connectivity,
@@ -453,31 +412,20 @@ def get_size_distribution(
                 positional = True)
             
         if mode == "vol":
-            
             size_interval: float | int = pixel_size ** 3
-            
         elif mode == "area":
-            
             size_interval: float | int = pixel_size ** 2
-            
         elif mode == "diam" or mode == "rad":
-            
             size_interval: float | int = pixel_size
-            
         columns = ["Size"]
             
         for slice_index in range(0, im_array.shape[0]):
-            
             if im_array.dtype != np.int64:
-                
                 int_im_array = lab_array[slice_index]
-                
             else:
-                
                 int_im_array = im_array[slice_index]
             
             if np.any(mask_array):
-                
                 int_df: pd.DataFrame = __get_size_distribution(
                     int_im_array,
                     mask_array = mask_array[slice_index],
@@ -488,10 +436,10 @@ def get_size_distribution(
                     background = background,
                     normalize = normalize,
                     nbins = nbins,
-                    max_bound = max_bound)
+                    max_bound = max_bound,
+                    calc_sphericity = calc_sphericity)
             
             else:
-                
                 int_df: pd.DataFrame = __get_size_distribution(
                     int_im_array,
                     mode = mode,
@@ -501,7 +449,8 @@ def get_size_distribution(
                     background = background,
                     normalize = normalize,
                     nbins = nbins,
-                    max_bound = max_bound)
+                    max_bound = max_bound,
+                    calc_sphericity = calc_sphericity)
                 
             columns.append(str(pos_scale * slice_index))
             int_sizes: np.ndarray = np.squeeze(
@@ -510,12 +459,10 @@ def get_size_distribution(
                 np.array([int_df["Counts"]]))
             
             if not int_sizes.shape:
-                
                 int_sizes = np.expand_dims(int_sizes, 0)
                 int_counts = np.expand_dims(int_counts, 0)
             
             if slice_index == 0:
-                
                 size_array: np.ndarray = np.arange(
                     size_interval,
                     (np.max(int_sizes) + size_interval),
@@ -523,7 +470,6 @@ def get_size_distribution(
                 size_array = np.expand_dims(size_array, 1)
                 
             if size_array[0, 0] != int_sizes[0]:
-                
                 insert_array: np.ndarray = np.arange(
                     size_interval,
                     int_sizes[0],
@@ -533,7 +479,6 @@ def get_size_distribution(
                 int_counts = np.append(insert_zeros, int_counts)
             
             if size_array[-1, 0] > int_sizes[-1]:
-                
                 append_array: np.ndarray = np.arange(
                     (int_sizes[-1] + size_interval),
                     size_array[-1, 0] + size_interval,
@@ -543,7 +488,6 @@ def get_size_distribution(
                 int_counts = np.append(int_counts, append_zeros)
             
             elif size_array[-1, 0] < int_sizes[-1]:
-                
                 stack_array: np.ndarray = np.expand_dims(
                     np.arange(
                         (size_array[-1, 0] + size_interval),
@@ -561,25 +505,15 @@ def get_size_distribution(
         size_df: pd.DataFrame = pd.DataFrame(size_array, columns = columns)
         
         if temporal_scale:
-            
             size_df.attrs = {"time_units": pos_units}
-            
         else:
-            
             size_df.attrs = {"pos_units": pos_units}
-        
         if mode == "vol":
-                
             size_df.attrs["vol_units"] = f"{units}\u00b3"
-                
         elif mode == "area":
-    
             size_df.attrs["area_units"] = f"{units}\u00b2"
-                    
         elif mode == "diam" or mode == "rad":
-                
             size_df.attrs["diam_units"] = units
-            
         return size_df
 
 def get_time_series(
@@ -716,7 +650,7 @@ def get_heat_map(
 def get_resolution_dependence(
         im_array: np.ndarray, *,
         metric: str = "bulk",
-        vol_method: str = "phase",
+        bulk_method: str = "phase",
         estimate_fractal: bool = False,
         pixel_size: float = 1,
         units: str = "pix",
@@ -807,7 +741,7 @@ def get_resolution_dependence(
             elif metric == "specific surface":
                 spec_df: pd.DataFrame = quant.get_specific_surface(
                     res_array,
-                    vol_method = vol_method.lower(),
+                    bulk_method = bulk_method.lower(),
                     pixel_size = current_size,
                     units = units,
                     correct_overestimation = correct_overestimation,
