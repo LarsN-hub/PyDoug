@@ -2642,11 +2642,11 @@ class ImageProcessor:
             correct_overestimation = Correct_Overestimation)
         
     @magicgui(
-        Volume_Method = {"choices": ["FOV", "Phase"]},
+        Bulk_Method = {"choices": ["FOV", "Phase"]},
         call_button = "Calculate Specific Surface")
     def calc_specific_surface_widget(self,
             Image: napari.layers.Image,
-            Volume_Method: str = "Phase",
+            Bulk_Method: str = "Phase",
             Pixel_Scale: float = 1.0,
             Units: str = "pixels",
             Correct_Overestimation: bool = True,
@@ -2669,7 +2669,7 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
-                 "Volume Method": Volume_Method.lower(),
+                 "Bulk Method": Bulk_Method.lower(),
                  "Pixel Size": Pixel_Scale,
                  "Units": Units,
                  "Correct Overestimation": Correct_Overestimation,
@@ -2681,7 +2681,7 @@ class ImageProcessor:
                 Image.data,
                 pixel_size = Pixel_Scale,
                 units = Units,
-                vol_method = Volume_Method.lower(),
+                bulk_method = Bulk_Method.lower(),
                 correct_overestimation = Correct_Overestimation,
                 mask_array = mask_array)
         
@@ -3229,7 +3229,7 @@ class ImageProcessor:
         
     @magicgui(
         Metric = {"choices": ["Bulk", "Surface", "Specific Surface"]},
-        Spec_Surf_Vol_Method = {"choices": ["FOV", "Phase"]},
+        Spec_Surf_Bulk_Method = {"choices": ["FOV", "Phase"]},
         Lower_Bound = {"max": 1000000000},
         Upper_Bound = {"max": 1000000000},
         X_Max = {"max": 1000000000},
