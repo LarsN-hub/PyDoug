@@ -3,4 +3,5 @@ PyDoug/__pycache__
 PyDoug/analyze/__pycache__
 PyDoug/ui/__pycache__
 PyDoug/proc/__pycache__
+PyDoug/hooks/__pycache__
 .DS_Store

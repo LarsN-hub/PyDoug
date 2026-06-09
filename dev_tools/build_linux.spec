@@ -64,7 +64,7 @@ a = Analysis(
     datas = datas,
     hiddenimports = hiddenimports,
     excludedimports = ["charset_normalizer"],
-    hookspath = []
+    hookspath = ["PyDoug/hooks"]
 )
 
 pyz = PYZ(a.pure)
