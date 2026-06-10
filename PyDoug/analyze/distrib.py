@@ -8,6 +8,7 @@ Module for multi-value measurements of images
 import pandas as pd, numpy as np, math
 
 from skimage import exposure
+from numba import njit
 
 from PyDoug.analyze import quant
 from PyDoug.proc import thresh, pixels, trans, cropclip as cc, util
@@ -23,22 +24,16 @@ def get_histogram(
         max_bound: float | None = None) -> pd.DataFrame:
     
     if max_bound:
-        
         im_array[im_array > max_bound] = max_bound
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
-    
         counts, bin_centers = exposure.histogram(
             im_array[np.bool(mask_array)],
             normalize = normalize,
             nbins = nbins)
-        
     else:
-        
         counts, bin_centers = exposure.histogram(
             im_array,
             normalize = normalize,
@@ -50,40 +45,33 @@ def get_histogram(
         np.stack((bin_centers, counts), 1),
         columns = ["Bin Centers", "Counts"])
 
+@njit
 def extend_histogram_bins(
         bins: np.ndarray,
         counts: np.ndarray) -> np.ndarray:
     
-    ext_bins: np.ndarray = np.empty((1, np.astype(np.sum(counts), np.int32)))
+    ext_bins: np.ndarray = np.empty((int(np.sum(counts))))
     index: int = 0
     bin_loc: int = 0
     
     for bin_value in bins:
-        
         for count in range(0, int(counts[bin_loc])):
-            
-            ext_bins[0, index] = bin_value
+            ext_bins[index] = bin_value
             index += 1
-            
         bin_loc += 1
         
-    return np.squeeze(ext_bins)
+    return ext_bins
 
 def get_cdf(
         im_array: np.ndarray, *,
         mask_array: np.ndarray = None) -> pd.DataFrame:
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
-    
         im_cdf, bin_centers = exposure.cumulative_distribution(
             im_array[np.bool(mask_array)])
-        
     else:
-        
         im_cdf, bin_centers = exposure.cumulative_distribution(
             im_array)
         
@@ -108,79 +96,52 @@ def get_position_distribution(
         norm_method: str = "total") -> pd.DataFrame:
     
     if units == "um":
-        
         units = "\u00b5m"
     
     if temporal_scale:
-        
         pos_scale = temporal_scale
         pos_units = temporal_units
-        
     else:
-        
         pos_scale = pixel_size
         pos_units = units
     
     phases: np.ndarray = np.unique(im_array)
     
     if not include_background:
-        
         phases = np.delete(phases, np.argwhere(phases == background))
         
     pos_array: np.ndarray = np.zeros((im_array.shape[axis], 1 + len(phases)))
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
     
     for slice_index in range(0, im_array.shape[axis]):
-        
         pos_array[slice_index, 0] = slice_index * pos_scale
-    
         if axis == 0:
-            
             int_im_array: np.ndarray = im_array[slice_index]
-            
             if np.any(mask_array):
-                
                 int_mask_array: np.ndarray = mask_array[slice_index]
-                
             else:
-                
                 int_mask_array = None
             
         elif axis == 1:
-            
             int_im_array: np.ndarray = im_array[:, slice_index, :]
-            
             if np.any(mask_array):
-                
                 int_mask_array: np.ndarray = mask_array[:, slice_index, :]
-                
             else:
-                
                 int_mask_array = None
         
         elif axis == 2:
-
             int_im_array: np.ndarray = im_array[:, :, slice_index]
-            
             if np.any(mask_array):
-                
                 int_mask_array: np.ndarray = mask_array[:, :, slice_index]
-                
             else:
-                
                 int_mask_array = None
                 
         if normalize and norm_method == "total":
-            
             quant_normalize: bool = True
-            
         else:
-            
             quant_normalize: bool = False
             
         int_array: np.ndarray = quant.__vol_area_precondition(
@@ -191,73 +152,44 @@ def get_position_distribution(
             normalize = quant_normalize).T
         
         for index, gray_value in enumerate(int_array[:, 0]):
-            
             pos_array[slice_index, 1 + np.argwhere(phases == gray_value)] = int_array[index, 1]
             
     if normalize and norm_method == "phase":
-        
         for index in range(1, pos_array.shape[1]):
-            
             pos_array[:, index] = pos_array[:, index] / np.sum(pos_array[:, index])
             
     if temporal_scale:
-        
         columns = ["Time"]
-        
     else:
-        
         columns = ["Position"]
     
     for phase in phases:
-        
         columns.append(str(phase))
             
     if mode == "vol":
-        
         if not normalize:
-            
             pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 3)
-            
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
-        
         if temporal_scale:
-            
             pos_df.attrs = {"time_units": f"{pos_units}"}
-            
         else:
-            
             pos_df.attrs = {"pos_units": f"{pos_units}"}
-            
         if not normalize:
-            
             pos_df.attrs["vol_units"] = f"{units}\u00b3"
-            
         else:
-            
             pos_df.attrs["vol_units"] = "dimensionless"
         
     elif mode == "area":
-        
         if not normalize:
-            
             pos_array[:, 1:] = pos_array[:, 1:] * (pixel_size ** 2)
-            
         pos_df: pd.DataFrame = pd.DataFrame(pos_array, columns = columns)
-        
         if temporal_scale:
-            
             pos_df.attrs = {"time_units": f"{pos_units}"}
-            
         else:
-            
             pos_df.attrs = {"pos_units": f"{pos_units}"}
-            
         if not normalize:
-            
             pos_df.attrs["area_units"] = f"{units}\u00b2"
-            
         else:
-            
             pos_df.attrs["area_units"] = "dimensionless"
         
     return pos_df
@@ -403,7 +335,6 @@ def get_size_distribution(
         else:
             pos_scale = pixel_size
             pos_units = units
-            
         if im_array.dtype != np.int64:
             lab_array = thresh.label(
                 im_array,
@@ -533,11 +464,9 @@ def get_time_series(
         norm_method: str = "total") -> pd.DataFrame:
     
     if spatial_units == "um":
-        
         spatial_units = "\u00b5m"
     
     if mode == "size":
-        
         time_df: pd.DataFrame = get_size_distribution(
             im_array,
             mask_array = mask_array,
@@ -550,9 +479,7 @@ def get_time_series(
             temporal_scale = temporal_scale,
             temporal_units = temporal_units,
             normalize = normalize)
-    
     else:
-        
         time_df: pd.DataFrame = get_position_distribution(
             im_array,
             mode = mode,
@@ -578,63 +505,41 @@ def get_heat_map(
         height_orientation: str = "near") -> np.ndarray:
     
     if im_array.ndim == 2:
-        
         return im_array
     
     else:
-    
         if im_array.dtype != np.bool:
-            
             bool_array: np.ndarray = pixels.convert_im_type(im_array, "bool")
-            
         else:
-            
             bool_array: np.ndarray = np.copy(im_array)
-            
         if np.any(mask_array):
-            
             if mask_array.ndim < im_array.ndim:
-                
                 mask_array = cc.project_mask(mask_array, im_array.shape[0])
-            
             bool_array[np.logical_not(np.bool(mask_array))] = False
             
         if mode == "thickness":
-            
             heat_array: np.ndarray = np.count_nonzero(bool_array, axis)
         
         elif mode == "height":
-            
             if axis == 0:
-                
                 max_height_array: np.ndarray = np.ones(
                     (im_array.shape[1], im_array.shape[2])) * (im_array.shape[0] - 1)
-                
             elif axis == 1:
-                
                 max_height_array: np.ndarray = np.ones(
                     (im_array.shape[0], im_array.shape[2])) * (im_array.shape[1] - 1)
-            
             elif axis == 2:
-                
                 max_height_array: np.ndarray = np.ones(
                     (im_array.shape[0], im_array.shape[1])) * (im_array.shape[2] - 1)
             
             if height_orientation == "near":
-                
                 heat_array: np.ndarray = np.argmax(bool_array, axis)
-            
             elif height_orientation == "far":
-                
                 heat_array: np.ndarray = max_height_array - np.argmax(
                     trans.mirror(bool_array, axis), axis)
                 
         if axis == 0:
-            
             heat_array = trans.mirror(heat_array, 0)
-                
         if axis == 2:
-    
             heat_array = trans.mirror(
                 trans.mirror(
                     trans.rotate(

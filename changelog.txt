@@ -1,3 +1,6 @@
+v0.10.1-beta
+- Optimized histogram statistics calculation speed with numba
+
 v0.10.0-beta
 - Separated Analysis tab into Plots and Calculations tabs
 - Moved Misc Calculations widget to Calculations tab, all other previous Analysis tab widgets remain in Plots tab

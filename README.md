@@ -18,7 +18,7 @@ The GUI is built on napari's n-dimensional image viewing GUI: https://napari.org
 
 Widgets were added to the napari GUI with magicgui: https://pyapp-kit.github.io/magicgui/ and magic-class: https://hanjinliu.github.io/magic-class/
 
-Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, algotom: https://myalgotomo.readthedocs.io/en/latest/index.html, and porespy: https://porespy.org/.
+Most widgets are wrapper functions for functions from scikit-image: https://scikit-image.org/, numpy: https://numpy.org/, scipy: https://scipy.org/, matplotlib: https://matplotlib.org/, algotom: https://myalgotomo.readthedocs.io/en/latest/index.html, porespy: https://porespy.org/, and numba: https://numba.pydata.org/.
 
 Other miscellaneous resources used:
 - cmasher: https://cmasher.readthedocs.io/

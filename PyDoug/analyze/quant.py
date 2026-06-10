@@ -9,12 +9,19 @@ import pandas as pd, numpy as np, math
 
 from skimage import feature
 from typing import Callable
+from numba import njit
 
 from PyDoug.analyze import distrib
 from PyDoug.proc import cropclip as cc, util, denoising, trans
 
 
 # Functions
+
+@njit
+def get_std(
+    im_array: np.ndarray) -> np.float64:
+
+    return np.std(im_array)
 
 def global_statistics(
         im_array: np.ndarray, *,
@@ -24,11 +31,8 @@ def global_statistics(
     im_stats: dict = {}
     
     if not isinstance(mask_array, type(None)):
-    
         if np.any(mask_array):
-            
             if mask_array.ndim < im_array.ndim:
-                
                 mask_array = cc.project_mask(mask_array, im_array.shape[0])
                 
             mask_array = np.bool(mask_array)
@@ -36,10 +40,9 @@ def global_statistics(
             im_stats["Median"] = np.median(im_array[mask_array])
             im_stats["Min"] = np.min(im_array[mask_array])
             im_stats["Max"] = np.max(im_array[mask_array])
-            im_stats["Std Dev"] = np.std(im_array[mask_array])
+            im_stats["Std Dev"] = get_std(im_array[mask_array])
             
         else:
-            
             im_stats["Mean"] = 0
             im_stats["Median"] = 0
             im_stats["Min"] = 0
@@ -47,29 +50,22 @@ def global_statistics(
             im_stats["Std Dev"] = 0
 
     else:
-        
         im_stats["Mean"] = np.mean(im_array)
         im_stats["Median"] = np.median(im_array)
         im_stats["Min"] = np.min(im_array)
         im_stats["Max"] = np.max(im_array)
-        im_stats["Std Dev"] = np.std(im_array)
+        im_stats["Std Dev"] = get_std(im_array)
         
     dtype_dict = util.get_dtype_info(im_array)
     im_stats["DType Min"] = dtype_dict["Min"]
     im_stats["DType Max"] = dtype_dict["Max"]
     
     if print_results:
-    
         for index, stat in enumerate(list(im_stats.keys())):
-        
             current_str: str = stat + ":"
-            
             if index == 0:
-                
                 print(f"\n{current_str:<16} {im_stats[stat]}")
-                
             else:
-                
                 print(f"{current_str:<16} {im_stats[stat]}")
     
     return pd.DataFrame([im_stats])
@@ -82,21 +78,15 @@ def single_ax_statistics(
     ax_stats: np.ndarray = np.empty((im_array.shape[axis], 6))
     
     if np.any(mask_array):
-        
         if mask_array.ndim < im_array.ndim:
-            
             mask_array = cc.project_mask(mask_array, im_array.shape[0])
         
         mask_array = np.bool(mask_array)
         
         if axis == 0:
-        
             for slice_index in range(0, im_array.shape[axis]):
-                
                 ax_stats[slice_index, 0] = slice_index
-                
                 if np.any(mask_array[slice_index]):
-
                     ax_stats[slice_index, 1] = np.mean(
                         im_array[slice_index][mask_array[slice_index]])
                     ax_stats[slice_index, 2] = np.median(
@@ -105,11 +95,10 @@ def single_ax_statistics(
                         im_array[slice_index][mask_array[slice_index]])
                     ax_stats[slice_index, 4] = np.max(
                         im_array[slice_index][mask_array[slice_index]])
-                    ax_stats[slice_index, 5] = np.std(
+                    ax_stats[slice_index, 5] = get_std(
                         im_array[slice_index][mask_array[slice_index]])
                     
                 else:
-                    
                     ax_stats[slice_index, 1] = 0
                     ax_stats[slice_index, 2] = 0
                     ax_stats[slice_index, 3] = 0
@@ -117,13 +106,9 @@ def single_ax_statistics(
                     ax_stats[slice_index, 5] = 0
                 
         elif axis == 1:
-            
             for slice_index in range(0, im_array.shape[axis]):
-                
                 ax_stats[slice_index, 0] = slice_index
-                
                 if np.any(mask_array[:, slice_index, :]):
-                
                     ax_stats[slice_index, 1] = np.mean(
                         im_array[:, slice_index, :][mask_array[:, slice_index, :]])
                     ax_stats[slice_index, 2] = np.median(
@@ -132,11 +117,10 @@ def single_ax_statistics(
                         im_array[:, slice_index, :][mask_array[:, slice_index, :]])
                     ax_stats[slice_index, 4] = np.max(
                         im_array[:, slice_index, :][mask_array[:, slice_index, :]])
-                    ax_stats[slice_index, 5] = np.std(
+                    ax_stats[slice_index, 5] = get_std(
                         im_array[:, slice_index, :][mask_array[:, slice_index, :]])
                     
                 else:
-                    
                     ax_stats[slice_index, 1] = 0
                     ax_stats[slice_index, 2] = 0
                     ax_stats[slice_index, 3] = 0
@@ -144,13 +128,9 @@ def single_ax_statistics(
                     ax_stats[slice_index, 5] = 0
                 
         elif axis == 2:
-            
             for slice_index in range(0, im_array.shape[axis]):
-                
                 ax_stats[slice_index, 0] = slice_index
-                
                 if np.any(mask_array[:, :, slice_index]):
-                
                     ax_stats[slice_index, 1] = np.mean(
                         im_array[:, :, slice_index][mask_array[:, :, slice_index]])
                     ax_stats[slice_index, 2] = np.median(
@@ -159,11 +139,10 @@ def single_ax_statistics(
                         im_array[:, :, slice_index][mask_array[:, :, slice_index]])
                     ax_stats[slice_index, 4] = np.max(
                         im_array[:, :, slice_index][mask_array[:, :, slice_index]])
-                    ax_stats[slice_index, 5] = np.std(
+                    ax_stats[slice_index, 5] = get_std(
                         im_array[:, :, slice_index][mask_array[:, :, slice_index]])
                     
-                else:
-                    
+                else: 
                     ax_stats[slice_index, 1] = 0
                     ax_stats[slice_index, 2] = 0
                     ax_stats[slice_index, 3] = 0
@@ -171,17 +150,11 @@ def single_ax_statistics(
                     ax_stats[slice_index, 5] = 0
     
     else:
-        
         if axis == 0:
-            
             exclude_axes: tuple = (1, 2)
-            
         elif axis == 1:
-            
             exclude_axes: tuple = (0, 2)
-            
         elif axis == 2:
-            
             exclude_axes: tuple = (0, 1)
         
         ax_stats[:, 0] = np.arange(0, im_array.shape[axis])
@@ -189,7 +162,7 @@ def single_ax_statistics(
         ax_stats[:, 2] = np.median(im_array, exclude_axes)
         ax_stats[:, 3] = np.min(im_array, exclude_axes)
         ax_stats[:, 4] = np.max(im_array, exclude_axes)
-        ax_stats[:, 5] = np.std(im_array, exclude_axes)
+        ax_stats[:, 5] = get_std(im_array, exclude_axes)
     
     return pd.DataFrame(
         ax_stats,
@@ -216,11 +189,8 @@ def get_percent_intensities(
         cdf_df: pd.DataFrame = None) -> tuple:
     
     if max(percentages) > 1:
-        
         percentages = (percentages[0] / 100, percentages[1] / 100)
-    
     if not np.any(cdf_df):
-        
         cdf_df: pd.DataFrame = distrib.get_cdf(
             im_array,
             mask_array = mask_array)
@@ -233,19 +203,12 @@ def get_percent_intensities(
     high_index_array: np.ndarray = np.nonzero(im_cdf <= max(percentages))[0]
     
     if not low_index_array.shape[0]:
-        
         low_index: int = 0
-        
     else:
-        
         low_index: int = low_index_array[0]
-        
     if not high_index_array.shape[0]:
-        
         high_index: int = 0
-        
     else:
-        
         high_index: int = high_index_array[-1]
         
     low_bin = np.astype(bin_centers[low_index], im_array.dtype)
@@ -281,28 +244,23 @@ def get_corner_orientations(
         mask_array: np.ndarray = None) -> np.ndarray:
     
     if not mask_array:
-        
         mask_array: np.ndarray = np.ones((5, 5))
     
     if len(im_array.shape) > 2:
-        
         output_array: np.ndarray = np.empty((corners.shape[0], 2))
         output_array[:, 0] = corners[:, 0]
         slices: np.ndarray = np.unique(corners[:, 0])
         
         for slice_index in slices:
-            
             start_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][0]
             end_row: np.int64 = np.where(corners[:, 0] == slice_index)[0][-1]
             output_array[start_row:end_row, 1] = feature.corner_orientations(
                 im_array[slice_index],
                 corners[start_row:end_row, 1:2],
                 mask_array)
-            
         return output_array
             
     else:
-        
         return feature.corner_orientations(
             im_array,
             corners,
@@ -316,13 +274,9 @@ def __vol_area_precondition(
         normalize: bool = False) -> np.ndarray:
     
     if im_array.dtype == np.int64:
-        
         if np.any(mask_array):
-            
             if mask_array.ndim < im_array.ndim:
-                
                 mask_array = cc.project_mask(mask_array, im_array.shape[0])
-        
             count_array: np.ndarray = np.expand_dims(
                 np.array(
                     [255,
@@ -330,78 +284,58 @@ def __vol_area_precondition(
                 0)
             background_counts: int = np.count_nonzero(
                 im_array[np.bool(mask_array)] == 0)
-            
             if include_background:
-                
                 count_array = np.vstack(
                     (np.array(
                         [0, background_counts]),
                     count_array))
             
         else:
-            
             count_array: np.ndarray = np.expand_dims(
                 np.array(
                     [255, np.count_nonzero(im_array > 0)]),
                 0)
             background_counts: int = np.count_nonzero(im_array == 0)
-            
             if include_background:
-                
                 count_array = np.vstack(
                     (np.array(
                         [0, background_counts]),
                     count_array))
         
     else:
-        
         phase_array: np.ndarray = np.unique(im_array)
         
         if not include_background:
-            
             phase_array = np.delete(
                 phase_array,
                 np.argwhere(phase_array == background))
-        
         count_array: np.ndarray = np.empty(phase_array.shape)
         
         if np.any(mask_array):
-            
             if mask_array.ndim < im_array.ndim:
-                
                 mask_array = cc.project_mask(
                     mask_array,
                     im_array.shape[0])
-            
             background_counts: int = np.count_nonzero(
                 im_array[np.bool(mask_array)] == 0)
             
         else:
-            
             background_counts: int = np.count_nonzero(im_array == 0)
         
         for index, phase in enumerate(phase_array):
-            
             if np.any(mask_array):
-                
                 count_array[index] = np.count_nonzero(
                     im_array[np.bool(mask_array)] == phase)
-            
             else:
-            
                 count_array[index] = np.count_nonzero(
                     im_array == phase)
             
         count_array = np.stack((phase_array, count_array), 1)
         
     if normalize:
-        
         if include_background:
-        
             count_array[:, 1] = count_array[:, 1] / np.sum(count_array[:, 1])
-            
         else:
-            
             count_array[:, 1] = count_array[:, 1] / (np.sum(count_array[:, 1]) + background_counts)
     
     return count_array.T    
