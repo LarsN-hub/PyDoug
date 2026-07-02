@@ -1,3 +1,13 @@
+v0.11-beta
+- Restructured project to better reflect general best practices
+- Added open-source license file (BSD-3 clause)
+- Added third party licenses file required due to pyinstaller executable distribution
+- Removed extraneous IDE-specific requirements from requirements file
+- Added build directory containing build files
+- Added logo to exe file [it's my dog Luna in the snow :)]
+- Updated to latest napari version
+- Added ability to drag and drop hdf-type files into napari viewer to open them
+
 v0.10.1-beta
 - Optimized histogram statistics calculation speed with numba
 

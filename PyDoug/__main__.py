@@ -27,7 +27,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.10.1-beta"
+version_str: str = "v0.11.0-beta"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 

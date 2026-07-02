@@ -1,9 +1,3 @@
--------
-Preface
--------
-
-I am not a software developer. I am a PhD candidate who knows some things about image processing and wanted to make a GUI-operated resource for people who may not have access to MATLAB, ORS Dragonfly, etc. due to monetary limitations and who do not know how to code or want to spend time learning how to code. Please be patient with me as I navigate through the world of coding and GitHub best practices, licensing, and all that jazz.
-
 ---------
 Resources
 ---------
@@ -24,9 +18,10 @@ Other miscellaneous resources used:
 - cmasher: https://cmasher.readthedocs.io/
 - h5py: https://docs.h5py.org/en/stable/index.html
 - pandas: https://pandas.pydata.org/
-- PyQt5: https://pypi.org/project/PyQt5/
+- PySide6: https://pypi.org/project/PySide6/
 - QtPy: https://pypi.org/project/QtPy/
 - tkinter_unblur: https://pypi.org/project/tkinter-unblur/
+- napari-hdf5-reader: https://pypi.org/project/napari-hdf5-reader/
 
 ---------------------
 Installing & Updating
@@ -35,22 +30,22 @@ Installing & Updating
 **Installation**
 1. Navigate to the "Releases" section of the PyDoug GitHub page.
 2. Download the latest release PyDoug_OS.zip, where OS is your operating system (Windows or Linux).
-3. Extract PyDoug_OS folder (NOTE, the PyDoug_OS.exe file must stay in PyDoug_OS folder with _internal folder).
-4. Run the PyDoug_OS.exe inside the PyDoug_OS folder to launch.
+3. Extract PyDoug folder (NOTE, the PyDoug.exe file must stay in PyDoug folder next to the _internal folder).
+4. Double click the PyDoug.exe inside the PyDoug folder to launch.
 
 **Update**
 1. Download the newest release PyDoug_OS.zip.
-2. Delete the old PyDoug_OS folder.
-3. Extract the new PyDoug_OS folder.
-4. Run the PyDoug_OS.exe file inside the PyDoug_OS folder to launch.
+2. Delete the old PyDoug folder.
+3. Extract the new PyDoug folder.
+4. Double click the PyDoug.exe file inside the PyDoug folder to launch.
 
 ---------------
 Developer Tools
 ---------------
 
-If you would like to edit the code for PyDoug yourself, download the source code zip file and extract it. In the dev_tools folder you will find requirements_OS.txt files for each OS that you can use to create a virtual environment (using python v3.13) with all of the required modules and the tools that I used to work on PyDoug (it will create a spyder IDE in your virtual environment). With the virtual envionment activated, PyDoug can be launched without creating an exe file from your terminal/shell by navigating to the folder containing the extracted files (should have README, changelog, PyDoug folder, and dev_tools folder) and using the command "python -m PyDoug". This will call the __main__.py file in the PyDoug folder, which launches the app. All of the GUI functionality is contained in this file (i.e. making the widgets). The widgets mostly call functions from the three packages contained in the PyDoug folder (analyze, proc, and ui). If you want to create the executable file yourself, you will need to move the build_OS.spec file for your OS out of the dev_tools folder and into the topmost PyDoug folder. Navigate to that folder and (with the PyDoug environment activated) use  `pyinstaller --clean build_OS.spec` to generate the file. This will create two folder in your PyDoug folder, "build" and "dist". Within the dist folder will be the PyDoug folder with your executable inside.
+If you would like to edit the code for PyDoug yourself, download the source code zip file and extract it. In the main folder you will find requirements.txt files for Windows that you can use to create a virtual environment (using python v3.13) with all of the required modules. With the virtual envionment activated, PyDoug can be launched without creating an exe file from your terminal/shell by navigating to the folder containing the extracted files (should have README, changelog, PyDoug folder, and build folder) and using the command "python -m PyDoug". This will call the __main__.py file in the PyDoug folder, which launches the app. All of the GUI functionality is contained in this file (i.e. making the widgets). The widgets mostly call functions from the three packages contained in the PyDoug folder (analyze, proc, and ui). If you want to create the executable file yourself, you will need to navigate inside the build folder and use the command  `pyinstaller --clean build.spec` to generate the file. This will create two folder in your build folder, "build" and "dist". Within the dist folder will be the PyDoug folder with your executable inside.
 
-Note, for Linux you will need to install the full version of python with `sudo apt install -y python3-full` and then I recommend setting up pyenv to use python 3.13.13 (https://www.dedicatedcore.com/blog/install-pyenv-ubuntu/). You also may need to install this random dependency that will cause the program not to launch `sudo apt install libxcb-xinerama0`. For me, I still see a warning about `XDG_SESSION_TYPE=wayland` but it never gives me any errors.
+Note, for Linux you will need to install the full version of python with `sudo apt install -y python3-full` and then I recommend setting up pyenv to use python 3.13.14 (https://www.dedicatedcore.com/blog/install-pyenv-ubuntu/). You also may need to install this random dependency that will cause the program not to launch `sudo apt install libxcb-xinerama0`. For me, I still see a warning about `XDG_SESSION_TYPE=wayland` but it never gives me any errors.
 
 I am still working on getting this to work with MacOS.
 
@@ -60,7 +55,8 @@ General Info
 
 When you launch PyDoug, you will see the napari gui with a list of widget tabs on the right side. The widgets area can be un-docked and moved around for your convenience. However, DO NOT close the widgets tab or you will need to restart the program to get them back. Also, DO NOT close the terminal window that appears with it or PyDoug will force close as well. This terminal window is where the program will output measured quantities as well. Aside from the widgets area, everything works according to napari's website: https://napari.org/stable/tutorials/fundamentals/quick_start.html. I recommend familiarizing yourself with how napari works for ease of use with PyDoug. Here are some general instructions:
 
-- Any single image file (other than .h5-type formats) can simply be dragged and dropped into the napari window to open.
+- Any single image file can simply be dragged and dropped into the napari window to open.
+- Image directories without non-image files can also be dragged and dropped into the window to open.
 - You can move the image around by clicking and dragging with the mouse.
 - Toggle between 2D/3D view with the second from the left button at the bottom left of the gui.
 - In 3D, rotate by clicking and dragging and move the volume by holding shift before clicking and dragging.
