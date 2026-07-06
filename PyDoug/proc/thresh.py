@@ -359,6 +359,22 @@ def create_axial_labels(
         
     return lab_array
 
+def create_intensity_labels(
+    im_array: np.ndarray, *,
+    clims: tuple = None,
+    pixel_scale: float = 1
+) -> np.ndarray:
+
+    if not clims:
+        clims = (np.max(im_array), np.min(im_array))
+    lab_array: np.ndarray = np.zeros(im_array.shape, np.int32)
+    unique_ints: np.ndarray = np.arange(
+        min(clims), max(clims) + pixel_scale, pixel_scale
+    )
+    for label_index, int_index in enumerate(unique_ints):
+        lab_array[im_array == int_index] = label_index
+    return lab_array
+
 
 # Main
 

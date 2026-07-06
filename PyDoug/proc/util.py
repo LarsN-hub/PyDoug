@@ -58,18 +58,15 @@ def get_colormap(
         cbar_label: str = "Units") -> napari.utils.DirectLabelColormap:
     
     if not lab_limits:
-        
         lab_limits: tuple = (np.unique(im_array)[0], np.unique(im_array)[-1])
-        
     else:
-          
         if lab_limits[0] == 0:
-            
             lab_limits: tuple = (0, int(lab_limits[1] / cbar_scale))
-        
         else:
-            
-            lab_limits: tuple = (int(lab_limits[0] / cbar_scale), int(lab_limits[1] / cbar_scale))
+            lab_limits: tuple = (
+                int(lab_limits[0] / cbar_scale),
+                int(lab_limits[1] / cbar_scale)
+            )
         
     color_dict: dict = {0: np.array([0, 0, 0, 0])}
     nonzero_label_count: int = np.count_nonzero(
@@ -77,18 +74,17 @@ def get_colormap(
                   max(lab_limits) + 1))
         
     if min(lab_limits) == 0:
-            
         lab_limits = (1, max(lab_limits))
         
     color_grad_array: np.ndarray = colormaps[cmap](np.linspace(0, 1, nonzero_label_count))
     color_dict[None] = color_grad_array[-1, :]
             
-    for label_index, actual_label in enumerate(range(min(lab_limits), (max(lab_limits) + 1))):
-                
+    for label_index, actual_label in enumerate(
+        range(min(lab_limits), (max(lab_limits) + 1))
+    ):       
         color_dict[actual_label] = color_grad_array[label_index, :]
             
-    for actual_label in range(1, min(lab_limits)):
-                
+    for actual_label in range(1, min(lab_limits)):     
         color_dict[actual_label] = color_grad_array[0, :]
         
     cmap_return: napari.utils.DirectLabelColormap = napari.utils.DirectLabelColormap(
@@ -96,17 +92,11 @@ def get_colormap(
     cmap_return.name: str = cmap
         
     if return_cbar:
-        
         if cbar_units == "um":
-            
             cbar_units = "\u00b5m"
-        
         if cbar_units:
-            
             c_label: str = f"{cbar_label} ({cbar_units})"
-            
         else:
-            
             c_label: str = cbar_label
             
         fig, ax = plt.subplots(layout = "constrained")

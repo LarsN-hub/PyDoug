@@ -27,7 +27,7 @@ from PyDoug.analyze import quant, plots
 
 # Globals
 
-version_str: str = "v0.11.0-beta"
+version_str: str = "v0.11.1-beta"
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Arial"
 
@@ -3356,7 +3356,7 @@ class ImageProcessor:
         call_button = "Image to Labels")
     def image_2_labels_widget(self,
             Image: napari.layers.Image,
-            Gradient: bool = False,
+            Axial_Gradient: bool = False,
             Gradient_Axis: str = "Z",
             Color_Map: str = "inferno",
             Define_Limits: bool = False,
@@ -3376,7 +3376,7 @@ class ImageProcessor:
         self.parameters_log.append(
             {"Name": param_layer_name,
              "Acting On": Image.name,
-             "Gradient": Gradient,
+             "Axial Gradient": Axial_Gradient,
              "Gradient Axis": Gradient_Axis,
              "Color Map": Color_Map,
              "Define Limits": Define_Limits,
@@ -3386,16 +3386,17 @@ class ImageProcessor:
              "Units": Units,
              "Colorbar Label": Colorbar_Label})
         
-        if Gradient:
+        if Axial_Gradient:
             lab_array: np.ndarray = thresh.create_axial_labels(
                 Image.data,
                 Gradient_Axis)
             if Define_Limits:
                 lab_limits: tuple = (Min_Value, Max_Value)
             else:
-                lab_limits: tuple = ((np.unique(lab_array)[0] * Pixel_Scale),
-                                     (np.unique(lab_array)[-1] * Pixel_Scale))
-            
+                lab_limits: tuple = (
+                    (np.unique(lab_array)[0] * Pixel_Scale),
+                    (np.unique(lab_array)[-1] * Pixel_Scale)
+                )
             cmap, cbar = util.get_colormap(
                 lab_array,
                 lab_limits = lab_limits, 
@@ -3411,10 +3412,41 @@ class ImageProcessor:
             plt.show(block = False)
             
         else:
-            self.viewer.add_labels(
-                Image.data,
-                opacity = 1,
-                name = param_layer_name)
+            if len(np.unique(Image.data)) > 2:
+                if Define_Limits:
+                    lab_limits: tuple = (Min_Value, Max_Value)
+                else:
+                    lab_limits: tuple = (
+                        (np.min(Image.data)),
+                        (np.max(Image.data))
+                    )
+                lab_array: np.ndarray = thresh.create_intensity_labels(
+                    Image.data,
+                    clims = lab_limits,
+                    pixel_scale = Pixel_Scale
+                )
+                cmap, cbar = util.get_colormap(
+                    lab_array,
+                    lab_limits = lab_limits,
+                    cmap = Color_Map,
+                    cbar_scale = Pixel_Scale,
+                    cbar_units = Units,
+                    cbar_label = Colorbar_Label
+                )
+                self.viewer.add_labels(
+                    lab_array,
+                    colormap = cmap,
+                    opacity = 1,
+                    name = param_layer_name)
+                plt.show(block = False)
+            else:
+                lab_array = np.zeros(Image.data.shape, np.int32)
+                for index, intensity in enumerate(np.unique(Image.data)):
+                    lab_array[Image.data == intensity] = index
+                self.viewer.add_labels(
+                    lab_array,
+                    opacity = 1,
+                    name = param_layer_name)
         
         
 # Functions

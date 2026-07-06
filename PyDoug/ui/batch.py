@@ -1668,7 +1668,7 @@ def apply_parameters(
             
         elif parameter["Name"].find("Image to Labels") == 0:
             print("\nConverting image to labels...")
-            if parameter["Gradient"].lower() == "true":
+            if parameter["Axial Gradient"].lower() == "true":
                 im_array = thresh.create_axial_labels(
                     im_array,
                     int(parameter["Gradient Axis"]))
@@ -1678,8 +1678,8 @@ def apply_parameters(
                         float(parameter["Max Value"]))
                 else:
                     lab_limits: tuple = (
-                        (np.unique(im_array)[0] * float(parameter["Pixel Scale"])),
-                        (np.unique(im_array)[-1] * float(parameter["Pixel Scale"])))
+                        (np.min(im_array) * float(parameter["Pixel Scale"])),
+                        (np.max(im_array) * float(parameter["Pixel Scale"])))
                 cmap, cbar = util.get_colormap(
                     im_array,
                     lab_limits = lab_limits, 
@@ -1688,7 +1688,52 @@ def apply_parameters(
                     cbar_units = parameter["Units"],
                     cbar_label = parameter["Colorbar Label"])
             else:
-                cmap: None = None
+                if len(np.unique(im_array)) > 2:
+                    if parameter["Define Limits"].lower() == "true":
+                        lab_limits: tuple = (
+                            float(parameter["Min Value"]),
+                            float(parameter["Max Value"])
+                        )
+                    else:
+                        lab_limits: tuple = (
+                            (np.min(im_array)),
+                            (np.max(im_array))
+                        )
+                    im_array = thresh.create_intensity_labels(
+                        im_array,
+                        clims = lab_limits,
+                        pixel_scale = float(parameter["Pixel Scale"])
+                    )
+                    cmap, cbar = util.get_colormap(
+                        im_array,
+                        lab_limits = lab_limits,
+                        cmap = parameter["Color Map"],
+                        cbar_scale = float(parameter["Pixel Scale"]),
+                        cbar_units = parameter["Units"],
+                        cbar_label = parameter["Colorbar Label"]
+                    )
+                else:
+                    lab_array = np.zeros(im_array.shape, np.int32)
+                    for index, intensity in enumerate(np.unique(im_array)):
+                        lab_array[im_array == intensity] = index
+                    if parameter["Define Limits"].lower() == "true":
+                        lab_limits: tuple = (
+                            float(parameter["Min Value"]),
+                            float(parameter["Max Value"])
+                        )
+                    else:
+                        lab_limits: tuple = (0, np.max(lab_array))
+                        if lab_limits[1] == lab_limits[0]:
+                            lab_limits = (0, 1)
+                    im_array = np.copy(lab_array)
+                    cmap, cbar = util.get_colormap(
+                        im_array,
+                        lab_limits = lab_limits,
+                        cmap = parameter["Color Map"],
+                        cbar_scale = float(parameter["Pixel Scale"]),
+                        cbar_units = parameter["Units"],
+                        cbar_label = parameter["Colorbar Label"]
+                    )
                 
             cmaps[parameter["Name"]] = cmap
             parameters_dict[parameter["Name"]] = im_array
