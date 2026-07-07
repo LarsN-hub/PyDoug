@@ -1,3 +1,27 @@
+---------------
+What is PyDoug?
+---------------
+
+PyDoug is free and open-source image processing and analysis software intended for n-dimensional scientific image research. It requires no programming knowledge of any kind as it is run completely from an executable file that you can simply download and extract. No installation is required, either, it runs completely contained in the folder it downloads in.
+
+PyDoug acts as a graphical user interface for several extremely powerful python image processing libraries (mainly napari and scikit-image) so that functions in these libraries can be operated through buttons in widgets in an app rather than coding in a command line interface. Each widget is completely detailed in the rest of the README below should you have any questions. But, as a quick overview, PyDoug can...
+- Import many different scientific image formats (including hdf5/hdf/h5 file types)
+- Manipulate image dimensions through padding and cropping operations (both with specified dimensions or using custom masks)
+- Transform image stacks by reslicing, mirroring, rotating, rescaling, resizing, etc.
+- Create masks of images for focused analysis and cropping
+- Enahnce brightness and contrast in images through histogram saturation, normalization, and equalization
+- Convert large bit-depth integer formats output as raw data to smaller, more manageable formats
+- Denoise images with many powerful filters such bilateral, gaussian blur, nonlocal means, total variation, and wavelet filters
+- Segment images through manual or algorithmic histogram thresholding (global, local, and morphological)
+- Identify features in images such as edges, corners, ridges, and blobs
+- Filter images with fourier and distance transformations
+- Filter binary semgented images with size and morphology based filters
+- Calculate metrics of grayscale and segmented images, including histogram statistics, volume, area, length, surface area/perimeter, contact area/perimeter, and fractal dimensions
+- Generate publication-ready plots of image histograms and grayscale distributions, particle/domain size distributions, axial distributions of volume/area for 3D stacks, thickness maps for 3D stacks, and resolution dependence of different measured values
+- Generate beautiful visualizations of 2D and 3D datasets with many different color maps and rendering options
+
+I am constantly adding new features as they become relevant to my research and am happy to take requests if you have suggestions of your own. I hope you will find PyDoug useful for your own research!
+
 ---------
 Resources
 ---------
