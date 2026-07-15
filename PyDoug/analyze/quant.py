@@ -643,7 +643,8 @@ def estimate_fractal_dimension(
     if rescale_factor < 2:
         rescale_factor = 2
     
-    # Using D = log[N1/N2] / log[r] (Hausdorff dimension)
+    # Using D = log[N1/N2] / log[r] (box-counting method) derived from...
+    # N = r ^ (-D)
     # D = fractal dim, N = no. of counted units, r = rescale factor between states
     res_array: np.ndarray = trans.rescale(
         np.bool(im_array), 1 / rescale_factor
