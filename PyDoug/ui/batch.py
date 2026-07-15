@@ -1295,8 +1295,10 @@ def apply_parameters(
                 
             fractal_dim: np.float64 = quant.estimate_fractal_dimension(
                 im_array,
+                method = parameter["Method"].lower(),
                 metric = parameter["Metric"].lower(),
                 rescale_factor = float(parameter["Rescale Factor"]),
+                mb_points = int(parameter["Mandelbrot Points"]),
                 print_results = False,
                 mask_array = mask_array)
             fractal_df: pd.DataFrame = pd.DataFrame(
@@ -1631,6 +1633,8 @@ def apply_parameters(
                 metric = parameter["Metric"].lower(),
                 bulk_method = parameter["Bulk Method"].lower(),
                 estimate_fractal = estimate_fractal,
+                fractal_method = parameter["Fractal Method"].lower(),
+                mb_points = int(parameter["Mandelbrot Points"]),
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
                 bounds = bounds,

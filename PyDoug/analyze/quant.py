@@ -8,6 +8,7 @@ Module for single-value measurements of images
 import pandas as pd, numpy as np, math
 
 from skimage import feature, metrics
+from scipy.stats import linregress
 from typing import Callable
 from numba import njit
 
@@ -635,64 +636,141 @@ def get_surface_contact(
 
 def estimate_fractal_dimension(
         im_array: np.ndarray, *,
+        method: str = "box count",
         metric: str = "bulk",
         rescale_factor: float = 2,
+        mb_points: int = 4,
         print_results: bool = True,
         mask_array: np.ndarray = None) -> np.float64:
     
     if rescale_factor < 2:
         rescale_factor = 2
     
-    # Using D = log[N1/N2] / log[r] (box-counting method) derived from...
-    # N = r ^ (-D)
-    # D = fractal dim, N = no. of counted units, r = rescale factor between states
-    res_array: np.ndarray = trans.rescale(
-        np.bool(im_array), 1 / rescale_factor
-    )
-    if np.any(mask_array):
-        eval_mask_array = trans.rescale(
-            np.bool(mask_array), 1 / rescale_factor
+    if method == "box count":
+        # Using D = log[N1/N2] / log[r] (box-counting method) derived from...
+        # N = r^(-D) and r = p2/p1
+        # D = fractal dim, N = no. of counted units,
+        # r = rescale factor between states, p = pixel size
+        res_array: np.ndarray = trans.rescale(
+            np.bool(im_array), 1 / rescale_factor
         )
-        if eval_mask_array.ndim < res_array.ndim:
-            eval_mask_array = cc.project_mask(
-                eval_mask_array,
-                res_array.shape[0]
+        
+        if np.any(mask_array):
+            eval_mask_array = trans.rescale(
+                np.bool(mask_array), 1 / rescale_factor
             )
-        res_array[np.logical_not(np.bool(eval_mask_array))] = False
-    else:
-        eval_mask_array = None
-    if metric == "bulk":
-        if not util.is_3d_rgb(im_array)["3D"]:
-            L1_df: pd.DataFrame = get_area(
-                np.bool(im_array),
-                print_results = False)
-            L2_df: pd.DataFrame = get_area(
-                res_array,
-                print_results = False)
+            if eval_mask_array.ndim < res_array.ndim:
+                eval_mask_array = cc.project_mask(
+                    eval_mask_array,
+                    res_array.shape[0]
+                )
+            res_array[np.logical_not(np.bool(eval_mask_array))] = False
+            
         else:
-            L1_df: pd.DataFrame = get_volume(
+            eval_mask_array = None
+            
+        if metric == "bulk":
+            if not util.is_3d_rgb(im_array)["3D"]:
+                N1_df: pd.DataFrame = get_area(
+                    np.bool(im_array),
+                    print_results = False)
+                N2_df: pd.DataFrame = get_area(
+                    res_array,
+                    print_results = False)
+            else:
+                N1_df: pd.DataFrame = get_volume(
+                    np.bool(im_array),
+                    print_results = False)
+                N2_df: pd.DataFrame = get_volume(
+                    res_array,
+                    print_results = False)
+            N1: float = N1_df[N1_df.columns[0]][0]
+            N2: float = N2_df[N2_df.columns[0]][0]
+            
+        elif metric == "surface" or metric == "specific surface":
+            N1_df: pd.DataFrame = get_surface_contact(
                 np.bool(im_array),
+                correct_overestimation = False,
                 print_results = False)
-            L2_df: pd.DataFrame = get_volume(
+            N2_df: pd.DataFrame = get_surface_contact(
                 res_array,
+                correct_overestimation = False,
                 print_results = False)
-        L1: float = L1_df[L1_df.columns[0]][0]
-        L2: float = L2_df[L2_df.columns[0]][0]
-    elif metric == "surface" or metric == "specific surface":
-        L1_df: pd.DataFrame = get_surface_contact(
-            np.bool(im_array),
-            correct_overestimation = False,
-            print_results = False)
-        L2_df: pd.DataFrame = get_surface_contact(
-            res_array,
-            correct_overestimation = False,
-            print_results = False)
-        L1: float = L1_df[L1_df.columns[1]][0]
-        L2: float = L2_df[L2_df.columns[1]][0]
-    D: float = math.log10(L1 / L2) / math.log10(rescale_factor)
+            N1: float = N1_df[N1_df.columns[1]][0]
+            N2: float = N2_df[N2_df.columns[1]][0]
+            
+        D: float = math.log10(N1 / N2) / math.log10(rescale_factor)
+        if print_results:
+            print(f"\n{"Fractal Dim.:":<16} {D:.2f} @ {rescale_factor}x rescale factor")
+
+    else:
+        # Using log[S] = m + (X - D)log[p] (Mandelbrot formula method) derived from...
+        # S = M * r^(X - D), r = p2/p1
+        # D = fractal dimension, S = measured property, M = constant,
+        # r = rescaling factor between states, p = pixel size, X = dimension (1-3)
+        rescale_array: np.ndarray = np.logspace(
+            0, math.log10(rescale_factor), mb_points
+        )
+        S_array: np.ndarray = np.zeros(rescale_array.shape)
+        
+        if util.is_3d_rgb(im_array)["3D"]:
+            if metric == "bulk":
+                X: int = 3
+            else:
+                X: int = 2
+        else:
+            if metric == "bulk":
+                X: int = 2
+            else:
+                X: int = 1
+
+        for index, rescale_factor in enumerate(rescale_array):
+            res_pixel_size = rescale_array[index]
+            res_array: np.ndarray = trans.rescale(
+                np.bool(im_array), 1 / rescale_factor
+            )
+            
+            if np.any(mask_array):
+                eval_mask_array = trans.rescale(
+                    np.bool(mask_array), 1 / rescale_factor
+                )
+                if eval_mask_array.ndim < res_array.ndim:
+                    eval_mask_array = cc.project_mask(
+                        eval_mask_array,
+                        res_array.shape[0]
+                    )
+                res_array[np.logical_not(np.bool(eval_mask_array))] = False
+
+            else:
+                eval_mask_array = None
+
+            if metric == "bulk":
+                if not util.is_3d_rgb(im_array)["3D"]:
+                    S_df: pd.DataFrame = get_area(
+                        res_array,
+                        scale = res_pixel_size,
+                        print_results = False)
+                else:
+                    S_df: pd.DataFrame = get_volume(
+                        res_array,
+                        scale = res_pixel_size,
+                        print_results = False)
+                S_array[index]: float = S_df[S_df.columns[0]][0]
+                
+            elif metric == "surface" or metric == "specific surface":
+                S_df: pd.DataFrame = get_surface_contact(
+                    res_array,
+                    pixel_size = res_pixel_size,
+                    print_results = False)
+                S_array[index]: float = S_df[S_df.columns[1]][0]
+
+        S_lin_reg = linregress(np.log10(rescale_array), np.log10(S_array))
+        D: float = X - S_lin_reg.slope
+        if print_results:
+            print(f"\n{"Fractal Dim.:":<16} {D:.2f} from",
+                  f"{mb_points} points along 1.0-{rescale_factor}x",
+                  f"rescale factor range (std. error: {S_lin_reg.stderr:.2})")
     
-    if print_results:
-        print(f"\n{"Fractal Dim.:":<16} {D:.2f} @ {rescale_factor}x rescale factor")
     return D
 
 def get_specific_surface(

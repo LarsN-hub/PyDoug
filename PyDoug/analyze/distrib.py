@@ -557,6 +557,8 @@ def get_resolution_dependence(
         metric: str = "bulk",
         bulk_method: str = "phase",
         estimate_fractal: bool = False,
+        fractal_method: str = "box count",
+        mb_points: int = 4,
         pixel_size: float = 1,
         units: str = "pix",
         bounds: tuple = None,
@@ -599,8 +601,10 @@ def get_resolution_dependence(
                     eval_mask_array = None
                 return_values[index] = quant.estimate_fractal_dimension(
                     res_array,
+                    method = fractal_method,
                     metric = metric,
                     rescale_factor = next_size / current_size,
+                    mb_points = mb_points,
                     print_results = False,
                     mask_array = eval_mask_array)
             else:

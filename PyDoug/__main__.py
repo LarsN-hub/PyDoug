@@ -2731,12 +2731,15 @@ class ImageProcessor:
             correct_overestimation = Correct_Overestimation)
     
     @magicgui(
+        Method = {"choices": ["Box Count", "Mandelbrot"]},
         Metric = {"choices": ["Bulk", "Surface"]},
         call_button = "Calculate Fractal Dimension")
     def calc_fractal_dimension_widget(self,
             Image: napari.layers.Image,
+            Method: str = "Box Count",
             Metric: str = "Surface",
             Rescale_Factor: float = 2,
+            Mandelbrot_Points: int = 4,
             Apply_Mask: bool = False,
             Mask: napari.layers.Image = None,
             Unique_Batch_Masks: bool = False,
@@ -2756,16 +2759,20 @@ class ImageProcessor:
             self.parameters_log.append(
                 {"Name": param_layer_name,
                  "Acting On": Image.name,
+                 "Method": Method.lower(),
                  "Metric": Metric.lower(),
                  "Rescale Factor": Rescale_Factor,
+                 "Mandelbrot Points": Mandelbrot_Points,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
                  "Unique Masks": Unique_Batch_Masks})
         
         _ = quant.estimate_fractal_dimension(
             Image.data,
+            method = Method.lower(),
             metric = Metric.lower(),
             rescale_factor = Rescale_Factor,
+            mb_points = Mandelbrot_Points,
             mask_array = mask_array)
 
     @magicgui(
@@ -3238,6 +3245,7 @@ class ImageProcessor:
     @magicgui(
         Metric = {"choices": ["Bulk", "Surface", "Specific Surface"]},
         Spec_Surf_Bulk_Method = {"choices": ["FOV", "Phase"]},
+        Fractal_Method = {"choices": ["Box Count", "Mandelbrot"]},
         Lower_Bound = {"max": 1000000000},
         Upper_Bound = {"max": 1000000000},
         X_Max = {"max": 1000000000},
@@ -3251,6 +3259,8 @@ class ImageProcessor:
             Metric: str = "Surface",
             Spec_Surf_Bulk_Method: str = "Phase",
             Estimate_Fractal: bool = False,
+            Fractal_Method: str = "Box Count",
+            Mandelbrot_Points: int = 4,
             Lower_Bound: float = 0,
             Upper_Bound: float = 0,
             Num_Points: int = 10,
@@ -3299,6 +3309,8 @@ class ImageProcessor:
                  "Metric": Metric.lower(),
                  "Bulk Method": Spec_Surf_Bulk_Method.lower(),
                  "Estimate Fractal": Estimate_Fractal,
+                 "Fractal Method": Fractal_Method.lower(),
+                 "Mandelbrot Points": Mandelbrot_Points,
                  "Lower Bound": Lower_Bound,
                  "Upper Bound": Upper_Bound,
                  "Num Points": Num_Points,
@@ -3320,6 +3332,8 @@ class ImageProcessor:
             metric = Metric.lower(),
             bulk_method = Spec_Surf_Bulk_Method.lower(),
             estimate_fractal = Estimate_Fractal,
+            fractal_method = Fractal_Method.lower(),
+            mb_points = Mandelbrot_Points,
             pixel_size = Pixel_Scale,
             units = Units,
             bounds = bounds,
