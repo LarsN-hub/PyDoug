@@ -7,7 +7,7 @@ Module for single-value measurements of images
 
 import pandas as pd, numpy as np, math
 
-from skimage import feature
+from skimage import feature, metrics
 from typing import Callable
 from numba import njit
 
@@ -305,7 +305,7 @@ def __vol_area_precondition(
     else:
         phase_array: np.ndarray = np.unique(im_array)
         
-        if not include_background:
+        if not include_background and len(phase_array) >= 2:
             phase_array = np.delete(
                 phase_array,
                 np.argwhere(phase_array == background))
@@ -645,11 +645,18 @@ def estimate_fractal_dimension(
     
     # Using D = log[N1/N2] / log[r] (Hausdorff dimension)
     # D = fractal dim, N = no. of counted units, r = rescale factor between states
-    res_array: np.ndarray = trans.rescale(np.bool(im_array), 1 / rescale_factor)
+    res_array: np.ndarray = trans.rescale(
+        np.bool(im_array), 1 / rescale_factor
+    )
     if np.any(mask_array):
-        eval_mask_array = trans.rescale(np.bool(mask_array), 1 / rescale_factor)
+        eval_mask_array = trans.rescale(
+            np.bool(mask_array), 1 / rescale_factor
+        )
         if eval_mask_array.ndim < res_array.ndim:
-            eval_mask_array = cc.project_mask(eval_mask_array, res_array.shape[0])
+            eval_mask_array = cc.project_mask(
+                eval_mask_array,
+                res_array.shape[0]
+            )
         res_array[np.logical_not(np.bool(eval_mask_array))] = False
     else:
         eval_mask_array = None
@@ -673,9 +680,11 @@ def estimate_fractal_dimension(
     elif metric == "surface" or metric == "specific surface":
         L1_df: pd.DataFrame = get_surface_contact(
             np.bool(im_array),
+            correct_overestimation = False,
             print_results = False)
         L2_df: pd.DataFrame = get_surface_contact(
             res_array,
+            correct_overestimation = False,
             print_results = False)
         L1: float = L1_df[L1_df.columns[1]][0]
         L2: float = L2_df[L2_df.columns[1]][0]
@@ -747,6 +756,16 @@ def get_specific_surface(
     if print_results:
         print(f"\n{print_str:<16} {sp_surface} 1/{units}")
     return sp_surface_df
+
+def get_mse(
+    im_array1: np.ndarray,
+    im_array2: np.ndarray
+) -> float:
+
+    mse: float = metrics.mean_squared_error(im_array1, im_array2)
+    print_str: str = "MSE"
+    print(f"\n{print_str:<16} {mse:0.3}")
+    return mse
 
 
 # Main

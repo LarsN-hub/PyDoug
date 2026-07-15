@@ -2768,6 +2768,14 @@ class ImageProcessor:
             rescale_factor = Rescale_Factor,
             mask_array = mask_array)
 
+    @magicgui(
+        call_button = "Calculate MSE")
+    def calc_mse_widget(self,
+            Image_1: napari.layers.Image,
+            Image_2: napari.layers.Image) -> None:
+
+        _ = quant.get_mse(Image_1.data, Image_2.data)
+
     #################
     # Plots Widgets #
     #################
@@ -3802,6 +3810,8 @@ def main() -> napari.viewer.Viewer:
         ui.calc_specific_surface_widget, "Calculate Specific Surface Value")
     mod_calc_fractal_dimension: widgets.Container = modify_funcgui(
         ui.calc_fractal_dimension_widget, "Calculate Fractal Dimension")
+    mod_calc_mse: widgets.Container = modify_funcgui(
+        ui.calc_mse_widget, "Calculate Mean Squared Error")
     calculations_container: mcw.ScrollableContainer = mcw.ScrollableContainer(
         widgets = [
             mod_calc_stats,
@@ -3810,7 +3820,8 @@ def main() -> napari.viewer.Viewer:
             mod_calc_surface_value,
             mod_calc_contact_value,
             mod_calc_specific_surface,
-            mod_calc_fractal_dimension],
+            mod_calc_fractal_dimension,
+            mod_calc_mse],
         labels = False)
     tabs.addTab(calculations_container.native, "Calculations")
     

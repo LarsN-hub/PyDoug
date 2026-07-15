@@ -1188,7 +1188,6 @@ def apply_parameters(
                 
             surf_df: pd.DataFrame = quant.get_surface_contact(
                 im_array,
-                float(parameter["Phase Intensity"]),
                 mask_array = mask_array,
                 pixel_size = float(parameter["Pixel Size"]),
                 units = parameter["Units"],
