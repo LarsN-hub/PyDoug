@@ -391,7 +391,7 @@ def get_area(
         include_background: bool = False,
         background: float | int = 0,
         normalize: bool = False,
-        print_results: bool = False) -> pd.DataFrame:
+        print_results: bool = True) -> pd.DataFrame:
     
     if units == "um":
         units = "\u00b5m"
@@ -432,7 +432,7 @@ def get_length(
         include_background: bool = False,
         background: float | int = 0,
         normalize: bool = False,
-        print_results: bool = False) -> pd.DataFrame:
+        print_results: bool = True) -> pd.DataFrame:
     
     if units == "um":
         units = "\u00b5m"
