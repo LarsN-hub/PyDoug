@@ -22,6 +22,8 @@ PyDoug acts as a graphical user interface for several extremely powerful python 
 
 I am constantly adding new features as they become relevant to my research and am happy to take requests if you have suggestions of your own. I hope you will find PyDoug useful for your own research!
 
+If you use PyDoug for your research, you can cite it here: https://doi.org/10.5281/zenodo.21267286
+
 ---------
 Resources
 ---------
