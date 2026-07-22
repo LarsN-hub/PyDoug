@@ -428,6 +428,10 @@ def read_stack_fast(
     else:
         
         try:
+
+            im_array: np.ndarray = imageio.v3.imread(stack_path)
+                    
+        except Image.UnidentifiedImageError:
             
             with Image.open(stack_path) as im:
             
@@ -439,10 +443,6 @@ def read_stack_fast(
                 else:
                     
                     im_array: np.ndarray = read_im(stack_path)
-                    
-        except Image.UnidentifiedImageError:
-            
-            im_array: np.ndarray = imageio.v2.imread(stack_path)
     
     return np.squeeze(im_array)
     
