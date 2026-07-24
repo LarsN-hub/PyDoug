@@ -641,7 +641,8 @@ def estimate_fractal_dimension(
         rescale_factor: float = 2,
         mb_points: int = 4,
         print_results: bool = True,
-        mask_array: np.ndarray = None) -> np.float64:
+        mask_array: np.ndarray = None,
+        return_df: bool = False) -> np.float64:
     
     if rescale_factor < 2:
         rescale_factor = 2
@@ -701,7 +702,13 @@ def estimate_fractal_dimension(
             
         D: float = math.log10(N1 / N2) / math.log10(rescale_factor)
         if print_results:
-            print(f"\n{"Fractal Dim.:":<16} {D:.2f} @ {rescale_factor}x rescale factor")
+            print(
+                f"\n{"Fractal Dim.:":<16} {D:.2f} @ {rescale_factor}x rescale factor"
+            )
+        if return_df:
+            return (D, None)
+        else:
+            return D
 
     else:
         # Using log[S] = m + (X - D)log[p] (Mandelbrot formula method) derived from...
@@ -770,8 +777,15 @@ def estimate_fractal_dimension(
             print(f"\n{"Fractal Dim.:":<16} {D:.2f} from",
                   f"{mb_points} points along 1.0-{rescale_factor}x",
                   f"rescale factor range (std. error: {S_lin_reg.stderr:.2})")
-    
-    return D
+
+        if return_df:
+            fractal_df: pd.DataFrame = pd.DataFrame(
+                np.hstack((np.expand_dims(rescale_array, 1), np.expand_dims(S_array, 1))),
+                columns = ["Rescale Factor", "Measured Value"]
+            )
+            return D, fractal_df
+        else:
+            return D
 
 def get_specific_surface(
         im_array: np.ndarray, *,

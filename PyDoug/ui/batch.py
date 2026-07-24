@@ -75,6 +75,7 @@ def apply_parameters(
     axis_dist_index: int = 0
     psd_index: int = 0
     heat_index: int = 0
+    mb_index: int = 0
     cmaps: dict = {}
     
     for parameter_index, parameter in enumerate(parameters_log):
@@ -1293,19 +1294,27 @@ def apply_parameters(
             else:
                 mask_array: None = None
                 
-            fractal_dim: np.float64 = quant.estimate_fractal_dimension(
+            fractal_dim, mb_df = quant.estimate_fractal_dimension(
                 im_array,
                 method = parameter["Method"].lower(),
                 metric = parameter["Metric"].lower(),
                 rescale_factor = float(parameter["Rescale Factor"]),
                 mb_points = int(parameter["Mandelbrot Points"]),
                 print_results = False,
-                mask_array = mask_array)
+                mask_array = mask_array,
+                return_df = True)
             fractal_df: pd.DataFrame = pd.DataFrame(
                 {"Fractal Dimension": np.array([fractal_dim]),
                  "Rescale Factor": np.array([float(parameter["Rescale Factor"])])})
             save_path: str = save_dir + f"/Fractal_Dimension_{frac_index}.csv"
+            save_path_mb: str = save_dir + f"/{file_name}_{mb_index}.csv"
             fractal_df.insert(0, "File Name", file_name)
+
+            if parameter["Export Mandelbrot"].lower() == "true":
+                mb_df.to_csv(
+                    save_path_mb,
+                    header = "column_names",
+                    index = False)
             
             if not os.path.isfile(save_path):
                 fractal_df.to_csv(
@@ -1318,6 +1327,7 @@ def apply_parameters(
                     mode = "a",
                     header = False,
                     index = False)
+            mb_index += 1
             frac_index += 1
             
         

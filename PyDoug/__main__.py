@@ -2743,7 +2743,10 @@ class ImageProcessor:
             Apply_Mask: bool = False,
             Mask: napari.layers.Image = None,
             Unique_Batch_Masks: bool = False,
-            Add_as_Parameter: bool = False) -> None:
+            Add_as_Parameter: bool = False,
+            Export_Mandelbrot: bool = False,
+            Save_Folder: pathlib.Path = pathlib.Path("~"),
+            Save_Name: str = "Name") -> None:
         
         if Apply_Mask:
             mask_array: np.ndarray = Mask.data
@@ -2751,6 +2754,9 @@ class ImageProcessor:
         else:
             mask_array = None
             mask_name = None
+
+        if Method == "Box Count" and Export_Mandelbrot:
+            Export_Mandelbrot = False
         
         if Add_as_Parameter:
             param_layer_name = get_param_layer_name(
@@ -2765,15 +2771,23 @@ class ImageProcessor:
                  "Mandelbrot Points": Mandelbrot_Points,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
-                 "Unique Masks": Unique_Batch_Masks})
+                 "Unique Masks": Unique_Batch_Masks,
+                 "Export Mandelbrot": Export_Mandelbrot})
         
-        _ = quant.estimate_fractal_dimension(
+        _, fractal_df = quant.estimate_fractal_dimension(
             Image.data,
             method = Method.lower(),
             metric = Metric.lower(),
             rescale_factor = Rescale_Factor,
             mb_points = Mandelbrot_Points,
-            mask_array = mask_array)
+            mask_array = mask_array,
+            return_df = True)
+
+        if Export_Mandelbrot:
+            fractal_df.to_csv(
+                f"{str(Save_Folder)}/{Save_Name}.csv",
+                header = "column names",
+                index = False)
 
     @magicgui(
         call_button = "Calculate MSE")
