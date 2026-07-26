@@ -640,6 +640,7 @@ def estimate_fractal_dimension(
         metric: str = "bulk",
         rescale_factor: float = 2,
         mb_points: int = 4,
+        pixel_size: float = 1,
         print_results: bool = True,
         mask_array: np.ndarray = None,
         return_df: bool = False) -> np.float64:
@@ -718,6 +719,7 @@ def estimate_fractal_dimension(
         rescale_array: np.ndarray = np.logspace(
             0, math.log10(rescale_factor), mb_points
         )
+        pixel_size_array: np.ndarray = rescale_array * pixel_size
         S_array: np.ndarray = np.zeros(rescale_array.shape)
         
         if util.is_3d_rgb(im_array)["3D"]:
@@ -732,7 +734,7 @@ def estimate_fractal_dimension(
                 X: int = 1
 
         for index, rescale_factor in enumerate(rescale_array):
-            res_pixel_size = rescale_array[index]
+            res_pixel_size = pixel_size_array[index]
             res_array: np.ndarray = trans.rescale(
                 np.bool(im_array), 1 / rescale_factor
             )
@@ -771,7 +773,7 @@ def estimate_fractal_dimension(
                     print_results = False)
                 S_array[index]: float = S_df[S_df.columns[1]][0]
 
-        S_lin_reg = linregress(np.log10(rescale_array), np.log10(S_array))
+        S_lin_reg = linregress(np.log10(pixel_size_array), np.log10(S_array))
         D: float = X - S_lin_reg.slope
         if print_results:
             print(f"\n{"Fractal Dim.:":<16} {D:.2f} from",
@@ -780,8 +782,13 @@ def estimate_fractal_dimension(
 
         if return_df:
             fractal_df: pd.DataFrame = pd.DataFrame(
-                np.hstack((np.expand_dims(rescale_array, 1), np.expand_dims(S_array, 1))),
-                columns = ["Rescale Factor", "Measured Value"]
+                np.hstack(
+                    (
+                        np.expand_dims(pixel_size_array, 1),
+                        np.expand_dims(S_array, 1)
+                    )
+                ),
+                columns = ["Pixel Size", "Measured Value"]
             )
             return D, fractal_df
         else:

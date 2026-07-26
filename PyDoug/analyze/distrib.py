@@ -605,6 +605,7 @@ def get_resolution_dependence(
                     metric = metric,
                     rescale_factor = next_size / current_size,
                     mb_points = mb_points,
+                    pixel_size = pixel_size,
                     print_results = False,
                     mask_array = eval_mask_array)
             else:

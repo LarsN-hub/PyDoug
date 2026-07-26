@@ -1300,6 +1300,7 @@ def apply_parameters(
                 metric = parameter["Metric"].lower(),
                 rescale_factor = float(parameter["Rescale Factor"]),
                 mb_points = int(parameter["Mandelbrot Points"]),
+                pixel_size = float(parameter["Pixel Size"]),
                 print_results = False,
                 mask_array = mask_array,
                 return_df = True)

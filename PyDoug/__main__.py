@@ -90,6 +90,9 @@ class ImageProcessor:
         self.calc_specific_surface_widget.Pixel_Scale.native.setDecimals(3)
         self.calc_specific_surface_widget.Pixel_Scale.step = 0.001
         self.calc_specific_surface_widget.Pixel_Scale.value = 1
+        self.calc_fractal_dimension_widget.Pixel_Scale.native.setDecimals(3)
+        self.calc_fractal_dimension_widget.Pixel_Scale.step = 0.001
+        self.calc_fractal_dimension_widget.Pixel_Scale.value = 1
         self.axis_distribution_widget.Pixel_Scale.native.setDecimals(3)
         self.axis_distribution_widget.Pixel_Scale.step = 0.001
         self.axis_distribution_widget.Pixel_Scale.value = 1
@@ -2741,6 +2744,7 @@ class ImageProcessor:
             Rescale_Factor: float = 2,
             Mandelbrot_Points: int = 4,
             Apply_Mask: bool = False,
+            Pixel_Scale: float = 1.0,
             Mask: napari.layers.Image = None,
             Unique_Batch_Masks: bool = False,
             Add_as_Parameter: bool = False,
@@ -2769,6 +2773,7 @@ class ImageProcessor:
                  "Metric": Metric.lower(),
                  "Rescale Factor": Rescale_Factor,
                  "Mandelbrot Points": Mandelbrot_Points,
+                 "Pixel Size": Pixel_Scale,
                  "Apply Mask": Apply_Mask,
                  "Mask Used": mask_name,
                  "Unique Masks": Unique_Batch_Masks,
@@ -2780,6 +2785,7 @@ class ImageProcessor:
             metric = Metric.lower(),
             rescale_factor = Rescale_Factor,
             mb_points = Mandelbrot_Points,
+            pixel_size = Pixel_Scale,
             mask_array = mask_array,
             return_df = True)
 
