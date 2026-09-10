@@ -521,19 +521,19 @@ def get_heat_map(
             heat_array: np.ndarray = np.count_nonzero(bool_array, axis)
         
         elif mode == "height":
-            if axis == 0:
-                max_height_array: np.ndarray = np.ones(
-                    (im_array.shape[1], im_array.shape[2])) * (im_array.shape[0] - 1)
-            elif axis == 1:
+            if axis == 1:
                 max_height_array: np.ndarray = np.ones(
                     (im_array.shape[0], im_array.shape[2])) * (im_array.shape[1] - 1)
             elif axis == 2:
                 max_height_array: np.ndarray = np.ones(
                     (im_array.shape[0], im_array.shape[1])) * (im_array.shape[2] - 1)
+            else:
+                max_height_array: np.ndarray = np.ones(
+                    (im_array.shape[1], im_array.shape[2])) * (im_array.shape[0] - 1)
             
             if height_orientation == "near":
                 heat_array: np.ndarray = np.argmax(bool_array, axis)
-            elif height_orientation == "far":
+            else:
                 heat_array: np.ndarray = max_height_array - np.argmax(
                     trans.mirror(bool_array, axis), axis)
                 
@@ -550,7 +550,7 @@ def get_heat_map(
                     0),
                 1)
                 
-        return heat_array * pixel_size
+    return heat_array * pixel_size
     
 def get_resolution_dependence(
         im_array: np.ndarray, *,
